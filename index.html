@@ -51,6 +51,16 @@ p{line-height:1.6;color:#b9c0b6;font-size:14px}.rule{height:1px;background:#5963
 button{font:inherit;color:#e8e1cf;background:#542f28;border:1px solid #a86c55;padding:13px 22px;cursor:pointer;letter-spacing:.12em}button:hover{background:#784536}
 .small{font-size:11px;color:#7f8981;line-height:1.6}
 kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
+
+#onlinePanel{display:none;z-index:10;background:radial-gradient(ellipse at center,#17201ef0,#030506fa 72%)}
+#onlinePanel .card{width:min(620px,94vw)}
+.online-input{width:100%;background:#070a09;border:1px solid #59635a;color:#e8e1cf;padding:12px;font:inherit;letter-spacing:.04em;margin:6px 0 12px;user-select:text;-webkit-user-select:text}
+.online-row{display:flex;gap:9px;flex-wrap:wrap;margin:8px 0}.online-row button{flex:1;min-width:145px}
+#netStatus{position:fixed;top:50%;left:14px;transform:translateY(-50%);z-index:4;max-width:220px;background:#080b0ce8;border:1px solid #65706a66;padding:8px 10px;font-size:10px;line-height:1.5;white-space:pre-line;display:none;pointer-events:none;color:#d7b66d}
+#spectate{display:none;position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:11;background:#080b0cf2;border:1px solid #9b4e40;padding:12px 16px;min-width:min(440px,94vw);text-align:center;box-shadow:0 0 30px #000;pointer-events:auto}
+#spectate button{padding:7px 10px;margin:5px 3px;font-size:10px}
+@media(max-width:700px){#netStatus{top:auto;bottom:45px;left:8px;transform:none;max-width:155px;font-size:9px}}
+
 </style>
 </head>
 <body>
@@ -70,15 +80,49 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
  <div class="rule"></div>
  <p><b>YOUR JOB</b><br>Meet the changing gold and graffiti quota, then reach the lift. Your crew helps, but bodies are not always dead for long.</p>
  <p><b>CONTROLS</b><br><kbd>WASD</kbd> / arrows move · hold <kbd>C</kbd> or <kbd>CTRL</kbd> to crouch quietly · <kbd>SHIFT</kbd> sprint (uses stamina) · <b>mouse</b> aims your lamp · stand on a <b>floor marker</b> next to a marked wall and press <kbd>E</kbd> to tag it (repeat the arrow sequence, <kbd>E</kbd> again to step away) · <kbd>E</kbd> also collects gold / uses the lift · <kbd>TAB</kbd> survey map · <kbd>M</kbd> mute · <kbd>P</kbd> pause</p>
- <button id="start">DESCEND INTO THE MINE</button>
+ <button id="start">DESCEND SOLO</button> <button id="onlineOpen" style="margin-left:8px">ONLINE MULTIPLAYER</button>
  <div class="rule"></div><div class="small">A multi-depth browser horror run. Every lift descent is darker, with fewer working lamps, more obstacles, and a faster, more attentive monster. Headphones recommended.</div>
 </div></div>
 <div id="end" class="overlay"><div class="card"><div class="kicker">SHIFT REPORT</div><div class="title" id="endTitle">ESCAPED</div><p id="endText"></p><button id="again">TRY AGAIN</button></div></div>
 <div id="pause" class="overlay"><div class="card"><div class="kicker">SHIFT PAUSED</div><div class="title" style="font-size:44px">HOLD</div><p>The mine waits. It is very good at waiting.</p><button id="resume">RESUME</button></div></div>
+<div id="onlinePanel" class="overlay"><div class="card">
+ <div class="kicker">WORLDWIDE CO-OP / MAXIMUM CREW 05</div><div class="title" style="font-size:clamp(34px,7vw,58px)">FIND YOUR<br><span>CREW</span></div>
+ <p>Choose a callsign, then find a public lobby, host one for friends, or join with a room code. Empty player slots are filled by mine bots.</p>
+ <label for="nickname" class="small">YOUR CALLSIGN (2–18 CHARACTERS)</label>
+ <input id="nickname" class="online-input" maxlength="18" autocomplete="nickname" value="MINER-07" placeholder="Enter your name">
+ <div class="online-row"><button id="quickJoin">FIND GLOBAL LOBBY</button><button id="createLobby">HOST A LOBBY</button></div>
+ <div class="small">JOIN A FRIEND'S LOBBY</div><input id="roomCode" class="online-input" maxlength="6" placeholder="ROOM CODE" autocomplete="off">
+ <div class="online-row"><button id="joinLobby">JOIN ROOM</button><button id="onlineBack">BACK</button></div>
+ <div class="rule"></div><div id="onlineMessage" class="small">Connect to a hosted DEEP VEIN server to play online.</div>
+ <div id="lobbyDetails" style="display:none;text-align:left;margin-top:12px"><div style="font-size:12px;color:#d7b66d">ROOM <b id="lobbyCode">------</b> · <span id="lobbyCount">1 / 5 PLAYERS</span></div><div id="lobbyPlayers" class="small" style="margin:8px 0;line-height:1.9"></div><div class="online-row"><button id="launchLobby" style="display:none">START THE SHIFT</button><button id="leaveLobby">LEAVE LOBBY</button></div><div class="small">Share the room code with friends. Public matchmaking can also join an open lobby.</div></div>
+ </div></div>
+<div id="netStatus"></div>
+<div id="spectate"><div style="color:#d7b66d;letter-spacing:.18em;font-size:12px">YOUR SHIFT IS OVER</div><div id="spectateText" style="font-size:11px;line-height:1.5;margin:7px 0">You are dead. The mine keeps moving.</div><button id="nextSpectate">NEXT VIEW · E</button><button id="backToMenu">LEAVE MATCH</button></div>
+
+<script>
+// After deploying the server, replace this placeholder with its public HTTPS URL.
+// Example: https://deep-vein-multiplayer.onrender.com
+window.DEEP_VEIN_SERVER_URL = 'https://YOUR-RENDER-SERVICE.onrender.com';
+window.loadDeepVeinSocketClient = function () {
+ const base = String(window.DEEP_VEIN_SERVER_URL || '').replace(/\/+$/, '');
+ if (!base || base.includes('YOUR-RENDER-SERVICE')) return false;
+ if (typeof window.io === 'function') return true;
+ if (!document.getElementById('deepVeinSocketClient')) {
+   const script = document.createElement('script');
+   script.id = 'deepVeinSocketClient';
+   script.src = base + '/socket.io/socket.io.js';
+   script.async = true;
+   script.onerror = () => { window.__deepVeinSocketError = true; };
+   document.head.appendChild(script);
+ }
+ return false;
+};
+</script>
 <script>
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id);
+const NET_SERVER_URL=String(window.DEEP_VEIN_SERVER_URL||'').replace(/\/+$/,'');
 const canvas=$('game'),ctx=canvas.getContext('2d'),mini=$('mini'),mctx=mini.getContext('2d');
 const lightC=document.createElement('canvas'),lctx=lightC.getContext('2d');
 const TILE=48,COLS=35,ROWS=27,MW=COLS*TILE,MH=ROWS*TILE,TAU=Math.PI*2,D4=[[1,0],[-1,0],[0,1],[0,-1]];
@@ -493,7 +537,7 @@ function interact(){
  for(const t of tags)if(!t.done){const k=dist({x:t.ax,y:t.ay},player);if(k<d){d=k;near={t:'tag',o:t}}}
  for(const b of bodies){const k=dist(b,player);if(k<d){d=k;near={t:'body',o:b}}}
  if(!near){say('Nothing close enough to interact with.',1.6);return}
- if(near.t==='gold'){const g=near.o;g.taken=true;player.gold++;noise=Math.min(100,noise+12);setText('gold',player.gold+' / '+quotaGold);say('Gold pocketed. The clink echoes down the shaft.',2);Snd.clink();for(let i=0;i<12;i++)P(g.x,g.y,rnd(-60,60),rnd(-60,60),.6,1.6,'#f1d36a',{drag:.9});if(player.gold===quotaGold)showAlert('GOLD QUOTA MET')}
+ if(near.t==='gold'){const g=near.o;g.taken=true;player.gold++;if(multiplayer)netEmitWorldAction('gold',gold.indexOf(g));noise=Math.min(100,noise+12);setText('gold',player.gold+' / '+quotaGold);say('Gold pocketed. The clink echoes down the shaft.',2);Snd.clink();for(let i=0;i<12;i++)P(g.x,g.y,rnd(-60,60),rnd(-60,60),.6,1.6,'#f1d36a',{drag:.9});if(player.gold===quotaGold)showAlert('GOLD QUOTA MET')}
  else if(near.t==='tag')startPuzzle(near.o);
  else say(near.o.possessed?'It is gone. Something else is walking around in its boots.':near.o.fromBot?`${near.o.name}. Still warm. You really should not look closer.`:'Cold. Heavy. You really should not look closer.',2.4);
 }
@@ -505,10 +549,10 @@ function showEnd(win){
  $('again').textContent=win?'CONTINUE':`RETRY DEPTH ${String(depth).padStart(2,'0')}`;
  $('end').style.display='flex';
 }
-function die(){if(phase!=='play')return;phase='dying';endT=0;shake=18;Snd.growl(1,0);Snd.stinger(1.3);Snd.spray(false);stopPuzzle()}
-function reveal(){
+function die(){if(phase!=='play')return;if(multiplayer){netEnterSpectator(player.x,player.y);Snd.growl(1,0);Snd.stinger(1.3);Snd.spray(false);stopPuzzle();return}phase='dying';endT=0;shake=18;Snd.growl(1,0);Snd.stinger(1.3);Snd.spray(false);stopPuzzle()}
+function reveal(target=player){
  const m=monster,n=m.disguise?m.disguise.name:'MINER';
- m.state='hunt';m.huntT='player';m.lastSeen={x:player.x,y:player.y};m.search=7;m.revealed=true;m.path=null;
+ m.state='hunt';m.huntT='player';m.lastSeen={x:target.x,y:target.y};m.search=7;m.revealed=true;m.path=null;
  showAlert(n==='MINER'?'THAT IS NOT A MINER':`THAT IS NOT ${n}`);say('Its face splits into a grin. RUN.',2.6);shake=10;Snd.growl(1,0);Snd.screech(1,0);Snd.stinger(.7);
 }
 function killBot(b){
@@ -536,46 +580,53 @@ function wander(dt,spd){
 }
 function updateMonster(dt){
  const m=monster;m.t+=dt;
- const pd=dist(player,m),revealNear=Math.max(85,150-(depth-1)*5),revealTimeout=Math.max(13,28-(depth-1)*1.4);
+ const targetPlayer=netMonsterTarget(m);
+ const pd=dist(targetPlayer,m),revealNear=Math.max(85,150-(depth-1)*5),revealTimeout=Math.max(13,28-(depth-1)*1.4);
  if(m.state==='possess'){
   const b=m.host;if(!b){m.state='stalk';return}
   b.possessing+=dt;m.x+=(b.x-m.x)*Math.min(1,dt*4);m.y+=(b.y-m.y)*Math.min(1,dt*4);
   const l=Math.hypot(b.x-m.x,b.y-m.y);if(l>1){m.fx=(b.x-m.x)/l;m.fy=(b.y-m.y)/l}m.mv=0;
   if(b.possessing>.5&&b.possessing-dt<=.5)showAlert('IT IS CRAWLING INSIDE');
-  if(b.possessing>2.4){b.used=b.possessed=true;m.state='disguise';m.disguise={name:b.name,pal:b.pal};m.dT=0;m.path=null;m.x=b.x;m.y=b.y;m.host=null;m.revealed=false;showAlert('SOMEONE GOT UP');say('It stands like a tired miner. It is trying very hard to look normal.',3.2);shake=7;Snd.stinger(.5)}
+  if(b.possessing>2.4){b.used=b.possessed=true;m.state='disguise';m.disguise={name:b.name,pal:b.pal,netId:b.netId||null};m.dT=0;m.path=null;m.x=b.x;m.y=b.y;m.host=null;m.revealed=false;showAlert('SOMEONE GOT UP');say('It stands like a tired miner. It is trying very hard to look normal.',3.2);shake=7;Snd.stinger(.5)}
   return;
  }
  if(m.pause>0){m.pause-=dt;m.mv=0;}
  else if(m.state==='disguise'){
   m.dT+=dt;
   const closeBot=bots.some(b=>b.alive&&dist(b,m)<60);
-  if((pd<revealNear&&lineOfSight(player.x,player.y,m.x,m.y))||pd<Math.max(55,75-(depth-1)*2)||closeBot||m.dT>revealTimeout){reveal()}
+  if((pd<revealNear&&lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y))||pd<Math.max(55,75-(depth-1)*2)||closeBot||m.dT>revealTimeout){reveal(targetPlayer)}
   else{const mv=wander(dt,70*depthScale());m.mv=lerp(m.mv,mv?1:0,Math.min(1,dt*6))}
  }
  else{
   if(m.state!=='hunt'){const b=bodies.find(b=>!b.used&&!b.possessed&&Math.hypot(b.x-m.x,b.y-m.y)<40);if(b){m.state='possess';m.host=b;b.possessing=0;m.path=null;Snd.possess();return}}
   let botT=null;
   for(const b of bots)if(b.alive){const d=dist(b,m);if(d<350+(depth-1)*12&&lineOfSight(b.x,b.y,m.x,m.y)&&(!botT||d<botT.d))botT={b,d}}
-  const los=lineOfSight(player.x,player.y,m.x,m.y);
+  const los=lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y);
   // The lamp makes you easy to spot. In darkness, visual detection is much
   // shorter, including during a chase, so breaking line of sight can buy time.
-  const sightRange=flashlightOn?440+(depth-1)*19:Math.max(88,132-(depth-1)*4);
-  const hearRange=90+noise*5.5+(depth-1)*9;
-  const hear=pd<(flashlightOn?hearRange:hearRange*.72);
-  const seen=los&&pd<sightRange;
+  const targetLamp=targetPlayer.flashlightOn===undefined?flashlightOn:targetPlayer.flashlightOn;
+  const targetNoise=targetPlayer.noise===undefined?noise:targetPlayer.noise;
+  const sightRange=targetLamp?440+(depth-1)*19:Math.max(72,104-(depth-1)*3);
+  // During an active chase, darkness makes reacquiring the player much harder.
+  // Very close encounters remain dangerous, even with the lamp switched off.
+  const chaseSightRange=targetLamp?sightRange:Math.max(62,92-(depth-1)*2);
+  const hearRange=90+targetNoise*5.5+(depth-1)*9;
+  const hear=pd<(targetLamp?hearRange:hearRange*.72);
+  const seen=los&&pd<(m.state==='hunt'&&m.huntT==='player'?chaseSightRange:sightRange);
   if(botT&&botT.d<pd+60){m.state='hunt';m.huntT='bot';m.lastSeen={x:botT.b.x,y:botT.b.y};m.search=3.5}
-  else if(seen){if(m.state!=='hunt'){Snd.growl(.55,clamp((m.x-player.x)/500,-1,1));Snd.screech(.5,clamp((m.x-player.x)/500,-1,1));say('Something has noticed you.',1.6)}m.state='hunt';m.huntT='player';m.lastSeen={x:player.x,y:player.y};m.search=4.5}
-  else if(hear&&m.state!=='hunt'){m.state='investigate';m.lastSeen={x:player.x+rnd(-40,40),y:player.y+rnd(-40,40)};m.search=Math.max(m.search,3.5)}
+  else if(seen){if(m.state!=='hunt'){Snd.growl(.55,clamp((m.x-targetPlayer.x)/500,-1,1));Snd.screech(.5,clamp((m.x-targetPlayer.x)/500,-1,1));say('Something has noticed you.',1.6)}m.state='hunt';m.huntT='player';m.lastSeen={x:targetPlayer.x,y:targetPlayer.y};m.search=4.5}
+  else if(hear&&m.state!=='hunt'){m.state='investigate';m.lastSeen={x:targetPlayer.x+rnd(-40,40),y:targetPlayer.y+rnd(-40,40)};m.search=Math.max(m.search,3.5)}
   else if(m.state==='hunt'){
    // When the lamp is off, the creature loses your trail faster after you
    // slip out of view. It still investigates your last known position.
-   m.search-=dt*(!flashlightOn&&m.huntT==='player'?2.35:1);
-   if(m.search<=0){m.state='search';m.search=flashlightOn?4:2.6}
+   m.search-=dt*(!targetLamp&&m.huntT==='player'?4.0:1);
+   if(m.search<=0){m.state='search';m.search=targetLamp?4:1.8}
   }
   else if(m.state==='search'||m.state==='investigate'){m.search-=dt;if(m.search<=0){m.state='stalk';m.lastSeen=null;m.path=null}}
   const base={stalk:64,investigate:98,search:84,hunt:m.revealed?158:138}[m.state]||64;
   // The creature is slowed by deep water too, but its longer stride lets it push through faster than the player.
-  const spd=(base+(m.state==='hunt'&&noise>50?22:0))*depthScale()*(inFlood(m.x,m.y)?.78:1);
+  const darkEscapeSlowdown=(!targetLamp&&m.state==='hunt'&&m.huntT==='player')?.84:1;
+  const spd=(base+(m.state==='hunt'&&targetNoise>50?22:0))*depthScale()*(inFlood(m.x,m.y)?.78:1)*darkEscapeSlowdown;
   let moved=false;
   if(m.state==='hunt'||m.state==='investigate'||(m.state==='search'&&m.lastSeen)){
    const goal=m.lastSeen;m.repath-=dt;
@@ -592,9 +643,9 @@ function updateMonster(dt){
  m.ang=angLerp(m.ang,Math.atan2(m.fy,m.fx),Math.min(1,dt*9));
  m.gait+=dt*(4+m.mv*7);
  const gi=Math.floor(m.gait/Math.PI);
- if(gi!==m.gi){m.gi=gi;if(m.mv>.3&&pd<640){const v=clamp(1-pd/640,.08,1)*(m.state==='disguise'?.5:1),pn=clamp((m.x-player.x)/400,-1,1);if(m.state==='disguise')Snd.bstep(v*1.6,pn);else{Snd.mstep(v,pn);if(m.state==='hunt')Snd.mskit(v,pn)}}}
+ if(gi!==m.gi){m.gi=gi;if(m.mv>.3&&pd<640){const v=clamp(1-pd/640,.08,1)*(m.state==='disguise'?.5:1),pn=clamp((m.x-targetPlayer.x)/400,-1,1);if(m.state==='disguise')Snd.bstep(v*1.6,pn);else{Snd.mstep(v,pn);if(m.state==='hunt')Snd.mskit(v,pn)}}}
  for(const b of bots)if(b.alive&&dist(b,m)<26&&m.state!=='possess')killBot(b);
- if(pd<27&&m.state!=='possess')die();
+ if(pd<27&&m.state!=='possess'){if(multiplayer&&isNetHost&&targetPlayer.netId&&targetPlayer.netId!==netMyId)netKillRemote(targetPlayer.netId,targetPlayer.x,targetPlayer.y);else if(!multiplayer||targetPlayer.netId===netMyId)die();}
 }
 
 /* ---------- crew ---------- */
@@ -626,7 +677,7 @@ function updateBots(dt){
    b.paint-=dt;const t=b.goal.obj;if(t.done){b.paint=0;b.goal=null;continue}t.progress=1-b.paint/3;
    if(Math.random()<dt*30)P(t.x+rnd(-8,8),t.y+rnd(-8,8),rnd(-12,12),rnd(-12,12),.5,1.6,t.col,{drag:.9});
    if(b.paint<=0){completeTag(t,b)}
-  }else if(b.work>0){b.work-=dt;if(b.work<=0&&b.goal&&b.goal.kind==='gold'){const o=b.goal.obj;if(!o.taken){o.taken=true;b.gold++;player.gold++;setText('gold',player.gold+' / '+quotaGold);say(`${b.name} found gold and called it in.`,1.8);Snd.clink();Snd.callout(clamp((b.x-player.x)/400,-1,1));if(player.gold===quotaGold)showAlert('GOLD QUOTA MET')}b.goal=null;b.think=0}}
+  }else if(b.work>0){b.work-=dt;if(b.work<=0&&b.goal&&b.goal.kind==='gold'){const o=b.goal.obj;if(!o.taken){o.taken=true;b.gold++;player.gold++;if(multiplayer&&isNetHost)netEmitWorldAction('gold',gold.indexOf(o));setText('gold',player.gold+' / '+quotaGold);say(`${b.name} found gold and called it in.`,1.8);Snd.clink();Snd.callout(clamp((b.x-player.x)/400,-1,1));if(player.gold===quotaGold)showAlert('GOLD QUOTA MET')}b.goal=null;b.think=0}}
   else if(b.goal){
    const arrive=dist(b,b.goal)<(b.goal.kind==='rest'?30:20);
    if(arrive&&b.goal.kind==='gold'){b.work=.7}
@@ -645,7 +696,7 @@ function updateBots(dt){
 }
 function completeTag(t,who){
  if(t.done)return;
- t.done=true;t.progress=1;
+ t.done=true;t.progress=1;if(multiplayer)netEmitWorldAction('tag',tags.indexOf(t));
  if(who){who.tags++;say(`${who.name} tagged a wall.`,1.8)}else say('The last line of paint seals the mark. Something heard the hiss.',2.2);
  player.tags++;setText('tags',player.tags+' / '+quotaTags);
  dctx.save();dctx.translate(t.x,t.y);drawGlyph(dctx,t.glyph,1,1.05,t.col,2.6);
@@ -728,7 +779,7 @@ function updateGame(dt){
   if(Math.random()<dt*14)P(t.x+rnd(-10,10),t.y+rnd(-10,10),rnd(-14,14),rnd(-14,14),.45,1.5,t.col,{drag:.9});
   if(puzzle.timer<=0)puzzleFail(true);
  }
- updateBots(dt);updateMonster(dt);
+ if(!multiplayer||isNetHost){updateBots(dt);updateMonster(dt);}
  for(const b of bodies){b.wig+=dt;if(!b.used&&!b.possessed&&!(monster.state==='possess'&&monster.host===b))b.possessing=Math.max(0,b.possessing-dt*.5)}
  // sound design: heartbeat, drone, knocks and rumbles
  const md=dist(player,monster),prox=clamp(1-(md-120)/420,0,1)*(monster.state==='disguise'?0:1)+(monster.state==='hunt'?.25:0);
@@ -921,7 +972,8 @@ function drawLantern(l,inten){
 function draw(){
  ctx.setTransform(dpr,0,0,dpr,0,0);
  ctx.fillStyle='#030404';ctx.fillRect(0,0,W,H);
- let camX=player.x-W/2,camY=player.y-H/2;
+ const cameraFocus=(multiplayer&&phase==='spectate')?netSpectateFocus():player;
+ let camX=cameraFocus.x-W/2,camY=cameraFocus.y-H/2;
  if(shake>0){camX+=(Math.random()-.5)*shake;camY+=(Math.random()-.5)*shake}
  camX=Math.round(camX);camY=Math.round(camY);
  ctx.save();ctx.translate(-camX,-camY);
@@ -963,10 +1015,14 @@ function draw(){
   if(b.paint>0){ctx.strokeStyle=b.goal.obj.col;ctx.globalAlpha=.7;ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(b.x+Math.cos(b.ang)*10,b.y+Math.sin(b.ang)*10);ctx.lineTo(b.goal.obj.x,b.goal.obj.y);ctx.stroke();ctx.globalAlpha=1}
  }
  drawMonster();
+ if(multiplayer&&monster.state==='disguise'&&monster.disguise&&monster.disguise.netId){ctx.save();ctx.font='10px Consolas,monospace';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(monster.x-45,monster.y-35,90,13);ctx.fillStyle='#cfaaa0';ctx.fillText(String(monster.disguise.name||'MINER').slice(0,18),monster.x,monster.y-25);ctx.restore()}
+ // The dead local avatar is rendered as a body; while spectating, don't draw it as a living miner.
  // player
+ if(!multiplayer||phase!=='spectate'){
  {
   const mvv=player.mv;
   drawMiner(player.x,player.y,player.aim,player.foot,mvv,PAL.player);
+  if(multiplayer){ctx.save();ctx.font='10px Consolas,monospace';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(player.x-42,player.y-32,84,13);ctx.fillStyle='#d7d8bd';ctx.fillText(String(netName||'MINER').slice(0,18),player.x,player.y-22);ctx.restore()}
   // flashlight in the leading hand
   ctx.save();ctx.translate(player.x+Math.cos(player.aim)*11,player.y+Math.sin(player.aim)*11);ctx.rotate(player.aim);
   ctx.fillStyle='#161a17';ctx.fillRect(-2,-2.2,9,4.4);ctx.fillStyle='#d3dfb4';ctx.fillRect(6.5,-2.4,2.2,4.8);ctx.restore();
@@ -974,6 +1030,12 @@ function draw(){
   if(painting){const px=painting.x-player.x,py=painting.y-player.y,l=Math.hypot(px,py)||1;ctx.save();ctx.translate(player.x+px/l*16,player.y+py/l*16);ctx.rotate(Math.atan2(py,px));ctx.fillStyle='#303733';ctx.fillRect(-3,-3,7,6);ctx.fillStyle=painting.col;ctx.fillRect(4,-1.5,2.5,3);ctx.restore();
    ctx.strokeStyle=painting.col;ctx.globalAlpha=.35;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(player.x+px/l*22,player.y+py/l*22);ctx.lineTo(painting.x,painting.y);ctx.stroke();ctx.globalAlpha=1}
  }
+ }
+ // Remote crew members are replicated from the authoritative lobby server.
+ if(multiplayer){for(const rp of netPlayers){if(rp.id===netMyId||!rp.alive||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;
+  drawMiner(rp.x,rp.y,rp.aim||0,fxClock*5,rp.moving?1:0,PAL.player);
+  ctx.save();ctx.font='10px Consolas,monospace';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(rp.x-42,rp.y-32,84,13);ctx.fillStyle='#d7d8bd';ctx.fillText(String(rp.name||'MINER').slice(0,18),rp.x,rp.y-22);ctx.restore();
+ }}
  for(const l of lanterns){
   if(l.x<camX-40||l.x>camX+W+40||l.y<camY-40||l.y>camY+H+40)continue;
   drawLantern(l,l.cur===undefined?1:l.cur);
@@ -986,8 +1048,9 @@ function draw(){
  /* ----- lighting: dark mask with shadow-cast holes ----- */
  const lights=[];
  const md=dist(player,monster),flick=1-Math.min(.76,.4+(depth-1)*.035)*Math.max(0,Math.sin(fxClock*37)*Math.sin(fxClock*23))*clamp((320-md)/220,0,1)*(monster.state==='disguise'?.3:1);
- const psx=player.x-camX,psy=player.y-camY,lightReach=Math.max(270,430-(depth-1)*18),personalLight=Math.max(92,140-(depth-1)*5);
- if(flashlightOn)lights.push({x:psx,y:psy,r:lightReach,poly:visPoly(player.x,player.y,lightReach,150,camX,camY),kind:'player',k:flick});
+ const psx=cameraFocus.x-camX,psy=cameraFocus.y-camY,lightReach=Math.max(270,430-(depth-1)*18),personalLight=Math.max(92,140-(depth-1)*5);
+ if(flashlightOn&&phase!=='spectate')lights.push({x:psx,y:psy,r:lightReach,poly:visPoly(player.x,player.y,lightReach,150,camX,camY),kind:'player',k:flick,aim:player.aim});
+ if(multiplayer){for(const rp of netPlayers){if(rp.id===netMyId||!rp.alive||!rp.flashlightOn||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;const sx=rp.x-camX,sy=rp.y-camY;if(sx<-lightReach||sx>W+lightReach||sy<-lightReach||sy>H+lightReach)continue;lights.push({x:sx,y:sy,r:lightReach,poly:visPoly(rp.x,rp.y,lightReach,120,camX,camY),kind:'player',k:.72,aim:rp.aim||0})}}
  for(const l of lanterns){
   if(l.dead){l.cur=.15;continue}
   let k=.82+.18*Math.sin(fxClock*8.3+l.ph)*Math.sin(fxClock*3.1+l.ph*2);
@@ -1008,8 +1071,9 @@ function draw(){
  for(const L of lights){
   lctx.save();if(L.poly){polyPath(lctx,L.poly);lctx.clip()}
   if(L.kind==='player'){
+   const beamAim=L.aim===undefined?aim:L.aim;
    let g=lctx.createRadialGradient(L.x,L.y,6,L.x,L.y,personalLight);g.addColorStop(0,`rgba(0,0,0,${.92*L.k})`);g.addColorStop(.5,`rgba(0,0,0,${.5*L.k})`);g.addColorStop(1,'rgba(0,0,0,0)');lctx.fillStyle=g;lctx.beginPath();lctx.arc(L.x,L.y,personalLight,0,TAU);lctx.fill();
-   for(let i=0;i<5;i++){const ha=(.2+i*.075)*Math.max(.78,1-(depth-1)*.025);g=lctx.createRadialGradient(L.x,L.y,16,L.x,L.y,L.r*.95);g.addColorStop(0,`rgba(0,0,0,${.24*L.k})`);g.addColorStop(.55,`rgba(0,0,0,${.15*L.k})`);g.addColorStop(1,'rgba(0,0,0,0)');lctx.fillStyle=g;lctx.beginPath();lctx.moveTo(L.x,L.y);lctx.arc(L.x,L.y,L.r,aim-ha,aim+ha);lctx.closePath();lctx.fill()}
+   for(let i=0;i<5;i++){const ha=(.2+i*.075)*Math.max(.78,1-(depth-1)*.025);g=lctx.createRadialGradient(L.x,L.y,16,L.x,L.y,L.r*.95);g.addColorStop(0,`rgba(0,0,0,${.24*L.k})`);g.addColorStop(.55,`rgba(0,0,0,${.15*L.k})`);g.addColorStop(1,'rgba(0,0,0,0)');lctx.fillStyle=g;lctx.beginPath();lctx.moveTo(L.x,L.y);lctx.arc(L.x,L.y,L.r,beamAim-ha,beamAim+ha);lctx.closePath();lctx.fill()}
   }else{
    const g=lctx.createRadialGradient(L.x,L.y,2,L.x,L.y,L.r);g.addColorStop(0,`rgba(0,0,0,${.9*L.k})`);g.addColorStop(.45,`rgba(0,0,0,${.5*L.k})`);g.addColorStop(1,'rgba(0,0,0,0)');lctx.fillStyle=g;lctx.beginPath();lctx.arc(L.x,L.y,L.r,0,TAU);lctx.fill();
   }
@@ -1068,6 +1132,7 @@ function drawMini(){
 }
 function updateHud(){
  setText('depth',String(depth).padStart(2,'0'));setText('layerName',depthName());
+ if(multiplayer)setText('crew',`${netPlayers.filter(p=>p.alive).length+bots.filter(b=>b.alive).length} ALIVE`);
  const t=Math.floor(elapsed);setText('shift',String(Math.floor(t/60)+1).padStart(2,'0'));setText('clock',`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`);
  setText('noise',noise>=75?'LOUD':noise>=35?'ELEVATED':'LOW');
  $('noiseBar').style.width=Math.round(noise)+'%';$('stamBar').style.width=Math.round(player.stamina)+'%';$('stamBar').style.background=player.tired?'#a85a4a':'#8fb39a';
@@ -1094,9 +1159,11 @@ function loop(t){
  else if(phase==='dying'){endT+=dt;updateFx(dt);shake=Math.max(shake,6*(1-endT));if(endT>1.5)showEnd(false)}
  else if(phase==='winning'){endT+=dt;updateFx(dt);liftOpen=lerp(liftOpen,0,Math.min(1,dt*2));if(endT>1.9)showEnd(true)}
  else if(phase==='over'){updateFx(dt)}
+ else if(phase==='spectate'){if(multiplayer&&isNetHost){updateBots(dt);updateMonster(dt)}updateFx(dt);updateHud()}
  draw();
 }
 function start(){
+ $('again').onclick=start;
  const wasMenu=phase==='menu',wasEnd=phase==='over';if(wasMenu)depth=1;else if(wasEnd&&endWin)depth++;
  Snd.init();setup();$('puzzle').style.display='none';phase='play';paused=false;$('menu').style.display='none';$('end').style.display='none';$('pause').style.display='none';mini.style.display=showMini&&innerWidth>700?'block':'none';last=performance.now();for(const k in keys)keys[k]=false;miniT=0;markExplored();setText('depth',String(depth).padStart(2,'0'));setText('layerName',depthName());
  if(depth>1){showAlert(wasEnd&&endWin?`DESCENDING TO DEPTH ${String(depth).padStart(2,'0')}`:`DEPTH ${String(depth).padStart(2,'0')}: ${depthName()}`);say(depth>=4?'The rock is warm. Something is breathing below you.':'The lift seals overhead. You are deeper now.',3)}
@@ -1106,6 +1173,7 @@ $('start').onclick=start;$('again').onclick=start;$('resume').onclick=()=>setPau
 addEventListener('keydown',e=>{
  const k=e.key.toLowerCase();keys[k]=true;
  if(['arrowup','arrowdown','arrowleft','arrowright',' ','tab'].includes(k))e.preventDefault();
+ if(phase==='spectate'&&k==='e'&&!e.repeat){netNextView()}
  if(phase==='play'&&!paused&&!e.repeat){
   if(puzzle){const d={w:'up',arrowup:'up',s:'down',arrowdown:'down',a:'left',arrowleft:'left',d:'right',arrowright:'right'}[k];if(d)puzzleKey(d);else if(k==='e'){puzzle.tag.progress=0;stopPuzzle();say('You step back from the wall.',1.6)}}
   else if(k==='e')interact();
@@ -1122,6 +1190,141 @@ canvas.addEventListener('pointermove',e=>{const r=canvas.getBoundingClientRect()
 canvas.addEventListener('pointerdown',e=>{if(e.button===0){mouse.down=true;const r=canvas.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;mouse.moved=true;if(canvas.setPointerCapture)try{canvas.setPointerCapture(e.pointerId)}catch(_){}}});
 addEventListener('pointerup',()=>{mouse.down=false});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
+
+
+/* ---------- worldwide multiplayer ---------- */
+let netSocket=null,multiplayer=false,netMyId=null,netName='MINER',netHostId=null,isNetHost=false;
+let netLobby=null,netPlayers=[],netSeed=1,netBotSlots=4,netAlive=true,netSpectateIndex=0;
+let netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
+let netLastPlayerSend=0,netLastMonsterSend=0;
+const NET_SPAWNS=[{x:2.5*TILE,y:2.5*TILE},{x:3.5*TILE,y:2.5*TILE},{x:2.5*TILE,y:3.5*TILE},{x:3.5*TILE,y:3.5*TILE},{x:2.5*TILE,y:1.5*TILE}];
+function netCleanName(v){return String(v||'MINER').replace(/[^\w\- ]/g,'').trim().replace(/\s+/g,' ').slice(0,18)||'MINER'}
+function netMessage(v){$('onlineMessage').textContent=v}
+function netStatus(v){$('netStatus').textContent=v;$('netStatus').style.display=multiplayer?'block':'none'}
+function netNameInput(){return netCleanName($('nickname').value)}
+function netUpdateLobby(l){
+ netLobby=l;netHostId=l.hostId;isNetHost=netHostId===netMyId;
+ $('lobbyDetails').style.display='block';$('lobbyCode').textContent=l.code;$('lobbyCount').textContent=`${l.players.length} / 5 HUMANS · ${l.botSlots} BOT${l.botSlots===1?'':'S'}`;
+ $('lobbyPlayers').innerHTML=l.players.map((p,i)=>`${i===0?'▸':'·'} ${escapeNetHtml(p.name)}${p.id===l.hostId?' <span style="color:#d7b66d">HOST</span>':''}${p.alive===false?' <span style="color:#a85a4a">DEAD</span>':''}`).join('<br>')+`<br><span style="color:#8fb39a">${l.botSlots} MINE BOT${l.botSlots===1?'':'S'} WILL FILL EMPTY SLOT${l.botSlots===1?'':'S'}</span>`;
+ $('launchLobby').style.display=isNetHost&&l.status==='lobby'?'inline-block':'none';
+ $('launchLobby').disabled=l.players.length<1;
+ netMessage(l.status==='playing'?'Shift in progress. Reconnect to the same room after the match starts.':isNetHost?'Share the code with friends, then start when ready.':'Waiting for the host to start the shift.');
+ if(multiplayer)netStatus(`ONLINE · ROOM ${l.code}\n${l.players.length}/5 HUMANS · ${l.botSlots} BOTS`);
+}
+function escapeNetHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function ensureNet(){
+ if(netSocket)return true;
+ if(!NET_SERVER_URL || NET_SERVER_URL.includes('YOUR-RENDER-SERVICE')){netMessage('Online server not configured yet. Deploy the server, then replace YOUR-RENDER-SERVICE in index.html with its public HTTPS URL. Solo mode still works.');return false}
+ if(typeof io==='undefined'){
+  if(window.__deepVeinSocketError){netMessage('Could not load the multiplayer client from the server. Check the public server URL and try again.');return false}
+  if(window.loadDeepVeinSocketClient)window.loadDeepVeinSocketClient();
+  netMessage('Loading multiplayer connection… wait a moment, then press Host or Join again.');return false;
+ }
+ netSocket=io(NET_SERVER_URL,{transports:['websocket','polling']});
+ netSocket.on('connect',()=>{netMyId=netSocket.id;netMessage('Connected. Choose Find Global Lobby, Host a Lobby, or enter a room code.');if(netLobby){netHostId=netLobby.hostId;isNetHost=netHostId===netMyId}});
+ netSocket.on('connect_error',()=>netMessage('Could not reach the game server. Check the server address and try again.'));
+ netSocket.on('lobby-error',d=>netMessage(d&&d.message?d.message:'Unable to join that lobby.'));
+ netSocket.on('lobby-update',netUpdateLobby);
+ netSocket.on('game-start',d=>{netHostId=d.hostId;isNetHost=netHostId===netMyId;netPlayers=d.players||[];netStartGame(d)});
+ netSocket.on('players-update',d=>{
+  netPlayers=d.players||[];if(d.hostId){netHostId=d.hostId;isNetHost=netHostId===netMyId}
+  syncNetworkBodies();
+  const me=netPlayers.find(p=>p.id===netMyId);if(me&&me.alive===false&&phase==='play')netEnterSpectator(me.x,me.y,true);
+  if(multiplayer){const alive=netPlayers.filter(p=>p.alive).length;netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||'------'}\n${alive} ALIVE · ${netBotSlots} BOTS`)}
+ });
+ netSocket.on('player-died',p=>{netPlayers=netPlayers.map(q=>q.id===p.id?{...q,...p,alive:false}:q);syncNetworkBodies();if(p.id===netMyId&&phase==='play')netEnterSpectator(p.x,p.y,true)});
+ netSocket.on('world-state',netApplyWorld);
+ netSocket.on('monster-state',netApplyMonster);
+ netSocket.on('game-ended',d=>{if(multiplayer){phase='over';$('spectate').style.display='none';$('endTitle').textContent='CREW LOST';$('endText').textContent=d&&d.message?d.message:'No living miners remain. The mine has claimed the whole crew.';$('again').textContent='RETURN TO MENU';$('again').onclick=()=>{$('backToMenu').click()};$('end').style.display='flex'}});
+ netSocket.on('lobby-closed',()=>{netMessage('The lobby has closed. You can create or join another lobby.');$('lobbyDetails').style.display='none'});
+ return true;
+}
+function netJoinAction(type){
+ if(!ensureNet())return;
+ netName=netNameInput();$('nickname').value=netName;
+ const payload={name:netName};
+ if(type==='quick')netSocket.emit('quick-join',payload);
+ else if(type==='create')netSocket.emit('create-lobby',payload);
+ else {const code=$('roomCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);if(!code){netMessage('Enter the room code first.');return}netSocket.emit('join-lobby',{...payload,code})}
+ netMessage('Contacting the mine server…');
+}
+function netLeave(){if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];netHostId=null;isNetHost=false;netSocket=null;$('spectate').style.display='none';$('netStatus').style.display='none';$('onlinePanel').style.display='none';$('menu').style.display='flex';phase='menu';}
+function netSeededSetup(seed){const old=Math.random;Math.random=mulberry((Number(seed)>>>0)||1);try{setup()}finally{Math.random=old}}
+function netStartGame(d){
+ multiplayer=true;netSeed=d.seed;netBotSlots=Math.max(0,Math.min(4,Number(d.botSlots)||0));netAlive=true;netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
+ depth=1;netSeededSetup(netSeed);
+ // Reuse the game's existing crew AI as the bot-filled player slots. Add/remove bots deterministically to exactly match the lobby.
+ bots=bots.slice(0,netBotSlots);
+ while(bots.length<netBotSlots){const slot=bots.length,c=floorList[(47+slot*71)%floorList.length],p={x:(c.x+.5)*TILE,y:(c.y+.5)*TILE};const names=['BOT-01','BOT-02','BOT-03','BOT-04'];bots.push({...p,r:9,alive:true,name:names[slot]||'BOT',pal:PAL.MINER,path:null,pi:0,think:0,ph:slot, gold:0,tags:0,panic:0,goal:null,paint:0,work:0,fx:0,fy:1,ang:Math.PI/2,moving:false,repath:0})}
+ const players=d.players||netPlayers,slot=Math.max(0,players.findIndex(p=>p.id===netMyId)),sp=NET_SPAWNS[slot%NET_SPAWNS.length];
+ player.x=sp.x;player.y=sp.y;player.gold=0;player.tags=0;player.name=netName;player.r=10;
+ // A single deterministic seed produces the same mine layout for every member of this room.
+ phase='play';paused=false;last=performance.now();$('menu').style.display='none';$('onlinePanel').style.display='none';$('end').style.display='none';$('pause').style.display='none';$('spectate').style.display='none';$('puzzle').style.display='none';mini.style.display=showMini&&innerWidth>700?'block':'none';markExplored();
+ setText('depth','01');setText('layerName',depthName());setText('gold',`0 / ${quotaGold}`);setText('tags',`0 / ${quotaTags}`);setText('crew',`${players.filter(p=>p.alive!==false).length+netBotSlots} ALIVE`);
+ netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||d.code||'------'}\n${players.length}/5 HUMANS · ${netBotSlots} BOTS`);
+ $('objective').innerHTML='<b style="color:#d7b66d">CO-OP CONTRACT</b><br>Recover the shared gold and graffiti quota with your crew. Your position and actions are shared with everyone in this room. Dead players spectate, and the monster can wear their bodies.<br><span style="color:#9aa39a">No one gets out alone.</span>';
+ netApplyWorld(d.world||{goldTaken:[],tagsDone:[],goldCount:0,tagCount:0});
+}
+function netEmitWorldAction(type,index){if(!multiplayer||!netSocket||!netSocket.connected||index<0)return;netSocket.emit('world-action',{type,index})}
+function netApplyWorld(w){
+ if(!w)return;netWorld=w;
+ if(gold)gold.forEach((g,i)=>{if(Array.isArray(w.goldTaken))g.taken=w.goldTaken.includes(i)});
+ if(tags)tags.forEach((t,i)=>{const wasDone=t.done,done=Array.isArray(w.tagsDone)&&w.tagsDone.includes(i);t.done=done;if(done){t.progress=1;if(!wasDone&&dctx){dctx.save();dctx.translate(t.x,t.y);drawGlyph(dctx,t.glyph,1,1.05,t.col,2.6);dctx.restore()}}});
+ if(player&&multiplayer){player.gold=Number(w.goldCount)||0;player.tags=Number(w.tagCount)||0;setText('gold',`${player.gold} / ${quotaGold}`);setText('tags',`${player.tags} / ${quotaTags}`)}
+}
+function syncNetworkBodies(){
+ if(!multiplayer||!Array.isArray(bodies))return;
+ for(const p of netPlayers){if(p.alive!==false||!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;
+  let b=bodies.find(x=>x.netId===p.id);if(!b){b={x:p.x,y:p.y,ang:0,possessed:false,used:false,possessing:0,fromBot:true,name:p.name||'MINER',pal:PAL.MINER,wig:0,netId:p.id};bodies.push(b)}else{b.x=p.x;b.y=p.y;b.name=p.name||b.name}
+ }
+}
+function netMonsterTarget(m){
+ if(!multiplayer||!isNetHost)return player;
+ const candidates=[];
+ if(netAlive&&player)candidates.push({...player,id:netMyId,netId:netMyId,name:netName,flashlightOn,noise,isLocal:true});
+ for(const p of netPlayers){if(p.id===netMyId||!p.alive||!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;candidates.push({...p,netId:p.id,isLocal:false})}
+ if(!candidates.length)return player;
+ candidates.sort((a,b)=>dist(a,m)-dist(b,m));return candidates[0];
+}
+function netKillRemote(id,x,y){if(!netSocket||!isNetHost)return;netSocket.emit('kill-player',{id,x,y})}
+function netEnterSpectator(x,y,fromServer=false){
+ if(!multiplayer||!netAlive)return;netAlive=false;player.x=Number.isFinite(x)?x:player.x;player.y=Number.isFinite(y)?y:player.y;phase='spectate';paused=false;flashlightOn=false;stopPuzzle();$('pause').style.display='none';$('spectate').style.display='block';
+ if(!fromServer&&netSocket)netSocket.emit('player-death',{x:player.x,y:player.y,aim:player.aim});
+ netSpectateIndex=0;netSpectateFocus();$('spectateText').textContent='You are dead. Switch views to watch a surviving miner or follow the monster. Your body may not stay yours.';
+}
+function netSpectateFocus(){
+ const alive=netPlayers.filter(p=>p.alive&&Number.isFinite(p.x)&&Number.isFinite(p.y));const views=[...alive,{id:'monster',name:'THE MONSTER',x:monster?monster.x:player.x,y:monster?monster.y:player.y}];
+ if(!views.length)return player;netSpectateIndex=((netSpectateIndex%views.length)+views.length)%views.length;const v=views[netSpectateIndex];$('spectateText').textContent=v.id==='monster'?'SPECTATING: THE MONSTER':'SPECTATING: '+(v.name||'MINER');return v;
+}
+function netNextView(){netSpectateIndex++;netSpectateFocus()}
+function netApplyMonster(msg){
+ if(!multiplayer||!msg)return;
+ if(msg.world)netApplyWorld(msg.world);
+ if(!isNetHost&&monster&&msg.monster){const m=msg.monster;Object.assign(monster,{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen||null,search:m.search||0,huntT:m.huntT||'player',dT:m.dT||0,mv:m.mv||0,gait:m.gait||0,revealed:!!m.revealed,pause:m.pause||0,disguise:m.disguise||null,stuck:m.stuck||0,wCool:m.wCool||0});monster.path=null;monster.host=m.hostId?bodies.find(b=>b.netId===m.hostId)||null:null;}
+ if(msg.bots&&Array.isArray(bots)&&!isNetHost){msg.bots.forEach((b,i)=>{if(!bots[i])return;Object.assign(bots[i],b);bots[i].goal=null;bots[i].paint=0})}
+ if(msg.bodies&&Array.isArray(msg.bodies)){for(const b0 of msg.bodies){let b=bodies.find(x=>x.netId===b0.netId);if(b)Object.assign(b,b0)}}
+}
+function netPackMonster(){
+ const m=monster;return {monster:{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen,search:m.search,huntT:m.huntT,dT:m.dT,mv:m.mv,gait:m.gait,revealed:m.revealed,pause:m.pause,disguise:m.disguise,stuck:m.stuck,wCool:m.wCool,hostId:(m.host&&m.host.netId)||(m.disguise&&m.disguise.netId)||null},
+  bots:bots.map(b=>({x:b.x,y:b.y,ang:b.ang,ph:b.ph,moving:b.moving,panic:b.panic,alive:b.alive,name:b.name})),
+  bodies:bodies.filter(b=>b.netId).map(b=>({netId:b.netId,x:b.x,y:b.y,ang:b.ang,possessed:b.possessed,used:b.used,possessing:b.possessing,name:b.name,pal:b.pal,wig:b.wig})),world:netWorld};
+}
+function netTick(){
+ if(!multiplayer||!netSocket||!netSocket.connected||!player)return;
+ const now=performance.now();
+ if(now-netLastPlayerSend>70&&phase==='play'&&netAlive){netLastPlayerSend=now;netSocket.emit('player-state',{x:player.x,y:player.y,aim:player.aim,mv:player.mv,foot:player.foot,alive:true,flashlightOn,noise, moving:!!(keys.w||keys.a||keys.s||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright),name:netName})}
+ if(isNetHost&&now-netLastMonsterSend>75&&(phase==='play'||phase==='spectate')){netLastMonsterSend=now;syncNetworkBodies();netSocket.emit('monster-state',netPackMonster())}
+}
+// Socket sync is deliberately small and frequent so remote avatars and the monster feel continuous.
+setInterval(netTick,35);
+$('onlineOpen').onclick=()=>{Snd.init();$('menu').style.display='none';$('onlinePanel').style.display='flex';ensureNet()};
+$('onlineBack').onclick=()=>{$('onlinePanel').style.display='none';$('menu').style.display='flex'};
+$('quickJoin').onclick=()=>netJoinAction('quick');$('createLobby').onclick=()=>netJoinAction('create');$('joinLobby').onclick=()=>netJoinAction('join');
+$('launchLobby').onclick=()=>{if(netSocket&&isNetHost)netSocket.emit('start-game')};
+$('leaveLobby').onclick=()=>{if(netSocket)netSocket.emit('leave-lobby');netLobby=null;$('lobbyDetails').style.display='none';netMessage('You left the lobby. Create or join another room.')};
+$('nextSpectate').onclick=netNextView;$('backToMenu').onclick=()=>{if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];isNetHost=false;netHostId=null;phase='menu';$('spectate').style.display='none';$('netStatus').style.display='none';$('end').style.display='none';$('menu').style.display='flex';};
+$('roomCode').addEventListener('input',()=>{$('roomCode').value=$('roomCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
+const originalKeydownPlaceholder=null;
 
 setup();
 requestAnimationFrame(t=>{last=t;loop(t)});
