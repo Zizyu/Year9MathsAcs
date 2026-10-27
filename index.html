@@ -236,6 +236,82 @@ const PAL={
 };
 let map,reach,floorList,wallFaces,mapC,overC,decC,dctx;
 let player,monster,bodies,gold,tags,exit,bots,lanterns,rats,puddles,ores,particles,explored,floodedTiles=[];
+
+/* ---------- flooded zones: organic pools, animated surface, reflections, ripples ---------- */
+let waterC=null,waterKey='',wavePatA=null,wavePatB=null,wRipples=[],wRipT=0;
+const fxC=mk(2,2),fxX=fxC.getContext('2d');
+function makeWavePattern(seed,alpha){
+ const c=mk(128,128),g=c.getContext('2d'),r=mulberry(seed);g.lineCap='round';
+ for(let i=0;i<10;i++){
+  const y0=r()*128,x0=r()*128,len=26+r()*44,amp=2+r()*3.5,fr=(1+((r()*2)|0))*TAU/128*(1+r()),ph=r()*TAU,w=.7+r()*1.1,a=alpha*(.5+r()*.5);
+  g.strokeStyle=`rgba(175,218,218,${a})`;g.lineWidth=w;
+  for(const ox of[-128,0,128])for(const oy of[-128,0,128]){g.beginPath();for(let s=0;s<=len;s+=4){const x=x0+s+ox,y=y0+Math.sin((x0+s)*fr+ph)*amp+oy;if(s)g.lineTo(x,y);else g.moveTo(x,y)}g.stroke()}
+ }
+ return c;
+}
+// Merges the flooded tiles into smooth, irregular pools (metaball field) with a wet rim,
+// shallow-to-deep colour grading and a pale shoreline, instead of a grid of squares.
+function buildWater(force){
+ const key=floodedTiles.map(c=>c.x+','+c.y).join(';');
+ if(!force&&key===waterKey&&waterC)return;
+ waterKey=key;
+ if(!floodedTiles.length){waterC=null;return}
+ let seed=7919;for(const c of floodedTiles)seed=(Math.imul(seed,31)+c.x*131+c.y*17)|0;
+ const r=mulberry(seed);
+ let x0=COLS,y0=ROWS,x1=0,y1=0;
+ for(const c of floodedTiles){x0=Math.min(x0,c.x);y0=Math.min(y0,c.y);x1=Math.max(x1,c.x);y1=Math.max(y1,c.y)}
+ x0=Math.max(0,x0-1);y0=Math.max(0,y0-1);x1=Math.min(COLS-1,x1+1);y1=Math.min(ROWS-1,y1+1);
+ const bx=x0*TILE,by=y0*TILE,bw=(x1-x0+1)*TILE,bh=(y1-y0+1)*TILE;
+ const fc=mk(bw,bh),fg=fc.getContext('2d');
+ fg.fillStyle='#000';fg.fillRect(0,0,bw,bh);fg.globalCompositeOperation='lighter';
+ const blob=(cx,cy,R,a)=>{const g=fg.createRadialGradient(cx,cy,0,cx,cy,R);g.addColorStop(0,`rgba(255,255,255,${a})`);g.addColorStop(1,'rgba(255,255,255,0)');fg.fillStyle=g;fg.fillRect(cx-R,cy-R,R*2,R*2)};
+ for(const c of floodedTiles){const cx=(c.x-x0+.5)*TILE,cy=(c.y-y0+.5)*TILE;blob(cx+(r()-.5)*6,cy+(r()-.5)*6,40,.9);if(r()<.5)blob(cx+(r()-.5)*30,cy+(r()-.5)*30,22,.5)}
+ const src=fg.getImageData(0,0,bw,bh).data,out=new ImageData(bw,bh),od=out.data;
+ for(let y=0;y<bh;y++){const wy=by+y,ty=(wy/TILE)|0;
+  for(let x=0;x<bw;x++){
+   const wx=bx+x,tx=(wx/TILE)|0;if(map[ty][tx])continue;
+   const i=(y*bw+x)*4,f=src[i]/255;
+   const thr=.34+.045*Math.sin(wx*.071+wy*.043)+.035*Math.sin(wx*.033-wy*.087+1.7),e=f-thr;
+   if(e<-.03)continue;
+   if(e<0){od[i]=16;od[i+1]=26;od[i+2]=27;od[i+3]=Math.round((1+e/.03)*95);continue}  // damp floor around the pool
+   const d=Math.min(1,e/.45),rim=e<.035?1-e/.035:0,n=(r()-.5)*7;
+   od[i]=lerp(40,9,d)+rim*62+n;od[i+1]=lerp(72,27,d)+rim*78+n;od[i+2]=lerp(74,35,d)+rim*78+n;od[i+3]=lerp(.72,.94,d)*255;
+  }}
+ waterC=mk(MW,MH);waterC.getContext('2d').putImageData(out,bx,by);
+}
+function wSplash(x,y,s){
+ if(wRipples.length>80)wRipples.splice(0,10);
+ wRipples.push({x,y,r:2,a:.6*s,v:36},{x,y,r:.5,a:.4*s,v:22});
+ for(let i=0;i<4;i++)P(x,y,rnd(-45,45),rnd(-45,45),.4,1.1,'#a9d4d4',{drag:.9});
+}
+function drawWater(camX,camY){
+ if(!waterC)return;
+ ctx.drawImage(waterC,0,0);
+ const w=Math.ceil(W),h=Math.ceil(H);
+ if(fxC.width!==w||fxC.height!==h){fxC.width=w;fxC.height=h}
+ if(!wavePatA){wavePatA=fxX.createPattern(makeWavePattern(11,.2),'repeat');wavePatB=fxX.createPattern(makeWavePattern(29,.16),'repeat')}
+ fxX.setTransform(1,0,0,1,0,0);fxX.globalCompositeOperation='source-over';fxX.globalAlpha=1;fxX.clearRect(0,0,w,h);
+ // two slowly drifting wave layers moving in different directions
+ const layer=(pat,sx,sy)=>{const ox=(((-camX+fxClock*sx)%128)+128)%128-128,oy=(((-camY+fxClock*sy)%128)+128)%128-128;fxX.save();fxX.translate(ox,oy);fxX.fillStyle=pat;fxX.fillRect(0,0,w+256,h+256);fxX.restore()};
+ layer(wavePatA,7,3);layer(wavePatB,-5,6);
+ fxX.globalCompositeOperation='lighter';
+ // sparkling glints
+ for(const c of floodedTiles){const px=c.x*TILE-camX,py=c.y*TILE-camY;if(px<-TILE||px>w||py<-TILE||py>h)continue;
+  for(let k=0;k<2;k++){const s=Math.sin(fxClock*(.9+k*.5)+c.ph*(3+k*2));if(s<.94)continue;
+   const a=(s-.94)/.06,gx=px+((c.ph*(13.7+k*5.3))%1)*TILE,gy=py+((c.ph*(7.9+k*3.1))%1)*TILE;
+   fxX.fillStyle=`rgba(230,245,240,${a*.75})`;fxX.beginPath();fxX.ellipse(gx,gy,2.2*a+.6,.9*a+.3,0,0,TAU);fxX.fill()}}
+ // lantern reflections with shimmering streaks
+ for(const l of lanterns){if(l.dead)continue;const sx=l.x-camX,sy=l.y-camY;if(sx<-90||sx>w+90||sy<-90||sy>h+90)continue;
+  const k=l.cur===undefined?1:l.cur,R=70,g=fxX.createRadialGradient(sx,sy,0,sx,sy,R);g.addColorStop(0,`rgba(255,175,90,${.3*k})`);g.addColorStop(1,'rgba(255,175,90,0)');fxX.fillStyle=g;fxX.fillRect(sx-R,sy-R,R*2,R*2);
+  fxX.fillStyle=`rgba(255,200,130,${.16*k})`;for(let i=0;i<4;i++){const yy=sy+10+i*9+Math.sin(fxClock*2+i)*2,ww=18-i*3+Math.sin(fxClock*3.1+i*2)*4;fxX.fillRect(sx-ww/2,yy,ww,1.4)}}
+ // flashlight sheen on the surface ahead of the player
+ if(flashlightOn&&phase!=='spectate'){const sx=player.x-camX+Math.cos(player.aim)*90,sy=player.y-camY+Math.sin(player.aim)*90,R=90,g=fxX.createRadialGradient(sx,sy,0,sx,sy,R);g.addColorStop(0,'rgba(200,235,225,.13)');g.addColorStop(1,'rgba(200,235,225,0)');fxX.fillStyle=g;fxX.fillRect(sx-R,sy-R,R*2,R*2)}
+ // ripples from wading feet
+ fxX.lineWidth=1.2;for(const q of wRipples){fxX.strokeStyle=`rgba(190,228,228,${Math.max(0,q.a)})`;fxX.beginPath();fxX.ellipse(q.x-camX,q.y-camY,q.r,q.r*.8,0,0,TAU);fxX.stroke()}
+ // keep everything inside the pool shape
+ fxX.globalCompositeOperation='destination-in';fxX.drawImage(waterC,-camX,-camY);fxX.globalCompositeOperation='source-over';
+ ctx.drawImage(fxC,camX,camY);
+}
 // Set only while a shared multiplayer world is being generated.
 let worldSeedForVisuals=0;
 let phase='menu',paused=false,last=0,elapsed=0,noise=0,flashlightOn=true,shake=0,hintT=0,alertT=0,hbT=0,heartPulse=0,rumbleT=40,knockT=25,growlT=12,liftOpen=0,endT=0,miniT=0,exploreT=0,showMini=true,endWin=false,painting=null,prevPainting=false,fxClock=0,whT=8,breathT=0,puzzle=null,lastQuota=false,depth=1,quotaGold=6,quotaTags=3;
@@ -450,7 +526,7 @@ function prerender(){
 
 /* ---------- world setup ---------- */
 function setup(){
- makeMap();prerender();
+ makeMap();prerender();buildWater(true);wRipples=[];
  player={x:2.5*TILE,y:2.5*TILE,r:10,gold:0,tags:0,aim:Math.PI/4,foot:0,stamina:100,tired:false,mv:0,stepI:0,moveTime:0,noiseMode:''};
  exit={x:32.5*TILE,y:24.5*TILE};
  mouse.moved=false;
@@ -568,6 +644,12 @@ function showEnd(win){
  $('end').style.display='flex';
 }
 function die(){if(phase!=='play')return;if(multiplayer){netEnterSpectator(player.x,player.y);Snd.growl(1,0);Snd.stinger(1.3);Snd.spray(false);stopPuzzle();return}phase='dying';endT=0;shake=18;Snd.growl(1,0);Snd.stinger(1.3);Snd.spray(false);stopPuzzle()}
+function explodeBody(m){
+ bloodDecal(m.x,m.y,46,30);
+ const cols=['#7a1812','#4a0d0a','#a02a1e','#b8b09a'];
+ for(let i=0;i<46;i++)P(m.x,m.y,rnd(-190,190),rnd(-190,190),rnd(.5,1.1),rnd(1.4,3.2),cols[(Math.random()*cols.length)|0],{drag:.92});
+ shake=Math.max(shake,14);Snd.scream(.9,clamp((m.x-player.x)/400,-1,1));
+}
 function reveal(target=player){
  const m=monster,n=m.disguise?m.disguise.name:'MINER';
  m.state='hunt';m.huntT='player';m.lastSeen={x:target.x,y:target.y};m.search=7;m.revealed=true;m.path=null;
@@ -605,15 +687,38 @@ function updateMonster(dt){
   b.possessing+=dt;m.x+=(b.x-m.x)*Math.min(1,dt*4);m.y+=(b.y-m.y)*Math.min(1,dt*4);
   const l=Math.hypot(b.x-m.x,b.y-m.y);if(l>1){m.fx=(b.x-m.x)/l;m.fy=(b.y-m.y)/l}m.mv=0;
   if(b.possessing>.5&&b.possessing-dt<=.5)showAlert('IT IS CRAWLING INSIDE');
-  if(b.possessing>2.4){b.used=b.possessed=true;m.state='disguise';m.disguise={name:b.name,pal:b.pal,netId:b.netId||null};m.dT=0;m.path=null;m.x=b.x;m.y=b.y;m.host=null;m.revealed=false;showAlert('SOMEONE GOT UP');say('It stands like a tired miner. It is trying very hard to look normal.',3.2);shake=7;Snd.stinger(.5)}
+  if(b.possessing>2.4){b.used=b.possessed=true;m.state='disguise';m.disguise={name:b.name,pal:b.pal,netId:b.netId||null};m.dT=0;m.dMode=Math.random()<.25?'stalk':'wander';m.twT=0;m.repath=0;m.path=null;m.x=b.x;m.y=b.y;m.host=null;m.revealed=false;showAlert('SOMEONE GOT UP');say('It stands like a tired miner. It is trying very hard to look normal.',3.2);shake=7;Snd.stinger(.5)}
   return;
  }
  if(m.pause>0){m.pause-=dt;m.mv=0;}
  else if(m.state==='disguise'){
   m.dT+=dt;
   const closeBot=bots.some(b=>b.alive&&dist(b,m)<60);
-  if((pd<revealNear&&lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y))||pd<Math.max(55,75-(depth-1)*2)||closeBot||m.dT>revealTimeout){reveal(targetPlayer)}
-  else{const mv=wander(dt,70*depthScale());m.mv=lerp(m.mv,mv?1:0,Math.min(1,dt*6))}
+  if(m.twT>0){
+   // Caught being looked at: it locks up, twitches violently for 1 second, then the body bursts.
+   m.twT+=dt;m.mv=0;m.path=null;const l=pd||1;m.fx=(targetPlayer.x-m.x)/l;m.fy=(targetPlayer.y-m.y)/l;
+   if(Math.random()<dt*45)P(m.x+rnd(-8,8),m.y+rnd(-8,8),rnd(-40,40),rnd(-40,40),.3,1.4,'#5a1510',{drag:.9});
+   if(m.twT>=1){m.twT=0;explodeBody(m);reveal(targetPlayer)}
+  }
+  else if((pd<revealNear&&lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y))||pd<Math.max(55,75-(depth-1)*2)||closeBot||m.dT>revealTimeout||((targetPlayer.flashlightOn===undefined?flashlightOn:targetPlayer.flashlightOn)&&pd<300+(depth-1)*12)){reveal(targetPlayer)}
+  else{
+   let mv=false;
+   // A quarter of all disguises stalk the player: they walk straight at them like a normal miner would,
+   // but the moment they are looked at the act breaks (see the twitch branch above). The rest wander as before.
+   if(m.dMode==='stalk'){
+    const seeing=lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y);
+    // "Looking" = your character is rotated toward it (the lamp follows the mouse), or the mouse sits within a 70 x 70 px box around it.
+    const toM=Math.atan2(m.y-targetPlayer.y,m.x-targetPlayer.x),diff=Math.abs(((toM-(targetPlayer.aim||0)+Math.PI)%TAU+TAU)%TAU-Math.PI);
+    const local=!multiplayer||targetPlayer.netId===netMyId;
+    const hover=local&&mouse.moved&&Math.abs(player.x+mouse.x-W/2-m.x)<=35&&Math.abs(player.y+mouse.y-H/2-m.y)<=35;
+    if(seeing&&(diff<.45||hover)){m.twT=.0001;m.path=null;Snd.stinger(.35)}
+    else{
+     m.repath-=dt;if(m.repath<=0||!m.path){m.repath=.5;m.path=findPath(m.x,m.y,targetPlayer.x,targetPlayer.y);m.pi=0}
+     mv=followPath(m,dt,70*depthScale());
+    }
+   }else mv=wander(dt,70*depthScale());
+   m.mv=lerp(m.mv,mv?1:0,Math.min(1,dt*6));
+  }
  }
  else{
   if(m.state!=='hunt'){const b=bodies.find(b=>!b.used&&!b.possessed&&Math.hypot(b.x-m.x,b.y-m.y)<40);if(b){m.state='possess';m.host=b;b.possessing=0;m.path=null;Snd.possess();return}}
@@ -631,8 +736,10 @@ function updateMonster(dt){
   const hearRange=90+targetNoise*5.5+(depth-1)*9;
   const hear=pd<(targetLamp?hearRange:hearRange*.72);
   const seen=los&&pd<(m.state==='hunt'&&m.huntT==='player'?chaseSightRange:sightRange);
+  // A lit flashlight can be sensed through solid rock at close range, so the creature homes in on it without line of sight.
+  const sensed=targetLamp&&pd<300+(depth-1)*12;
   if(botT&&botT.d<pd+60){m.state='hunt';m.huntT='bot';m.lastSeen={x:botT.b.x,y:botT.b.y};m.search=3.5}
-  else if(seen){if(m.state!=='hunt'){Snd.growl(.55,clamp((m.x-targetPlayer.x)/500,-1,1));Snd.screech(.5,clamp((m.x-targetPlayer.x)/500,-1,1));say('Something has noticed you.',1.6)}m.state='hunt';m.huntT='player';m.lastSeen={x:targetPlayer.x,y:targetPlayer.y};m.search=4.5}
+  else if(seen||sensed){if(m.state!=='hunt'){Snd.growl(.55,clamp((m.x-targetPlayer.x)/500,-1,1));Snd.screech(.5,clamp((m.x-targetPlayer.x)/500,-1,1));say(seen?'Something has noticed you.':'It sensed your light through the rock.',1.8)}m.state='hunt';m.huntT='player';m.lastSeen={x:targetPlayer.x,y:targetPlayer.y};m.search=4.5}
   else if(hear&&m.state!=='hunt'){m.state='investigate';m.lastSeen={x:targetPlayer.x+rnd(-40,40),y:targetPlayer.y+rnd(-40,40)};m.search=Math.max(m.search,3.5)}
   else if(m.state==='hunt'){
    // When the lamp is off, the creature loses your trail faster after you
@@ -729,6 +836,9 @@ function updateFx(dt){
  alertT=Math.max(0,alertT-dt);hintT=Math.max(0,hintT-dt);
  for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.pow(p.drag,dt*60);p.vy*=Math.pow(p.drag,dt*60);p.size+=p.grow*dt;p.life-=dt}
  particles=particles.filter(p=>p.life>0);
+ for(const q of wRipples){q.r+=q.v*dt;q.a-=dt*.7}
+ wRipples=wRipples.filter(q=>q.a>0);
+ wRipT-=dt;if(wRipT<=0){wRipT=.28;if(floodedTiles.length&&monster&&monster.mv>.3&&monster.state!=='possess'&&inFlood(monster.x,monster.y))wSplash(monster.x,monster.y,1.2)}
  for(const p of puddles){
   p.next-=dt;if(p.next<=0){p.next=rnd(2,6);p.rip.push({r:1,a:.5});const d=Math.hypot(p.x-player.x,p.y-player.y);if(d<300)Snd.drip(clamp((p.x-player.x)/300,-1,1),1-d/300)}
   for(const r of p.rip){r.r+=dt*16;r.a-=dt*.35}p.rip=p.rip.filter(r=>r.a>0);
@@ -785,9 +895,9 @@ function updateGame(dt){
    player.stepI=si;
    const footfallNoise=(crouch?2:sprint?12:(player.moveTime<.9?4:7))+(inWater?(crouch?7:sprint?23:18):0);
    noise=Math.min(100,noise+footfallNoise);
-   if(inWater)Snd.splash(crouch?.65:sprint?1.5:1,clamp((player.x-monster.x)/400,-1,1));
-   else Snd.step(sprint,crouch?.28:1);
-   dctx.fillStyle='rgba(0,0,0,.16)';dctx.beginPath();dctx.ellipse(player.x-dy*3*(si%2?1:-1),player.y+dx*3*(si%2?1:-1),crouch?1.8:2.4,crouch?2.7:3.6,Math.atan2(dy,dx),0,TAU);dctx.fill()
+   if(inWater){Snd.splash(crouch?.65:sprint?1.5:1,clamp((player.x-monster.x)/400,-1,1));wSplash(player.x,player.y,crouch?.5:sprint?1.3:.9)}
+   else{Snd.step(sprint,crouch?.28:1);
+   dctx.fillStyle='rgba(0,0,0,.16)';dctx.beginPath();dctx.ellipse(player.x-dy*3*(si%2?1:-1),player.y+dx*3*(si%2?1:-1),crouch?1.8:2.4,crouch?2.7:3.6,Math.atan2(dy,dx),0,TAU);dctx.fill()}
   }
  }else{player.moveTime=0;player.noiseMode=''}
  let target=player.aim;if(mouse.moved)target=Math.atan2(mouse.y-H/2,mouse.x-W/2);else if(moving)target=Math.atan2(dy,dx);
@@ -837,7 +947,7 @@ function drawMiner(x,y,ang,ph,mv,pal,o){
  ctx.fillStyle='#232a25';rr(ctx,-6.5,1,13,9,2.5);ctx.fill();ctx.fillStyle='#3a463c';rr(ctx,-5,2,10,6,2);ctx.fill();ctx.fillStyle='#8f8a6b';ctx.fillRect(-1,2,2,6);
  // arms (swing, or hang stiff when it is not really a person)
  ctx.strokeStyle=pal.suit;ctx.lineWidth=4.2;ctx.lineCap='round';
- const as=o.wrong?0:sw*6;
+ const as=(o.wrong?0:sw*6)+(o.twitch?(Math.random()-.5)*14*o.twitch:0);
  ctx.beginPath();ctx.moveTo(-7,-1);ctx.lineTo(-9,1+as);ctx.moveTo(7,-1);ctx.lineTo(9,1-as);ctx.stroke();
  ctx.fillStyle=pal.skin;ctx.beginPath();ctx.arc(-9,2+as,2.1,0,TAU);ctx.arc(9,2-as,2.1,0,TAU);ctx.fill();
  // torso + vest
@@ -845,7 +955,7 @@ function drawMiner(x,y,ang,ph,mv,pal,o){
  ctx.fillStyle=pal.vest;ctx.fillRect(-7,-3-bob,3.4,6);ctx.fillRect(3.6,-3-bob,3.4,6);
  ctx.fillStyle='rgba(255,255,255,.18)';ctx.fillRect(-7,-1-bob,3.4,1.4);ctx.fillRect(3.6,-1-bob,3.4,1.4);
  // head, helmet, lamp
- const tilt=o.wrong?Math.sin(fxClock*.9)*.25+(Math.sin(fxClock*7)>.97?.5:0):0;
+ const tilt=(o.wrong?Math.sin(fxClock*.9)*.25+(Math.sin(fxClock*7)>.97?.5:0):0)+(o.twitch?(Math.random()-.5)*1.6*o.twitch:0);
  ctx.save();ctx.rotate(tilt);ctx.translate(0,-4.5-bob);
  ctx.fillStyle=pal.skin;ctx.beginPath();ctx.ellipse(0,0,4.6,5,0,0,TAU);ctx.fill();
  ctx.fillStyle=pal.helmet;ctx.beginPath();ctx.ellipse(0,-.8,5.6,5.2,0,Math.PI*.95,Math.PI*2.05);ctx.fill();
@@ -869,7 +979,10 @@ function ik(hx,hy,fx,fy,l1,l2,bend,w){
 }
 function drawMonster(){
  const m=monster;
- if(m.state==='disguise'){const d=m.disguise?m.disguise.pal:PAL.MINER;drawMiner(m.x,m.y,m.ang,m.gait*.6,m.mv*.7,d,{wrong:true});return}
+ if(m.state==='disguise'){const d=m.disguise?m.disguise.pal:PAL.MINER,k=m.twT>0?Math.min(1,.35+m.twT):0;
+  if(k>0)drawMiner(m.x+(Math.random()-.5)*7*k,m.y+(Math.random()-.5)*7*k,m.ang+(Math.random()-.5)*1.2*k,m.gait*.6,0,d,{wrong:true,twitch:k});
+  else drawMiner(m.x,m.y,m.ang,m.gait*.6,m.mv*.7,d,{wrong:true});
+  return}
  ctx.save();ctx.translate(m.x,m.y);ctx.rotate(m.ang+Math.PI/2);
  const mv=m.mv,ph=m.gait,t=fxClock,breath=Math.sin(t*2.6)*1.2,hunt=m.state==='hunt';
  ctx.fillStyle='rgba(0,0,0,.5)';ctx.beginPath();ctx.ellipse(0,2,22,32,0,0,TAU);ctx.fill();
@@ -1000,12 +1113,8 @@ function draw(){
  camX=Math.round(camX);camY=Math.round(camY);
  ctx.save();ctx.translate(-camX,-camY);
  ctx.drawImage(mapC,0,0);
- // Shallow, reflective water covers only the randomly flooded floor pockets.
- for(const c of floodedTiles){const px=c.x*TILE,py=c.y*TILE;if(px<camX-TILE||px>camX+W+TILE||py<camY-TILE||py>camY+H+TILE)continue;
-  ctx.fillStyle='rgba(20,48,51,.78)';ctx.fillRect(px+1,py+1,TILE-2,TILE-2);
-  ctx.fillStyle='rgba(94,139,143,.16)';ctx.fillRect(px+3,py+3,TILE-6,TILE-6);
-  const ripple=(fxClock*18+c.ph)%(TILE-8);ctx.strokeStyle='rgba(142,190,190,.24)';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(px+TILE*.5,py+TILE*.5,5+ripple*.35,2+ripple*.16,c.ph,0,TAU);ctx.stroke();
- }
+ // Flooded pockets: merged organic pools with animated surface, reflections and ripples.
+ drawWater(camX,camY);
  ctx.drawImage(decC,0,0);
  // puddles with ripples
  for(const p of puddles){
@@ -1316,7 +1425,7 @@ function netApplyWorldObjects(s){
   }
   lanterns.length=s.lanterns.length;
  }
- if(Array.isArray(s.floodedTiles))floodedTiles=s.floodedTiles.map(c=>({x:c.x,y:c.y,ph:c.ph}));
+ if(Array.isArray(s.floodedTiles)){floodedTiles=s.floodedTiles.map(c=>({x:c.x,y:c.y,ph:c.ph}));buildWater()}
  if(Array.isArray(s.puddles)){
   for(let i=0;i<s.puddles.length;i++){
    const src=s.puddles[i];if(!puddles[i])puddles[i]={rip:[],next:3};
