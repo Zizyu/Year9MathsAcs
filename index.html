@@ -67,7 +67,7 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
 <canvas id="game"></canvas>
 <div id="hud">
  <div id="stats" class="panel">DEPTH <b id="depth">01</b> · <span id="layerName">UPPER SEAMS</span><br>SHIFT <b id="shift">01</b> · <span id="clock">00:00</span><br>GOLD <b id="gold">0 / 6</b><br>GRAFFITI <b id="tags">0 / 3</b><br>CREW <b id="crew">2 ALIVE</b><br>NOISE <b id="noise">LOW</b><div class="bar"><i id="noiseBar"></i></div>STAMINA<div class="bar"><i id="stamBar"></i></div></div>
- <div id="objective" class="panel"><b style="color:#d7b66d">CONTRACT</b><br>Take 6 gold chunks and tag 3 marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Find the lift and get out.<br>Your two crew members gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span></div>
+ <div id="objective" class="panel"><b style="color:#d7b66d">CONTRACT</b><br>Take 6 gold chunks and tag 3 marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Once the quota is met, bring every living crew member within a 500 × 500 pixel area around the lift to extract.<br>Your two crew members gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span></div>
  <canvas id="mini"></canvas>
  <div id="puzzle" class="panel"><div class="t">TAGGING · REPEAT THE SEQUENCE</div><div class="seq" id="puzzleSeq"></div><div class="bar"><i id="puzzleBar"></i></div><div class="s">WASD / arrow keys · wrong keys are loud · E to step away</div></div>
  <div id="alert"></div>
@@ -78,7 +78,7 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
  <div class="title">DEEP<br><span>VEIN</span></div>
  <p>You came down for stolen gold and a few ugly tags. Something tall has been wandering these tunnels for years. It doesn't make corpses. It <em>uses</em> them.</p>
  <div class="rule"></div>
- <p><b>YOUR JOB</b><br>Meet the changing gold and graffiti quota, then reach the lift. Your crew helps, but bodies are not always dead for long.</p>
+ <p><b>YOUR JOB</b><br>Meet the changing gold and graffiti quota, then bring all living crew members into the 500 × 500 pixel area around the lift. Your crew helps, but bodies are not always dead for long.</p>
  <p><b>CONTROLS</b><br><kbd>WASD</kbd> / arrows move · hold <kbd>C</kbd> or <kbd>CTRL</kbd> to crouch quietly · <kbd>SHIFT</kbd> sprint (uses stamina) · <b>mouse</b> aims your lamp · stand on a <b>floor marker</b> next to a marked wall and press <kbd>E</kbd> to tag it (repeat the arrow sequence, <kbd>E</kbd> again to step away) · <kbd>E</kbd> also collects gold / uses the lift · <kbd>TAB</kbd> survey map · <kbd>M</kbd> mute · <kbd>P</kbd> pause</p>
  <button id="start">DESCEND SOLO</button> <button id="onlineOpen" style="margin-left:8px">ONLINE MULTIPLAYER</button>
  <div class="rule"></div><div class="small">A multi-depth browser horror run. Every lift descent is darker, with fewer working lamps, more obstacles, and a faster, more attentive monster. Headphones recommended.</div>
@@ -236,6 +236,8 @@ const PAL={
 };
 let map,reach,floorList,wallFaces,mapC,overC,decC,dctx;
 let player,monster,bodies,gold,tags,exit,bots,lanterns,rats,puddles,ores,particles,explored,floodedTiles=[];
+// Set only while a shared multiplayer world is being generated.
+let worldSeedForVisuals=0;
 let phase='menu',paused=false,last=0,elapsed=0,noise=0,flashlightOn=true,shake=0,hintT=0,alertT=0,hbT=0,heartPulse=0,rumbleT=40,knockT=25,growlT=12,liftOpen=0,endT=0,miniT=0,exploreT=0,showMini=true,endWin=false,painting=null,prevPainting=false,fxClock=0,whT=8,breathT=0,puzzle=null,lastQuota=false,depth=1,quotaGold=6,quotaTags=3;
 const DEPTH_NAMES=['UPPER SEAMS','THE OLD WORKINGS','THE FLOODED VEIN','THE BLACK SHAFT','THE ROOT CHAMBER','THE UNLIT DEEP','THE BURIED CHOIR','THE LAST STRATUM'];
 function depthName(){return depth<=DEPTH_NAMES.length?DEPTH_NAMES[depth-1]:`${DEPTH_NAMES[DEPTH_NAMES.length-1]} ${String(depth-DEPTH_NAMES.length+1).padStart(2,'0')}`}
@@ -315,7 +317,8 @@ function followPath(e,dt,spd){
 
 /* ---------- pre-rendered world (floor, rock, rails, props, overhead timber) ---------- */
 function prerender(){
- const pr=mulberry((Math.random()*1e9)|0);
+ const visualSeed=worldSeedForVisuals?((worldSeedForVisuals^0x4f1bbcdc)>>>0):((Math.random()*1e9)|0);
+ const pr=mulberry(visualSeed||1);
  mapC=mk(MW,MH);overC=mk(MW,MH);decC=mk(MW,MH);dctx=decC.getContext('2d');
  const g=mapC.getContext('2d'),o=overC.getContext('2d');
  puddles=[];ores=[];floodedTiles=[];
@@ -458,7 +461,7 @@ function setup(){
    if(Math.hypot(cx-player.x,cy-player.y)<240||Math.hypot(cx-exit.x,cy-exit.y)<140||tags.some(t=>Math.hypot(t.x-cx,t.y-cy)<sp))continue;
    const i=tags.length;tags.push({x:cx,y:cy,ax:(f.ax+.5)*TILE,ay:(f.ay+.5)*TILE,glyph:i,col:GCOL[i],done:false,progress:0,claimed:null})}
  }
- bodies=[];const bodyCount=Math.min(10,4+Math.floor((depth-1)/2));for(let i=0;i<bodyCount;i++){const p=randomFloor(220,player.x,player.y);bodies.push({...p,ang:rnd(0,TAU),possessed:false,used:false,possessing:0,fromBot:false,name:'MINER',pal:PAL.MINER,wig:rnd(0,6)})}
+ bodies=[];const bodyCount=Math.min(10,4+Math.floor((depth-1)/2));for(let i=0;i<bodyCount;i++){const p=randomFloor(220,player.x,player.y);bodies.push({...p,worldId:`mine:${i}`,ang:rnd(0,TAU),possessed:false,used:false,possessing:0,fromBot:false,name:'MINER',pal:PAL.MINER,wig:rnd(0,6)})}
  // Crew size varies by shift. Extra help is fairly common near the entrance, but gets rarer deeper down.
  const crewNames=['MARA','ELI','JONAS','RUTH'];let extraCount=0;const crewRoll=Math.random();
  if(depth<=2){if(crewRoll<.70)extraCount=Math.random()<.42?2:1}
@@ -490,7 +493,7 @@ function setup(){
  noise=0;elapsed=0;shake=0;hintT=0;alertT=0;hbT=1;heartPulse=0;liftOpen=0;endT=0;painting=null;prevPainting=false;puzzle=null;lastQuota=false;whT=8;breathT=0;
  rumbleT=rnd(30,50);knockT=rnd(18,32);growlT=rnd(10,18);
  setText('gold','0 / '+quotaGold);setText('tags','0 / '+quotaTags);setText('crew',bots.length+' ALIVE');setText('hint',DEFAULT_HINT);
- $('objective').innerHTML='<b style="color:#d7b66d">CONTRACT</b><br>Take '+quotaGold+' gold chunks and tag '+quotaTags+' marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Find the lift and get out.<br>Your '+bots.length+' crew miners gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span>'; 
+ $('objective').innerHTML='<b style="color:#d7b66d">CONTRACT</b><br>Take '+quotaGold+' gold chunks and tag '+quotaTags+' marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Once quota is met, bring every living crew member within a 500 × 500 pixel area around the lift to extract.<br>Your '+bots.length+' crew miners gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span>'; 
 }
 
 /* ---------- particles & decals ---------- */
@@ -499,6 +502,17 @@ function bloodDecal(x,y,n,spread){for(let i=0;i<n;i++){dctx.fillStyle=`rgba(${90
 
 /* ---------- interaction ---------- */
 function quotaMet(){return player.gold>=quotaGold&&player.tags>=quotaTags}
+const LIFT_ASSEMBLY_SIZE=500,LIFT_ASSEMBLY_HALF=LIFT_ASSEMBLY_SIZE/2;
+function withinLiftAssemblyZone(entity){return !!entity&&Number.isFinite(entity.x)&&Number.isFinite(entity.y)&&Math.abs(entity.x-exit.x)<=LIFT_ASSEMBLY_HALF&&Math.abs(entity.y-exit.y)<=LIFT_ASSEMBLY_HALF}
+function liftAssemblyStatus(){
+ const crew=[];
+ if(player)crew.push({x:player.x,y:player.y,name:multiplayer?(netName||'YOU'):'YOU'});
+ for(const b of (bots||[]))if(b.alive)crew.push(b);
+ if(multiplayer)for(const p of (netPlayers||[])){if(p.id===netMyId||p.alive!==true)continue;crew.push(p)}
+ const outside=crew.filter(member=>!withinLiftAssemblyZone(member));
+ return {ready:outside.length===0,outside,total:crew.length};
+}
+function liftAssemblyHint(status){const n=status.outside.length;return n===1?'Quota met. Bring the last living crew member into the 500 × 500 px area around the lift.':`Quota met. Bring ${n} living crew members into the 500 × 500 px area around the lift.`}
 const ARROWS={up:'\u2191',down:'\u2193',left:'\u2190',right:'\u2192'};
 const PZ_TIME=2.6,PZ_LEN=6;
 function renderPuzzle(){
@@ -532,7 +546,11 @@ function interact(){
  let near=null,d=46;
  for(const g of gold)if(!g.taken){const k=dist(g,player);if(k<d){d=k;near={t:'gold',o:g}}}
  if(dist(exit,player)<54){
-  if(quotaMet()){phase='winning';endT=0;Snd.ding();Snd.door();Snd.spray(false);return}
+  if(quotaMet()){
+   const assembly=liftAssemblyStatus();
+   if(!assembly.ready){say(liftAssemblyHint(assembly),3);showAlert('CREW MUST REGROUP');return}
+   phase='winning';endT=0;Snd.ding();Snd.door();Snd.spray(false);return
+  }
   say(`Lift locked. Need ${Math.max(0,quotaGold-player.gold)} more gold and ${Math.max(0,quotaTags-player.tags)} more tags.`,2.4);return}
  for(const t of tags)if(!t.done){const k=dist({x:t.ax,y:t.ay},player);if(k<d){d=k;near={t:'tag',o:t}}}
  for(const b of bodies){const k=dist(b,player);if(k<d){d=k;near={t:'body',o:b}}}
@@ -556,7 +574,7 @@ function reveal(target=player){
  showAlert(n==='MINER'?'THAT IS NOT A MINER':`THAT IS NOT ${n}`);say('Its face splits into a grin. RUN.',2.6);shake=10;Snd.growl(1,0);Snd.screech(1,0);Snd.stinger(.7);
 }
 function killBot(b){
- b.alive=false;bodies.push({x:b.x,y:b.y,ang:rnd(0,TAU),possessed:false,used:false,possessing:0,fromBot:true,name:b.name,pal:b.pal,wig:0});
+ b.alive=false;bodies.push({x:b.x,y:b.y,worldId:`bot:${b.name}`,ang:rnd(0,TAU),possessed:false,used:false,possessing:0,fromBot:true,name:b.name,pal:b.pal,wig:0});
  for(const t of tags)if(t.claimed===b)t.claimed=null;for(const g of gold)if(g.claimed===b)g.claimed=null;
  bloodDecal(b.x,b.y,22,16);for(let i=0;i<16;i++)P(b.x,b.y,rnd(-90,90),rnd(-90,90),.8,2,'#7a1812',{drag:.92});
  showAlert(`${b.name} HAS BEEN TAKEN`);say('A scream cuts off. Something is dragging the body away.',2.6);shake=9;
@@ -716,7 +734,10 @@ function updateFx(dt){
   for(const r of p.rip){r.r+=dt*16;r.a-=dt*.35}p.rip=p.rip.filter(r=>r.a>0);
  }
  for(const r of rats){
-  r.ph+=dt*(r.mode==='run'?30:10);r.t-=dt;
+  r.ph+=dt*(r.mode==='run'?30:10);
+  // The host owns rat movement; clients only animate them between snapshots.
+  if(multiplayer&&!isNetHost)continue;
+  r.t-=dt;
   const dp=Math.hypot(r.x-player.x,r.y-player.y),dm=Math.hypot(r.x-monster.x,r.y-monster.y);
   if(dp<110||dm<110){const src=dp<dm?player:monster;r.ang=Math.atan2(r.y-src.y,r.x-src.x)+rnd(-.5,.5);r.mode='run'}
   else if(r.t<=0){r.mode=Math.random()<.5?'idle':'walk';r.t=rnd(1,3.5);r.ang=rnd(0,TAU)}
@@ -780,7 +801,7 @@ function updateGame(dt){
   if(puzzle.timer<=0)puzzleFail(true);
  }
  if(!multiplayer||isNetHost){updateBots(dt);updateMonster(dt);}
- for(const b of bodies){b.wig+=dt;if(!b.used&&!b.possessed&&!(monster.state==='possess'&&monster.host===b))b.possessing=Math.max(0,b.possessing-dt*.5)}
+ for(const b of bodies){b.wig+=dt;if((!multiplayer||isNetHost)&&!b.used&&!b.possessed&&!(monster.state==='possess'&&monster.host===b))b.possessing=Math.max(0,b.possessing-dt*.5)}
  // sound design: heartbeat, drone, knocks and rumbles
  const md=dist(player,monster),prox=clamp(1-(md-120)/420,0,1)*(monster.state==='disguise'?0:1)+(monster.state==='hunt'?.25:0);
  Snd.tension(prox);hbT-=dt;
@@ -793,8 +814,9 @@ function updateGame(dt){
  if(md<190&&Math.random()<dt*.35)showAlert('IT IS CLOSE');
  shake=Math.max(0,shake-dt*20);
  exploreT-=dt;if(exploreT<=0){exploreT=.2;markExplored()}
- liftOpen=lerp(liftOpen,quotaMet()?1:0,Math.min(1,dt*3));
- {const qm=quotaMet();if(qm&&!lastQuota){Snd.unlock();say('Quota met. The lift is unlocked \u2014 get to it.',3)}lastQuota=qm}
+ const assemblyReady=quotaMet()&&liftAssemblyStatus().ready;
+ liftOpen=lerp(liftOpen,assemblyReady?1:0,Math.min(1,dt*3));
+ {const qm=quotaMet();if(qm&&!lastQuota){Snd.unlock();const assembly=liftAssemblyStatus();say(assembly.ready?'Quota met. The lift is ready — press E to extract.':'Quota met. Regroup all living crew within 500 × 500 pixels of the lift.',3)}lastQuota=qm}
 }
 
 /* ---------- drawing helpers ---------- */
@@ -894,7 +916,7 @@ function drawFace(cx,cy,s,t){
  ctx.restore();
 }
 function drawLift(){
- const x=exit.x,y=exit.y,ok=quotaMet(),blink=Math.sin(fxClock*5)>0;
+ const x=exit.x,y=exit.y,ok=quotaMet(),assembly=ok?liftAssemblyStatus():null,ready=!!(assembly&&assembly.ready),blink=Math.sin(fxClock*5)>0;
  ctx.save();ctx.translate(x,y);
  ctx.fillStyle='#0b0e0d';rr(ctx,-28,-28,56,56,4);ctx.fill();ctx.fillStyle='#3a3d36';rr(ctx,-25,-25,50,50,3);ctx.fill();
  for(let i=0;i<12;i++){ctx.fillStyle=i%2?'#1b1b18':'#b89a3c';ctx.fillRect(-25+i*4.2,-25,4.2,3);ctx.fillRect(-25+i*4.2,22,4.2,3)}
@@ -903,8 +925,8 @@ function drawLift(){
  const dw=16*(1-liftOpen*.92);
  for(const s of[-1,1]){ctx.fillStyle='#6b6f66';ctx.fillRect(s<0?-16:16-dw,-16,dw,32);ctx.fillStyle='#8b9086';ctx.fillRect(s<0?-16:16-dw,-16,dw,3);ctx.strokeStyle='#2d312d';ctx.lineWidth=1;ctx.strokeRect(s<0?-16:16-dw,-16,dw,32)}
  ctx.fillStyle='#4a4535';ctx.fillRect(-22,-24,44,0);
- ctx.fillStyle=ok?(blink?'#7fe08a':'#4fa85a'):(blink?'#e05a46':'#7a2a20');ctx.shadowColor=ok?'#7fe08a':'#e05a46';ctx.shadowBlur=10;ctx.beginPath();ctx.arc(0,-22,2.6,0,TAU);ctx.fill();ctx.shadowBlur=0;
- ctx.fillStyle='#c6b06f';ctx.font='10px monospace';ctx.textAlign='center';ctx.fillText(ok?'LIFT · READY':'LIFT',0,-34);
+ ctx.fillStyle=ready?(blink?'#7fe08a':'#4fa85a'):ok?(blink?'#e7c46c':'#a88436'):(blink?'#e05a46':'#7a2a20');ctx.shadowColor=ready?'#7fe08a':ok?'#e7c46c':'#e05a46';ctx.shadowBlur=10;ctx.beginPath();ctx.arc(0,-22,2.6,0,TAU);ctx.fill();ctx.shadowBlur=0;
+ ctx.fillStyle='#c6b06f';ctx.font='10px monospace';ctx.textAlign='center';ctx.fillText(ready?'LIFT · READY':ok?'LIFT · REGROUP':'LIFT',0,-34);
  ctx.restore();
 }
 function drawBody(b){
@@ -1141,7 +1163,7 @@ function updateHud(){
  if(hintT<=0){
   let txt=DEFAULT_HINT;
   if(puzzle)txt='Press the arrows shown (WASD or arrow keys) \u00b7 E to step away';
-  else if(dist(exit,player)<56)txt=quotaMet()?'E — take the lift out':'The lift is locked. Quota not met.';
+  else if(dist(exit,player)<56){if(!quotaMet())txt='The lift is locked. Quota not met.';else{const assembly=liftAssemblyStatus();txt=assembly.ready?'E — take the lift out':`Quota met — regroup ${assembly.outside.length} living crew in the 500 × 500 px lift zone`;}}
   else if(gold.some(g=>!g.taken&&dist(g,player)<46))txt='E — pick up the gold';
   else if(tags.some(t=>!t.done&&dist({x:t.ax,y:t.ay},player)<46))txt='E \u2014 start tagging this wall';
   setText('hint',txt);
@@ -1249,7 +1271,7 @@ function netJoinAction(type){
  netMessage('Contacting the mine server…');
 }
 function netLeave(){if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];netHostId=null;isNetHost=false;netSocket=null;$('spectate').style.display='none';$('netStatus').style.display='none';$('onlinePanel').style.display='none';$('menu').style.display='flex';phase='menu';}
-function netSeededSetup(seed){const old=Math.random;Math.random=mulberry((Number(seed)>>>0)||1);try{setup()}finally{Math.random=old}}
+function netSeededSetup(seed){const old=Math.random,oldWorldSeed=worldSeedForVisuals,s=(Number(seed)>>>0)||1;worldSeedForVisuals=s;Math.random=mulberry(s);try{setup()}finally{Math.random=old;worldSeedForVisuals=oldWorldSeed}}
 function netStartGame(d){
  multiplayer=true;netSeed=d.seed;netBotSlots=Math.max(0,Math.min(4,Number(d.botSlots)||0));netAlive=true;netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
  depth=1;netSeededSetup(netSeed);
@@ -1262,7 +1284,7 @@ function netStartGame(d){
  phase='play';paused=false;last=performance.now();$('menu').style.display='none';$('onlinePanel').style.display='none';$('end').style.display='none';$('pause').style.display='none';$('spectate').style.display='none';$('puzzle').style.display='none';mini.style.display=showMini&&innerWidth>700?'block':'none';markExplored();
  setText('depth','01');setText('layerName',depthName());setText('gold',`0 / ${quotaGold}`);setText('tags',`0 / ${quotaTags}`);setText('crew',`${players.filter(p=>p.alive!==false).length+netBotSlots} ALIVE`);
  netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||d.code||'------'}\n${players.length}/5 HUMANS · ${netBotSlots} BOTS`);
- $('objective').innerHTML='<b style="color:#d7b66d">CO-OP CONTRACT</b><br>Recover the shared gold and graffiti quota with your crew. Your position and actions are shared with everyone in this room. Dead players spectate, and the monster can wear their bodies.<br><span style="color:#9aa39a">No one gets out alone.</span>';
+ $('objective').innerHTML='<b style="color:#d7b66d">CO-OP CONTRACT</b><br>Recover the shared gold and graffiti quota. Once complete, every living player and bot must be within a 500 × 500 pixel area around the lift to extract. Dead players spectate, and the monster can wear their bodies.<br><span style="color:#9aa39a">No one gets out alone.</span>';
  netApplyWorld(d.world||{goldTaken:[],tagsDone:[],goldCount:0,tagCount:0});
 }
 function netEmitWorldAction(type,index){if(!multiplayer||!netSocket||!netSocket.connected||index<0)return;netSocket.emit('world-action',{type,index})}
@@ -1272,10 +1294,52 @@ function netApplyWorld(w){
  if(tags)tags.forEach((t,i)=>{const wasDone=t.done,done=Array.isArray(w.tagsDone)&&w.tagsDone.includes(i);t.done=done;if(done){t.progress=1;if(!wasDone&&dctx){dctx.save();dctx.translate(t.x,t.y);drawGlyph(dctx,t.glyph,1,1.05,t.col,2.6);dctx.restore()}}});
  if(player&&multiplayer){player.gold=Number(w.goldCount)||0;player.tags=Number(w.tagCount)||0;setText('gold',`${player.gold} / ${quotaGold}`);setText('tags',`${player.tags} / ${quotaTags}`)}
 }
+// Apply the host's exact object placements/states so bodies, lights, water and rats
+// cannot drift apart if clients have different random-call timing.
+function netApplyWorldObjects(s){
+ if(!multiplayer||!s)return;
+ if(Array.isArray(s.bodies)){
+  const prior=bodies.slice(),next=[];
+  for(let i=0;i<s.bodies.length;i++){
+   const src=s.bodies[i],id=String(src.worldId|| (src.netId?`player:${src.netId}`:`body:${i}`));
+   let b=prior.find(q=>q.worldId===id||(src.netId&&q.netId===src.netId));
+   if(!b)b={x:src.x||0,y:src.y||0,ang:0,possessed:false,used:false,possessing:0,fromBot:!!src.fromBot,name:src.name||'MINER',pal:PAL.MINER,wig:0};
+   Object.assign(b,{worldId:id,netId:src.netId||null,x:Number(src.x)||0,y:Number(src.y)||0,ang:Number(src.ang)||0,possessed:!!src.possessed,used:!!src.used,possessing:Number(src.possessing)||0,fromBot:!!src.fromBot,name:src.name||'MINER',wig:Number.isFinite(src.wig)?src.wig:(b.wig||0)});
+   const pk=src.palKey;if(pk&&PAL[pk])b.pal=PAL[pk];next.push(b);
+  }
+  bodies.splice(0,bodies.length,...next);
+ }
+ if(Array.isArray(s.lanterns)){
+  for(let i=0;i<s.lanterns.length;i++){
+   const src=s.lanterns[i];if(!lanterns[i])lanterns[i]={};
+   Object.assign(lanterns[i],{x:src.x,y:src.y,r:src.r,ph:src.ph,dead:!!src.dead,sway:src.sway});
+  }
+  lanterns.length=s.lanterns.length;
+ }
+ if(Array.isArray(s.floodedTiles))floodedTiles=s.floodedTiles.map(c=>({x:c.x,y:c.y,ph:c.ph}));
+ if(Array.isArray(s.puddles)){
+  for(let i=0;i<s.puddles.length;i++){
+   const src=s.puddles[i];if(!puddles[i])puddles[i]={rip:[],next:3};
+   Object.assign(puddles[i],{x:src.x,y:src.y,rx:src.rx,ry:src.ry,rot:src.rot});
+  }
+  puddles.length=s.puddles.length;
+ }
+ if(Array.isArray(s.rats)){
+  for(let i=0;i<s.rats.length;i++){
+   const src=s.rats[i];if(!rats[i])rats[i]={};
+   Object.assign(rats[i],{x:src.x,y:src.y,ang:src.ang,t:src.t,mode:src.mode,ph:src.ph,tx:src.tx,ty:src.ty});
+  }
+  rats.length=s.rats.length;
+ }
+ if(Array.isArray(s.ores)){
+  for(let i=0;i<s.ores.length;i++){if(!ores[i])ores[i]={};Object.assign(ores[i],s.ores[i])}
+  ores.length=s.ores.length;
+ }
+}
 function syncNetworkBodies(){
  if(!multiplayer||!Array.isArray(bodies))return;
  for(const p of netPlayers){if(p.alive!==false||!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;
-  let b=bodies.find(x=>x.netId===p.id);if(!b){b={x:p.x,y:p.y,ang:0,possessed:false,used:false,possessing:0,fromBot:true,name:p.name||'MINER',pal:PAL.MINER,wig:0,netId:p.id};bodies.push(b)}else{b.x=p.x;b.y=p.y;b.name=p.name||b.name}
+  let b=bodies.find(x=>x.netId===p.id);if(!b){b={x:p.x,y:p.y,worldId:`player:${p.id}`,ang:0,possessed:false,used:false,possessing:0,fromBot:true,name:p.name||'MINER',pal:PAL.MINER,wig:0,netId:p.id};bodies.push(b)}else{b.worldId=b.worldId||`player:${p.id}`;b.x=p.x;b.y=p.y;b.name=p.name||b.name}
  }
 }
 function netMonsterTarget(m){
@@ -1300,14 +1364,23 @@ function netNextView(){netSpectateIndex++;netSpectateFocus()}
 function netApplyMonster(msg){
  if(!multiplayer||!msg)return;
  if(msg.world)netApplyWorld(msg.world);
- if(!isNetHost&&monster&&msg.monster){const m=msg.monster;Object.assign(monster,{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen||null,search:m.search||0,huntT:m.huntT||'player',dT:m.dT||0,mv:m.mv||0,gait:m.gait||0,revealed:!!m.revealed,pause:m.pause||0,disguise:m.disguise||null,stuck:m.stuck||0,wCool:m.wCool||0});monster.path=null;monster.host=m.hostId?bodies.find(b=>b.netId===m.hostId)||null:null;}
+ if(msg.worldObjects)netApplyWorldObjects(msg.worldObjects);
  if(msg.bots&&Array.isArray(bots)&&!isNetHost){msg.bots.forEach((b,i)=>{if(!bots[i])return;Object.assign(bots[i],b);bots[i].goal=null;bots[i].paint=0})}
- if(msg.bodies&&Array.isArray(msg.bodies)){for(const b0 of msg.bodies){let b=bodies.find(x=>x.netId===b0.netId);if(b)Object.assign(b,b0)}}
+ if(!isNetHost&&monster&&msg.monster){const m=msg.monster;Object.assign(monster,{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen||null,search:m.search||0,huntT:m.huntT||'player',dT:m.dT||0,mv:m.mv||0,gait:m.gait||0,revealed:!!m.revealed,pause:m.pause||0,disguise:m.disguise||null,stuck:m.stuck||0,wCool:m.wCool||0});monster.path=null;monster.host=m.hostBodyId?(bodies.find(b=>b.worldId===m.hostBodyId)||null):(m.hostId?bodies.find(b=>b.netId===m.hostId)||null:null);}
 }
 function netPackMonster(){
- const m=monster;return {monster:{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen,search:m.search,huntT:m.huntT,dT:m.dT,mv:m.mv,gait:m.gait,revealed:m.revealed,pause:m.pause,disguise:m.disguise,stuck:m.stuck,wCool:m.wCool,hostId:(m.host&&m.host.netId)||(m.disguise&&m.disguise.netId)||null},
+ const m=monster;
+ const worldObjects={
+  bodies:bodies.map((b,i)=>({worldId:b.worldId||(b.netId?`player:${b.netId}`:`body:${i}`),netId:b.netId||null,x:b.x,y:b.y,ang:b.ang,possessed:!!b.possessed,used:!!b.used,possessing:b.possessing||0,fromBot:!!b.fromBot,name:b.name||'MINER',palKey:Object.keys(PAL).find(k=>PAL[k]===b.pal)||'MINER',wig:b.wig||0})),
+  lanterns:lanterns.map(l=>({x:l.x,y:l.y,r:l.r,ph:l.ph,dead:!!l.dead,sway:l.sway})),
+  floodedTiles:floodedTiles.map(c=>({x:c.x,y:c.y,ph:c.ph})),
+  puddles:puddles.map(p=>({x:p.x,y:p.y,rx:p.rx,ry:p.ry,rot:p.rot})),
+  rats:rats.map(r=>({x:r.x,y:r.y,ang:r.ang,t:r.t,mode:r.mode,ph:r.ph,tx:r.tx,ty:r.ty})),
+  ores:ores.map(o=>({x:o.x,y:o.y,ph:o.ph,c:o.c||0}))
+ };
+ return {monster:{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen,search:m.search,huntT:m.huntT,dT:m.dT,mv:m.mv,gait:m.gait,revealed:m.revealed,pause:m.pause,disguise:m.disguise,stuck:m.stuck,wCool:m.wCool,hostId:(m.host&&m.host.netId)||(m.disguise&&m.disguise.netId)||null,hostBodyId:m.host&&m.host.worldId||null},
   bots:bots.map(b=>({x:b.x,y:b.y,ang:b.ang,ph:b.ph,moving:b.moving,panic:b.panic,alive:b.alive,name:b.name})),
-  bodies:bodies.filter(b=>b.netId).map(b=>({netId:b.netId,x:b.x,y:b.y,ang:b.ang,possessed:b.possessed,used:b.used,possessing:b.possessing,name:b.name,pal:b.pal,wig:b.wig})),world:netWorld};
+  worldObjects,world:netWorld};
 }
 function netTick(){
  if(!multiplayer||!netSocket||!netSocket.connected||!player)return;
