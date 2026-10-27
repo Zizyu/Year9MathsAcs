@@ -100,9 +100,9 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
 <div id="spectate"><div style="color:#d7b66d;letter-spacing:.18em;font-size:12px">YOUR SHIFT IS OVER</div><div id="spectateText" style="font-size:11px;line-height:1.5;margin:7px 0">You are dead. The mine keeps moving.</div><button id="nextSpectate">NEXT VIEW · E</button><button id="backToMenu">LEAVE MATCH</button></div>
 
 <script>
-// After deploying the server, replace this placeholder with its public HTTPS URL.
-// Example: https://deep-vein-multiplayer.onrender.com
-window.DEEP_VEIN_SERVER_URL = 'https://YOUR-RENDER-SERVICE.onrender.com';
+// Public multiplayer server deployed on Render.
+// Health check: https://deep-vein-multiplayer-cszl.onrender.com/health
+window.DEEP_VEIN_SERVER_URL = 'https://deep-vein-multiplayer-cszl.onrender.com';
 window.loadDeepVeinSocketClient = function () {
  const base = String(window.DEEP_VEIN_SERVER_URL || '').replace(/\/+$/, '');
  if (!base || base.includes('YOUR-RENDER-SERVICE')) return false;
@@ -1214,7 +1214,7 @@ function netUpdateLobby(l){
 function escapeNetHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function ensureNet(){
  if(netSocket)return true;
- if(!NET_SERVER_URL || NET_SERVER_URL.includes('YOUR-RENDER-SERVICE')){netMessage('Online server not configured yet. Deploy the server, then replace YOUR-RENDER-SERVICE in index.html with its public HTTPS URL. Solo mode still works.');return false}
+ if(!NET_SERVER_URL || NET_SERVER_URL.includes('YOUR-RENDER-SERVICE')){netMessage('Online server is not configured. Solo mode still works.');return false}
  if(typeof io==='undefined'){
   if(window.__deepVeinSocketError){netMessage('Could not load the multiplayer client from the server. Check the public server URL and try again.');return false}
   if(window.loadDeepVeinSocketClient)window.loadDeepVeinSocketClient();
