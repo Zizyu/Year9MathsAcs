@@ -79,7 +79,7 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
  <p>You came down for stolen gold and a few ugly tags. Something tall has been wandering these tunnels for years. It doesn't make corpses. It <em>uses</em> them.</p>
  <div class="rule"></div>
  <p><b>YOUR JOB</b><br>Meet the changing gold and graffiti quota, then bring all living crew members into the 500 × 500 pixel area around the lift. Your crew helps, but bodies are not always dead for long.</p>
- <p><b>CONTROLS</b><br><kbd>WASD</kbd> / arrows move · hold <kbd>C</kbd> or <kbd>CTRL</kbd> to crouch quietly · <kbd>SHIFT</kbd> sprint (uses stamina) · <b>mouse</b> aims your lamp · stand on a <b>floor marker</b> next to a marked wall and press <kbd>E</kbd> to tag it (repeat the arrow sequence, <kbd>E</kbd> again to step away) · <kbd>E</kbd> also collects gold / uses the lift · <kbd>TAB</kbd> survey map · <kbd>M</kbd> mute · <kbd>P</kbd> pause</p>
+ <p><b>CONTROLS</b><br><kbd>WASD</kbd> / arrows move · hold <kbd>C</kbd> or <kbd>CTRL</kbd> to crouch quietly · <kbd>SHIFT</kbd> sprint (uses stamina) · <b>mouse</b> aims your lamp · stand on a <b>floor marker</b> next to a marked wall and press <kbd>E</kbd> to tag it (repeat the arrow sequence, <kbd>E</kbd> again to step away) · <kbd>E</kbd> also collects gold / uses the lift · <kbd>TAB</kbd> survey map · <kbd>M</kbd> mute · <kbd>B</kbd> brightness · <kbd>P</kbd> pause</p>
  <button id="start">DESCEND SOLO</button> <button id="onlineOpen" style="margin-left:8px">ONLINE MULTIPLAYER</button>
  <div class="rule"></div><div class="small">A multi-depth browser horror run. Every lift descent is darker, with fewer working lamps, more obstacles, and a faster, more attentive monster. Headphones recommended.</div>
 </div></div>
@@ -94,7 +94,9 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
  <div class="small">JOIN A FRIEND'S LOBBY</div><input id="roomCode" class="online-input" maxlength="6" placeholder="ROOM CODE" autocomplete="off">
  <div class="online-row"><button id="joinLobby">JOIN ROOM</button><button id="onlineBack">BACK</button></div>
  <div class="rule"></div><div id="onlineMessage" class="small">Connect to a hosted DEEP VEIN server to play online.</div>
- <div id="lobbyDetails" style="display:none;text-align:left;margin-top:12px"><div style="font-size:12px;color:#d7b66d">ROOM <b id="lobbyCode">------</b> · <span id="lobbyCount">1 / 5 PLAYERS</span></div><div id="lobbyPlayers" class="small" style="margin:8px 0;line-height:1.9"></div><div class="online-row"><button id="launchLobby" style="display:none">START THE SHIFT</button><button id="leaveLobby">LEAVE LOBBY</button></div><div class="small">Share the room code with friends. Public matchmaking can also join an open lobby.</div></div>
+ <div id="lobbyDetails" style="display:none;text-align:left;margin-top:12px"><div style="font-size:12px;color:#d7b66d">ROOM <b id="lobbyCode">------</b> · <span id="lobbyCount">1 / 5 PLAYERS</span></div><div id="lobbyPlayers" class="small" style="margin:8px 0;line-height:1.9"></div><div class="online-row"><button id="launchLobby" style="display:none">START THE SHIFT</button><button id="monsterModeBtn" style="display:none">MONSTER: AI</button><button id="leaveLobby">LEAVE LOBBY</button></div>
+<div id="monsterModeHint" class="small" style="display:none;margin-top:6px;color:#cfaaa0">Host option: pick a random human in the lobby to control the monster with full abilities (possess, disguise, hunt). Miners still fill the quota; the chosen player becomes the threat.</div>
+<div class="small">Share the room code with friends. Public matchmaking can also join an open lobby.</div></div>
  </div></div>
 <div id="netStatus"></div>
 <div id="spectate"><div style="color:#d7b66d;letter-spacing:.18em;font-size:12px">YOUR SHIFT IS OVER</div><div id="spectateText" style="font-size:11px;line-height:1.5;margin:7px 0">You are dead. The mine keeps moving.</div><button id="nextSpectate">NEXT VIEW · E</button><button id="backToMenu">LEAVE MATCH</button></div>
@@ -314,13 +316,14 @@ function drawWater(camX,camY){
 }
 // Set only while a shared multiplayer world is being generated.
 let worldSeedForVisuals=0;
+let brightBoost=0; // 0 off, 1 mild, 2 strong — accessibility for dim screens
 let phase='menu',paused=false,last=0,elapsed=0,noise=0,flashlightOn=true,shake=0,hintT=0,alertT=0,hbT=0,heartPulse=0,rumbleT=40,knockT=25,growlT=12,liftOpen=0,endT=0,miniT=0,exploreT=0,showMini=true,endWin=false,painting=null,prevPainting=false,fxClock=0,whT=8,breathT=0,puzzle=null,lastQuota=false,depth=1,quotaGold=6,quotaTags=3;
 const DEPTH_NAMES=['UPPER SEAMS','THE OLD WORKINGS','THE FLOODED VEIN','THE BLACK SHAFT','THE ROOT CHAMBER','THE UNLIT DEEP','THE BURIED CHOIR','THE LAST STRATUM'];
 function depthName(){return depth<=DEPTH_NAMES.length?DEPTH_NAMES[depth-1]:`${DEPTH_NAMES[DEPTH_NAMES.length-1]} ${String(depth-DEPTH_NAMES.length+1).padStart(2,'0')}`}
 function depthScale(){return 1+Math.min(depth-1,12)*.055;}
 const keys={},mouse={x:0,y:0,down:false,moved:false};
 const hudCache={};
-const DEFAULT_HINT='WASD move · SHIFT sprint · F toggle flashlight · Mouse aims the lamp · E on a floor marker tags the wall · E collect / lift';
+const DEFAULT_HINT='WASD move · SHIFT sprint · F flashlight · B brightness · Mouse aims the lamp · E interact / lift';
 function setText(id,v){if(hudCache[id]!==v){hudCache[id]=v;$(id).textContent=v}}
 function say(t,d){hintT=d||2;setText('hint',t)}
 function showAlert(t){$('alert').textContent=t;alertT=1.5}
@@ -690,6 +693,41 @@ function updateMonster(dt){
   if(b.possessing>2.4){b.used=b.possessed=true;m.state='disguise';m.disguise={name:b.name,pal:b.pal,netId:b.netId||null};m.dT=0;m.dMode=Math.random()<.25?'stalk':'wander';m.twT=0;m.repath=0;m.path=null;m.x=b.x;m.y=b.y;m.host=null;m.revealed=false;showAlert('SOMEONE GOT UP');say('It stands like a tired miner. It is trying very hard to look normal.',3.2);shake=7;Snd.stinger(.5)}
   return;
  }
+ // ----- Player-controlled monster (host applies remote inputs) -----
+ if(multiplayer&&netMonsterControllerId&&isNetHost&&m.state!=='possess'){
+  if(m.pause>0){m.pause-=dt;m.mv=0;}
+  else{
+   const mi=monsterInput||{};
+   // Optional: force-reveal while disguised
+   if((monsterRevealQueued||mi.reveal)&&m.state==='disguise'){reveal(netMonsterTarget(m));}
+   monsterRevealQueued=false;mi.reveal=false;
+   // Possess nearest unused body on E
+   if(monsterPossessQueued||mi.possess){
+    monsterPossessQueued=false;mi.possess=false;
+    const b=bodies.find(b=>!b.used&&!b.possessed&&Math.hypot(b.x-m.x,b.y-m.y)<48);
+    if(b){m.state='possess';m.host=b;b.possessing=0;m.path=null;Snd.possess();}
+   }
+   let dx=+mi.dx||0,dy=+mi.dy||0;const len=Math.hypot(dx,dy);
+   if(len>0.05){dx/=len;dy/=len;}else{dx=0;dy=0;}
+   const sprint=!!mi.sprint;
+   const base={stalk:64,investigate:98,search:84,hunt:m.revealed?158:138,disguise:70}[m.state]||90;
+   const spd=(base+(sprint?40:0))*depthScale();
+   if(dx||dy){
+    m.fx=dx;m.fy=dy;moveEntity(m,dx*spd*dt,dy*spd*dt,m.r);m.mv=lerp(m.mv,sprint?1.4:1,Math.min(1,dt*8));
+    if(m.state==='stalk'||m.state==='search'||m.state==='investigate'){m.state='hunt';m.huntT='player';m.search=4;}
+   }else m.mv=lerp(m.mv,0,Math.min(1,dt*6));
+   if(Number.isFinite(mi.aim))m.ang=angLerp(m.ang,mi.aim,Math.min(1,dt*10));
+   else m.ang=angLerp(m.ang,Math.atan2(m.fy,m.fx),Math.min(1,dt*9));
+   m.gait+=dt*(4+m.mv*7);
+   // Kill contact still handled below by shared code — fall through after movement
+  }
+  // Shared kill checks at end of function still run; skip AI pathfinding by early handling kills then return
+  const targetPlayer=netMonsterTarget(m);
+  for(const b of bots)if(b.alive&&dist(b,m)<26&&m.state!=='possess')killBot(b);
+  const pd=dist(targetPlayer,m);
+  if(pd<27&&m.state!=='possess'){if(multiplayer&&isNetHost&&targetPlayer.netId&&targetPlayer.netId!==netMyId)netKillRemote(targetPlayer.netId,targetPlayer.x,targetPlayer.y);else if(!multiplayer||targetPlayer.netId===netMyId)die();}
+  return;
+ }
  if(m.pause>0){m.pause-=dt;m.mv=0;}
  else if(m.state==='disguise'){
   m.dT+=dt;
@@ -866,6 +904,26 @@ function markExplored(){
 /* ---------- main update ---------- */
 function updateGame(dt){
  elapsed+=dt;
+ // Local player is the assigned monster: drive the creature instead of a miner.
+ if(isMonsterController){
+  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+  const len=Math.hypot(dx,dy);if(len>0){dx/=len;dy/=len;}
+  let aim=player.aim;if(mouse.moved)aim=Math.atan2(mouse.y-H/2,mouse.x-W/2);else if(len>0)aim=Math.atan2(dy,dx);
+  player.aim=angLerp(player.aim,aim,Math.min(1,dt*14));
+  // Keep local player entity parked (not drawn while controlling monster)
+  if(monster){player.x=monster.x;player.y=monster.y;}
+  player.mv=0;noise=Math.max(0,noise-dt*20);
+  if(!multiplayer||isNetHost){updateBots(dt);updateMonster(dt);}
+  // If host is also the controller, feed inputs directly
+  if(isNetHost){
+   monsterInput={dx,dy,aim:player.aim,sprint:!!keys.shift,possess:false,reveal:false,seq:(monsterInput.seq||0)+1};
+   if(monsterPossessQueued){monsterInput.possess=true;monsterPossessQueued=false;}
+   if(monsterRevealQueued){monsterInput.reveal=true;monsterRevealQueued=false;}
+  }
+  shake=Math.max(0,shake-dt*20);
+  exploreT-=dt;if(exploreT<=0){exploreT=.2;markExplored()}
+  return;
+ }
  // Noise is event-driven: only footfalls add movement noise. Idle noise fades fast;
  // ordinary movement has a tiny fade between footsteps so it cannot grow from time alone.
  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
@@ -1107,7 +1165,7 @@ function drawLantern(l,inten){
 function draw(){
  ctx.setTransform(dpr,0,0,dpr,0,0);
  ctx.fillStyle='#030404';ctx.fillRect(0,0,W,H);
- const cameraFocus=(multiplayer&&phase==='spectate')?netSpectateFocus():player;
+ const cameraFocus=(multiplayer&&isMonsterController&&monster)?monster:(multiplayer&&phase==='spectate')?netSpectateFocus():player;
  let camX=cameraFocus.x-W/2,camY=cameraFocus.y-H/2;
  if(shake>0){camX+=(Math.random()-.5)*shake;camY+=(Math.random()-.5)*shake}
  camX=Math.round(camX);camY=Math.round(camY);
@@ -1149,7 +1207,7 @@ function draw(){
  if(multiplayer&&monster.state==='disguise'&&monster.disguise&&monster.disguise.netId){ctx.save();ctx.font='10px Consolas,monospace';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(monster.x-45,monster.y-35,90,13);ctx.fillStyle='#cfaaa0';ctx.fillText(String(monster.disguise.name||'MINER').slice(0,18),monster.x,monster.y-25);ctx.restore()}
  // The dead local avatar is rendered as a body; while spectating, don't draw it as a living miner.
  // player
- if(!multiplayer||phase!=='spectate'){
+ if((!multiplayer||phase!=='spectate')&&!isMonsterController){
  {
   const mvv=player.mv;
   drawMiner(player.x,player.y,player.aim,player.foot,mvv,PAL.player);
@@ -1196,7 +1254,7 @@ function draw(){
  for(const g of gold)if(!g.taken){const sx=g.x-camX,sy=g.y-camY;if(sx>-40&&sx<W+40&&sy>-40&&sy<H+40)lights.push({x:sx,y:sy,r:38,poly:null,kind:'gold',k:.5})}
  for(const t of tags)if(!t.done){const sx=t.ax-camX,sy=t.ay-camY;if(sx>-70&&sx<W+70&&sy>-70&&sy<H+70)lights.push({x:sx,y:sy,r:62,poly:null,kind:'gold',k:.65})}
  lctx.setTransform(.5,0,0,.5,0,0);lctx.globalCompositeOperation='source-over';lctx.clearRect(0,0,W,H);
- const darkness=Math.min(.985,.95+(depth-1)*.004);lctx.fillStyle=`rgba(3,5,6,${darkness})`;lctx.fillRect(0,0,W,H);
+ const darkness=Math.min(.985,.95+(depth-1)*.004)-(brightBoost===1?.08:brightBoost===2?.16:0);lctx.fillStyle=`rgba(3,5,6,${Math.max(.72,darkness)})`;lctx.fillRect(0,0,W,H);
  lctx.globalCompositeOperation='destination-out';
  const aim=player.aim;
  for(const L of lights){
@@ -1239,7 +1297,21 @@ function draw(){
  // post: vignette, grain, danger tint, heartbeat
  ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);
  if(depth>1){const veil=Math.min(.18,(depth-1)*.018);ctx.fillStyle=depth>=4?`rgba(18,2,5,${veil})`:`rgba(0,8,12,${veil})`;ctx.fillRect(0,0,W,H)}
- ctx.save();ctx.globalAlpha=.9;ctx.translate((Math.random()*128)|0,(Math.random()*128)|0);ctx.fillStyle=grainPat;ctx.fillRect(-128,-128,W+256,H+256);ctx.restore();
+ // Soften vignette + depth veil when brightness boost is on
+ if(brightBoost>0){
+  const lift=brightBoost===1?.14:.26;
+  ctx.fillStyle=`rgba(210,205,185,${lift})`;
+  ctx.globalCompositeOperation='lighter';
+  ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='source-over';
+  // Pull back the outer darkness a bit more
+  const soft=brightBoost===1?.12:.22;
+  ctx.fillStyle=`rgba(40,48,42,${soft})`;
+  ctx.globalCompositeOperation='destination-out';
+  ctx.beginPath();ctx.arc(W/2,H/2,Math.max(W,H)*.55,0,Math.PI*2);ctx.fill();
+  ctx.globalCompositeOperation='source-over';
+ }
+ ctx.save();ctx.globalAlpha=brightBoost>0?.55:.9;ctx.translate((Math.random()*128)|0,(Math.random()*128)|0);ctx.fillStyle=grainPat;ctx.fillRect(-128,-128,W+256,H+256);ctx.restore();
  if(md<240&&monster.state!=='disguise'){ctx.fillStyle=`rgba(110,10,8,${(240-md)/900})`;ctx.fillRect(0,0,W,H)}
  if(heartPulse>.02){const g=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.3,W/2,H/2,Math.max(W,H)*.65);g.addColorStop(0,'rgba(80,0,0,0)');g.addColorStop(1,`rgba(80,4,4,${heartPulse*.38})`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
  if(player.tired){ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(0,0,W,H)}
@@ -1306,11 +1378,15 @@ addEventListener('keydown',e=>{
  if(['arrowup','arrowdown','arrowleft','arrowright',' ','tab'].includes(k))e.preventDefault();
  if(phase==='spectate'&&k==='e'&&!e.repeat){netNextView()}
  if(phase==='play'&&!paused&&!e.repeat){
-  if(puzzle){const d={w:'up',arrowup:'up',s:'down',arrowdown:'down',a:'left',arrowleft:'left',d:'right',arrowright:'right'}[k];if(d)puzzleKey(d);else if(k==='e'){puzzle.tag.progress=0;stopPuzzle();say('You step back from the wall.',1.6)}}
+  if(isMonsterController){
+   if(k==='e'){monsterPossessQueued=true;say('Reaching for a body…',1.2);}
+   else if(k==='r'){monsterRevealQueued=true;say('Dropping the act.',1.2);}
+  }else if(puzzle){const d={w:'up',arrowup:'up',s:'down',arrowdown:'down',a:'left',arrowleft:'left',d:'right',arrowright:'right'}[k];if(d)puzzleKey(d);else if(k==='e'){puzzle.tag.progress=0;stopPuzzle();say('You step back from the wall.',1.6)}}
   else if(k==='e')interact();
  }
  if(k==='p'||k==='escape')setPaused(!paused);
  if(k==='m')Snd.toggle();
+ if(k==='b'&&!e.repeat){brightBoost=(brightBoost+1)%3;const labels=['off','mild','strong'];say('Brightness boost: '+labels[brightBoost]+' (B to cycle)',2.2);}
  if(k==='f'&&phase==='play'&&!paused&&!e.repeat){flashlightOn=!flashlightOn;say(flashlightOn?'Flashlight on. You are easier to spot.':'Flashlight off. Stay quiet and keep moving.',2);Snd.lamp();}
  if(k==='tab'){showMini=!showMini;miniT=0;if(!showMini)mini.style.display='none'}
 });
@@ -1328,6 +1404,12 @@ let netSocket=null,multiplayer=false,netMyId=null,netName='MINER',netHostId=null
 let netLobby=null,netPlayers=[],netSeed=1,netBotSlots=4,netAlive=true,netSpectateIndex=0;
 let netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
 let netLastPlayerSend=0,netLastMonsterSend=0;
+// Host lobby toggle: when true, a random human is assigned as the live monster controller.
+let hostPlayerMonster=false;
+let netMonsterControllerId=null,netMonsterControllerName=null,isMonsterController=false;
+// Latest movement/actions from the assigned monster player (host applies these).
+let monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};
+let monsterInputSeqApplied=0,monsterPossessQueued=false,monsterRevealQueued=false;
 const NET_SPAWNS=[{x:2.5*TILE,y:2.5*TILE},{x:3.5*TILE,y:2.5*TILE},{x:2.5*TILE,y:3.5*TILE},{x:3.5*TILE,y:3.5*TILE},{x:2.5*TILE,y:1.5*TILE}];
 function netCleanName(v){return String(v||'MINER').replace(/[^\w\- ]/g,'').trim().replace(/\s+/g,' ').slice(0,18)||'MINER'}
 function netMessage(v){$('onlineMessage').textContent=v}
@@ -1339,8 +1421,12 @@ function netUpdateLobby(l){
  $('lobbyPlayers').innerHTML=l.players.map((p,i)=>`${i===0?'▸':'·'} ${escapeNetHtml(p.name)}${p.id===l.hostId?' <span style="color:#d7b66d">HOST</span>':''}${p.alive===false?' <span style="color:#a85a4a">DEAD</span>':''}`).join('<br>')+`<br><span style="color:#8fb39a">${l.botSlots} MINE BOT${l.botSlots===1?'':'S'} WILL FILL EMPTY SLOT${l.botSlots===1?'':'S'}</span>`;
  $('launchLobby').style.display=isNetHost&&l.status==='lobby'?'inline-block':'none';
  $('launchLobby').disabled=l.players.length<1;
- netMessage(l.status==='playing'?'Shift in progress. Reconnect to the same room after the match starts.':isNetHost?'Share the code with friends, then start when ready.':'Waiting for the host to start the shift.');
- if(multiplayer)netStatus(`ONLINE · ROOM ${l.code}\n${l.players.length}/5 HUMANS · ${l.botSlots} BOTS`);
+ const mm=$('monsterModeBtn'),mh=$('monsterModeHint');
+ if(mm){mm.style.display=isNetHost&&l.status==='lobby'?'inline-block':'none';mm.textContent=hostPlayerMonster?'MONSTER: RANDOM PLAYER':'MONSTER: AI';mm.style.background=hostPlayerMonster?'#6a2f28':'#542f28'}
+ if(mh)mh.style.display=isNetHost&&l.status==='lobby'?'block':'none';
+ const mmNote=hostPlayerMonster?' · PLAYER MONSTER ON':'';
+ netMessage(l.status==='playing'?'Shift in progress. Reconnect to the same room after the match starts.':isNetHost?('Share the code with friends, then start when ready.'+mmNote):'Waiting for the host to start the shift.');
+ if(multiplayer)netStatus(`ONLINE · ROOM ${l.code}\n${l.players.length}/5 HUMANS · ${l.botSlots} BOTS`+(hostPlayerMonster?'\nPLAYER MONSTER':'') );
 }
 function escapeNetHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function ensureNet(){
@@ -1360,10 +1446,23 @@ function ensureNet(){
  netSocket.on('players-update',d=>{
   netPlayers=d.players||[];if(d.hostId){netHostId=d.hostId;isNetHost=netHostId===netMyId}
   syncNetworkBodies();
-  const me=netPlayers.find(p=>p.id===netMyId);if(me&&me.alive===false&&phase==='play')netEnterSpectator(me.x,me.y,true);
-  if(multiplayer){const alive=netPlayers.filter(p=>p.alive).length;netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||'------'}\n${alive} ALIVE · ${netBotSlots} BOTS`)}
+  // Host reads the assigned monster player's movement intents (relayed through player-state).
+  if(isNetHost&&netMonsterControllerId){
+   const ctrl=netPlayers.find(p=>p.id===netMonsterControllerId);
+   if(ctrl&&ctrl.monsterInput&&typeof ctrl.monsterInput==='object'){
+    const mi=ctrl.monsterInput;
+    if(Number(mi.seq||0)>monsterInputSeqApplied){
+     monsterInput={dx:+mi.dx||0,dy:+mi.dy||0,aim:+mi.aim||0,sprint:!!mi.sprint,possess:!!mi.possess,reveal:!!mi.reveal,seq:Number(mi.seq)||0};
+     monsterInputSeqApplied=monsterInput.seq;
+     if(mi.possess)monsterPossessQueued=true;
+     if(mi.reveal)monsterRevealQueued=true;
+    }
+   }
+  }
+  const me=netPlayers.find(p=>p.id===netMyId);if(me&&me.alive===false&&phase==='play'&&!isMonsterController)netEnterSpectator(me.x,me.y,true);
+  if(multiplayer){const alive=netPlayers.filter(p=>p.alive&&p.id!==netMonsterControllerId).length;netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||'------'}\n${alive} ALIVE · ${netBotSlots} BOTS`+(netMonsterControllerId?'\nPLAYER MONSTER':'') )}
  });
- netSocket.on('player-died',p=>{netPlayers=netPlayers.map(q=>q.id===p.id?{...q,...p,alive:false}:q);syncNetworkBodies();if(p.id===netMyId&&phase==='play')netEnterSpectator(p.x,p.y,true)});
+ netSocket.on('player-died',p=>{netPlayers=netPlayers.map(q=>q.id===p.id?{...q,...p,alive:false}:q);syncNetworkBodies();if(p.id===netMyId&&phase==='play'&&!isMonsterController)netEnterSpectator(p.x,p.y,true)});
  netSocket.on('world-state',netApplyWorld);
  netSocket.on('monster-state',netApplyMonster);
  netSocket.on('game-ended',d=>{if(multiplayer){phase='over';$('spectate').style.display='none';$('endTitle').textContent='CREW LOST';$('endText').textContent=d&&d.message?d.message:'No living miners remain. The mine has claimed the whole crew.';$('again').textContent='RETURN TO MENU';$('again').onclick=()=>{$('backToMenu').click()};$('end').style.display='flex'}});
@@ -1379,10 +1478,20 @@ function netJoinAction(type){
  else {const code=$('roomCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);if(!code){netMessage('Enter the room code first.');return}netSocket.emit('join-lobby',{...payload,code})}
  netMessage('Contacting the mine server…');
 }
-function netLeave(){if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];netHostId=null;isNetHost=false;netSocket=null;$('spectate').style.display='none';$('netStatus').style.display='none';$('onlinePanel').style.display='none';$('menu').style.display='flex';phase='menu';}
+function netLeave(){if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];netHostId=null;isNetHost=false;netSocket=null;netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;hostPlayerMonster=false;$('spectate').style.display='none';$('netStatus').style.display='none';$('onlinePanel').style.display='none';$('menu').style.display='flex';phase='menu';}
 function netSeededSetup(seed){const old=Math.random,oldWorldSeed=worldSeedForVisuals,s=(Number(seed)>>>0)||1;worldSeedForVisuals=s;Math.random=mulberry(s);try{setup()}finally{Math.random=old;worldSeedForVisuals=oldWorldSeed}}
 function netStartGame(d){
  multiplayer=true;netSeed=d.seed;netBotSlots=Math.max(0,Math.min(4,Number(d.botSlots)||0));netAlive=true;netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
+ netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;
+ monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};monsterInputSeqApplied=0;monsterPossessQueued=false;monsterRevealQueued=false;
+ // Host assigns a random human as the monster when the lobby option is enabled.
+ if(isNetHost&&hostPlayerMonster){
+  const pool=(d.players||netPlayers||[]).filter(p=>p&&p.id);
+  if(pool.length){
+   const pick=pool[(Math.random()*pool.length)|0];
+   netMonsterControllerId=pick.id;netMonsterControllerName=pick.name||'MINER';
+  }
+ }
  depth=1;netSeededSetup(netSeed);
  // Reuse the game's existing crew AI as the bot-filled player slots. Add/remove bots deterministically to exactly match the lobby.
  bots=bots.slice(0,netBotSlots);
@@ -1391,9 +1500,18 @@ function netStartGame(d){
  player.x=sp.x;player.y=sp.y;player.gold=0;player.tags=0;player.name=netName;player.r=10;
  // A single deterministic seed produces the same mine layout for every member of this room.
  phase='play';paused=false;last=performance.now();$('menu').style.display='none';$('onlinePanel').style.display='none';$('end').style.display='none';$('pause').style.display='none';$('spectate').style.display='none';$('puzzle').style.display='none';mini.style.display=showMini&&innerWidth>700?'block':'none';markExplored();
- setText('depth','01');setText('layerName',depthName());setText('gold',`0 / ${quotaGold}`);setText('tags',`0 / ${quotaTags}`);setText('crew',`${players.filter(p=>p.alive!==false).length+netBotSlots} ALIVE`);
- netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||d.code||'------'}\n${players.length}/5 HUMANS · ${netBotSlots} BOTS`);
- $('objective').innerHTML='<b style="color:#d7b66d">CO-OP CONTRACT</b><br>Recover the shared gold and graffiti quota. Once complete, every living player and bot must be within a 500 × 500 pixel area around the lift to extract. Dead players spectate, and the monster can wear their bodies.<br><span style="color:#9aa39a">No one gets out alone.</span>';
+ // If this client is the assigned monster controller, they do not play as a miner.
+ if(netMonsterControllerId&&netMonsterControllerId===netMyId){
+  isMonsterController=true;netAlive=false;flashlightOn=false;
+  showAlert('YOU ARE THE MONSTER');say('WASD move · mouse aims · E possess a body · R drop disguise / reveal · SHIFT sprint',4);
+ }
+ setText('depth','01');setText('layerName',depthName());setText('gold',`0 / ${quotaGold}`);setText('tags',`0 / ${quotaTags}`);
+ const livingHumans=players.filter(p=>p.alive!==false&&p.id!==netMonsterControllerId).length;
+ setText('crew',`${livingHumans+netBotSlots} ALIVE`);
+ netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||d.code||'------'}\n${players.length}/5 HUMANS · ${netBotSlots} BOTS`+(netMonsterControllerId?`\nMONSTER: ${netMonsterControllerName||'PLAYER'}`:''));
+ $('objective').innerHTML=isMonsterController
+  ?'<b style="color:#e0b4a0">YOU ARE THE MONSTER</b><br>Hunt the crew. Walk into miners to kill them. Stand on a body and press E to crawl inside and wear their face. While disguised, press R to break the act and reveal yourself. The miners win if they fill the quota and extract together.<br><span style="color:#9aa39a">Bodies are tools. Use them.</span>'
+  :'<b style="color:#d7b66d">CO-OP CONTRACT</b><br>Recover the shared gold and graffiti quota. Once complete, every living player and bot must be within a 500 × 500 pixel area around the lift to extract. Dead players spectate, and the monster can wear their bodies.'+(netMonsterControllerId?'<br><span style="color:#cfaaa0">A human player is controlling the monster.</span>':'')+'<br><span style="color:#9aa39a">No one gets out alone.</span>';
  netApplyWorld(d.world||{goldTaken:[],tagsDone:[],goldCount:0,tagCount:0});
 }
 function netEmitWorldAction(type,index){if(!multiplayer||!netSocket||!netSocket.connected||index<0)return;netSocket.emit('world-action',{type,index})}
@@ -1454,8 +1572,8 @@ function syncNetworkBodies(){
 function netMonsterTarget(m){
  if(!multiplayer||!isNetHost)return player;
  const candidates=[];
- if(netAlive&&player)candidates.push({...player,id:netMyId,netId:netMyId,name:netName,flashlightOn,noise,isLocal:true});
- for(const p of netPlayers){if(p.id===netMyId||!p.alive||!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;candidates.push({...p,netId:p.id,isLocal:false})}
+ if(netAlive&&player&&netMyId!==netMonsterControllerId)candidates.push({...player,id:netMyId,netId:netMyId,name:netName,flashlightOn,noise,isLocal:true});
+ for(const p of netPlayers){if(p.id===netMyId||p.id===netMonsterControllerId||!p.alive||!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;candidates.push({...p,netId:p.id,isLocal:false})}
  if(!candidates.length)return player;
  candidates.sort((a,b)=>dist(a,m)-dist(b,m));return candidates[0];
 }
@@ -1472,6 +1590,15 @@ function netSpectateFocus(){
 function netNextView(){netSpectateIndex++;netSpectateFocus()}
 function netApplyMonster(msg){
  if(!multiplayer||!msg)return;
+ if(msg.controllerId){
+  const was=isMonsterController;
+  netMonsterControllerId=msg.controllerId;netMonsterControllerName=msg.controllerName||netMonsterControllerName;
+  isMonsterController=(netMonsterControllerId===netMyId);
+  if(isMonsterController&&!was){
+   netAlive=false;flashlightOn=false;
+   if(phase==='play'){showAlert('YOU ARE THE MONSTER');say('WASD move · mouse aims · E possess a body · R drop disguise / reveal · SHIFT sprint',4)}
+  }
+ }
  if(msg.world)netApplyWorld(msg.world);
  if(msg.worldObjects)netApplyWorldObjects(msg.worldObjects);
  if(msg.bots&&Array.isArray(bots)&&!isNetHost){msg.bots.forEach((b,i)=>{if(!bots[i])return;Object.assign(bots[i],b);bots[i].goal=null;bots[i].paint=0})}
@@ -1489,12 +1616,27 @@ function netPackMonster(){
  };
  return {monster:{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen,search:m.search,huntT:m.huntT,dT:m.dT,mv:m.mv,gait:m.gait,revealed:m.revealed,pause:m.pause,disguise:m.disguise,stuck:m.stuck,wCool:m.wCool,hostId:(m.host&&m.host.netId)||(m.disguise&&m.disguise.netId)||null,hostBodyId:m.host&&m.host.worldId||null},
   bots:bots.map(b=>({x:b.x,y:b.y,ang:b.ang,ph:b.ph,moving:b.moving,panic:b.panic,alive:b.alive,name:b.name})),
-  worldObjects,world:netWorld};
+  worldObjects,world:netWorld,
+  controllerId:netMonsterControllerId,controllerName:netMonsterControllerName};
 }
 function netTick(){
  if(!multiplayer||!netSocket||!netSocket.connected||!player)return;
  const now=performance.now();
- if(now-netLastPlayerSend>70&&phase==='play'&&netAlive){netLastPlayerSend=now;netSocket.emit('player-state',{x:player.x,y:player.y,aim:player.aim,mv:player.mv,foot:player.foot,alive:true,flashlightOn,noise, moving:!!(keys.w||keys.a||keys.s||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright),name:netName})}
+ if(now-netLastPlayerSend>70&&phase==='play'&&(netAlive||isMonsterController)){
+  netLastPlayerSend=now;
+  if(isMonsterController){
+   let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+   const len=Math.hypot(dx,dy);if(len>0){dx/=len;dy/=len;}
+   const payload={x:monster?monster.x:player.x,y:monster?monster.y:player.y,aim:player.aim,mv:0,foot:0,alive:true,flashlightOn:false,noise:0,moving:len>0,name:netName,role:'monster',
+    monsterInput:{dx,dy,aim:player.aim,sprint:!!keys.shift,possess:!!monsterPossessQueued,reveal:!!monsterRevealQueued,seq:(monsterInput.seq||0)+1}};
+   monsterInput.seq=payload.monsterInput.seq;
+   // Consume one-shot actions after queueing
+   monsterPossessQueued=false;monsterRevealQueued=false;
+   netSocket.emit('player-state',payload);
+  }else{
+   netSocket.emit('player-state',{x:player.x,y:player.y,aim:player.aim,mv:player.mv,foot:player.foot,alive:true,flashlightOn,noise, moving:!!(keys.w||keys.a||keys.s||keys.d||keys.arrowup||keys.arrowdown||keys.arrowleft||keys.arrowright),name:netName});
+  }
+ }
  if(isNetHost&&now-netLastMonsterSend>75&&(phase==='play'||phase==='spectate')){netLastMonsterSend=now;syncNetworkBodies();netSocket.emit('monster-state',netPackMonster())}
 }
 // Socket sync is deliberately small and frequent so remote avatars and the monster feel continuous.
@@ -1503,6 +1645,13 @@ $('onlineOpen').onclick=()=>{Snd.init();$('menu').style.display='none';$('online
 $('onlineBack').onclick=()=>{$('onlinePanel').style.display='none';$('menu').style.display='flex'};
 $('quickJoin').onclick=()=>netJoinAction('quick');$('createLobby').onclick=()=>netJoinAction('create');$('joinLobby').onclick=()=>netJoinAction('join');
 $('launchLobby').onclick=()=>{if(netSocket&&isNetHost)netSocket.emit('start-game')};
+if($('monsterModeBtn'))$('monsterModeBtn').onclick=()=>{
+ if(!isNetHost)return;
+ hostPlayerMonster=!hostPlayerMonster;
+ $('monsterModeBtn').textContent=hostPlayerMonster?'MONSTER: RANDOM PLAYER':'MONSTER: AI';
+ $('monsterModeBtn').style.background=hostPlayerMonster?'#6a2f28':'#542f28';
+ netMessage(hostPlayerMonster?'Player-monster mode ON. A random human will control the creature when the shift starts.':'Player-monster mode OFF. The AI runs the monster.');
+};
 $('leaveLobby').onclick=()=>{if(netSocket)netSocket.emit('leave-lobby');netLobby=null;$('lobbyDetails').style.display='none';netMessage('You left the lobby. Create or join another room.')};
 $('nextSpectate').onclick=netNextView;$('backToMenu').onclick=()=>{if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];isNetHost=false;netHostId=null;phase='menu';$('spectate').style.display='none';$('netStatus').style.display='none';$('end').style.display='none';$('menu').style.display='flex';};
 $('roomCode').addEventListener('input',()=>{$('roomCode').value=$('roomCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)});
