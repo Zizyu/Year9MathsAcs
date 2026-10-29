@@ -711,7 +711,7 @@ function setup(){
  if(gim('spores')){const n=6+Math.min(6,depth);for(let i=0;i<n;i++){let p=null;for(let t=0;t<12;t++){const c=randomFloor(230,player.x,player.y);if(Math.hypot(c.x-exit.x,c.y-exit.y)<150)continue;p=c;break}if(!p)p=randomFloor(230,player.x,player.y);spores.push({bx:p.x,by:p.y,a:rnd(18,46),s:rnd(.22,.5),ph:rnd(0,TAU),r:rnd(62,92),p:{x:p.x,y:p.y}})}}
  applyRunUpgradeEffects();
  setText('gold','0 / '+quotaGold);setText('tags','0 / '+quotaTags);setText('crew',bots.length+' ALIVE');setText('hint',DEFAULT_HINT);
- $('objective').innerHTML='<b style="color:#d7b66d">CONTRACT</b><br>Take '+quotaGold+' gold chunks and tag '+quotaTags+' marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Once quota is met, bring every living crew member within a 500 × 500 pixel area around the lift to extract.<br>Your '+bots.length+' crew miners gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span>';appendGimmickObjective(); 
+ $('objective').innerHTML='<b style="color:#d7b66d">CONTRACT</b><br>Take '+quotaGold+' gold chunks and tag '+quotaTags+' marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Once quota is met, bring every living crew member within a 500 × 500 pixel area around the lift to extract. In multiplayer, NPC crew do not block extraction.<br>Your '+bots.length+' crew miners gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span>';appendGimmickObjective(); 
 }
 
 /* ---------- particles & decals ---------- */
@@ -740,7 +740,9 @@ function livingCrewLabel(){return livingCrewCount()+' ALIVE'}
 function liftAssemblyStatus(){
  const crew=[];
  if(player&&(!multiplayer||(netAlive&&!isMonsterController)))crew.push({x:player.x,y:player.y,name:multiplayer?(netName||'YOU'):'YOU'});
- for(const b of (bots||[]))if(b.alive)crew.push(b);
+ // Offline runs require the AI crew to regroup. In multiplayer, only human miners
+ // should block extraction; local AI crew are ambient support and must not hold the lift.
+ if(!multiplayer)for(const b of (bots||[]))if(b.alive)crew.push(b);
  if(multiplayer)for(const p of (netPlayers||[])){
   if(p.id===netMyId||p.alive!==true||isMonsterPlayerId(p.id)||p.role==='monster')continue;
   crew.push(p);
@@ -1055,21 +1057,33 @@ function renderShop(){
    to the other players. Every ping therefore carries the ready state three ways, and anyone reading it accepts any of them:
    1) plain fields (shopReady / shopFor / ups), 2) inside the monsterInput object, 3) packed into the aim number
    (aim is a normal field that the server already relays; nothing reads it during the shop). */
-const SHOP_AIM=1000,SHOP_FORCE_MS=30000;
+const SHOP_AIM=1000,SHOP_FORCE_MS=12000;
 function shopRid(){return netDescendPending?netDescendPending.roundId:0}
 function shopPack(){return SHOP_AIM+shopRid()*4+(shopReady?2:0)+1}
 function shopDecode(p){
- if(!p)return null;
- if(p.shopFor!==undefined&&p.shopReady!==undefined)return{rid:Number(p.shopFor)||0,ready:!!p.shopReady};
+ if(!p)return[];
+ // Do not trust one representation alone: some server versions relay the plain fields
+ // but leave them stale while the packed fallback has the current ready state.
+ const out=[];
+ if(p.shopFor!==undefined&&p.shopReady!==undefined){
+  const rid=Number(p.shopFor);if(Number.isFinite(rid))out.push({rid,ready:!!p.shopReady,source:'plain'});
+ }
  const mi=p.monsterInput;
- if(mi&&typeof mi==='object'&&mi.shop!==null&&mi.shop!==undefined&&Number.isFinite(Number(mi.shop))){const v=Math.round(Number(mi.shop))-SHOP_AIM;if(v>=0&&(v&1))return{rid:v>>2,ready:(v&2)>0}}
+ if(mi&&typeof mi==='object'&&mi.shop!==null&&mi.shop!==undefined&&Number.isFinite(Number(mi.shop))){
+  const v=Math.round(Number(mi.shop))-SHOP_AIM;if(v>=0&&(v&1))out.push({rid:v>>2,ready:(v&2)>0,source:'packed-input'});
+ }
  const a=Number(p.aim);
- if(Number.isFinite(a)&&a>=SHOP_AIM-.5&&a<SHOP_AIM+4e6){const v=Math.round(a)-SHOP_AIM;if(v&1)return{rid:v>>2,ready:(v&2)>0}}
- return null;
+ if(Number.isFinite(a)&&a>=SHOP_AIM-.5&&a<SHOP_AIM+4e6){
+  const v=Math.round(a)-SHOP_AIM;if(v>=0&&(v&1))out.push({rid:v>>2,ready:(v&2)>0,source:'packed-aim'});
+ }
+ return out;
 }
 function shopIsReady(p){
- if(p.id===netMyId)return shopReady;
- const d=shopDecode(p);return !!(d&&d.rid===shopRid()&&d.ready);
+ if(!p||!p.id)return false;
+ if(p.id===netMyId)return !!shopReady;
+ const rid=shopRid(),signals=shopDecode(p).filter(d=>d.rid===rid);
+ // A current-round READY from any relayed representation wins over stale fields.
+ return signals.some(d=>d.ready);
 }
 function shopRoster(){const r=(netPlayers||[]).filter(p=>p&&p.id);if(!r.some(p=>p.id===netMyId))r.push({id:netMyId,name:netName});return r}
 // Remember every player's perk numbers (sent along with the ready ping) for the host-side simulation.
@@ -1461,7 +1475,7 @@ function monsterKillContacts(m){
  const reach=34; // slightly generous so fast movement / lag still drops a body
  for(const b of bots)if(b.alive&&dist(b,m)<reach)killBot(b);
  // Local miner
- if((!multiplayer||netAlive)&&player&&phase==='play'&&!isMonsterController&&dist(player,m)<reach){
+ if((!multiplayer||(isNetHost&&netAlive))&&player&&phase==='play'&&!isMonsterController&&dist(player,m)<reach){
   die();
   if(multiplayer&&isNetHost){forceNetBodySync();checkMonsterWipe();}
   return;
@@ -1741,6 +1755,16 @@ function updateGame(dt){
   if(monster){player.x=monster.x;player.y=monster.y;}
   player.mv=0;noise=Math.max(0,noise-dt*20);updateGimmicks(dt,true);
   if(!multiplayer||isNetHost){updateBots(dt);updateMonster(dt);}
+  else if(multiplayer&&monster&&monster.state!=='possess'){
+   // Client-side prediction keeps the monster responsive even if the server omits
+   // nested input fields; the host remains authoritative and corrects position via monster-state.
+   const base={stalk:64,investigate:98,search:84,hunt:monster.revealed?158:138,disguise:70}[monster.state]||90;
+   const spd=(base+(keys.shift?40:0))*depthScale();
+   if(len>0){monster.fx=dx;monster.fy=dy;moveEntity(monster,dx*spd*dt,dy*spd*dt,monster.r);monster.mv=lerp(monster.mv,keys.shift?1.4:1,Math.min(1,dt*8));}
+   else monster.mv=lerp(monster.mv,0,Math.min(1,dt*6));
+   if(Number.isFinite(aim))monster.ang=angLerp(monster.ang,aim,Math.min(1,dt*10));
+   monster.gait+=dt*(4+monster.mv*7);
+  }
   // If host is also the controller, feed inputs directly
   if(isNetHost){
    monsterInput={dx,dy,aim:player.aim,sprint:!!keys.shift,possess:false,reveal:false,seq:(monsterInput.seq||0)+1};
@@ -2294,7 +2318,8 @@ let netMonsterControllerId=null,netMonsterControllerName=null,isMonsterControlle
 // Latest movement/actions from the assigned monster player (host applies these).
 let monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};
 let monsterInputSeqApplied=0,monsterPossessQueued=false,monsterRevealQueued=false;
-let netRoundId=0,netMonsterWinPending=false,netPrevMonsterIds=[],netIgnoreDeathUntil=0;
+const netMonsterLastPos=Object.create(null);
+let netRoundId=0,netMonsterWinPending=false,netPrevMonsterIds=[],netIgnoreDeathUntil=0,netDeadSeenAt=0;
 // After the first lift ride the lobby's world (gold taken / walls tagged) is tracked per level by the host instead of the server.
 let netLocalWorld=false,netMyActs=[],netDescendPending=null,netLiftUse=null,netLiftSeq=0,netLiftSeen={},netMapBad=0;
 const NET_SPAWNS=[{x:2.5*TILE,y:2.5*TILE},{x:3.5*TILE,y:2.5*TILE},{x:2.5*TILE,y:3.5*TILE},{x:3.5*TILE,y:3.5*TILE},{x:2.5*TILE,y:1.5*TILE}];
@@ -2339,18 +2364,27 @@ function ensureNet(){
   // Host reads the assigned monster player's movement intents (relayed through player-state).
   if(isNetHost&&netMonsterControllerId){
    const ctrl=netPlayers.find(p=>p.id===netMonsterControllerId);
-   if(ctrl&&ctrl.monsterInput&&typeof ctrl.monsterInput==='object'){
+   if(ctrl){
     const mi=ctrl.monsterInput;
-    if(Number(mi.seq||0)>monsterInputSeqApplied){
-     monsterInput={dx:+mi.dx||0,dy:+mi.dy||0,aim:+mi.aim||0,sprint:!!mi.sprint,possess:!!mi.possess,reveal:!!mi.reveal,seq:Number(mi.seq)||0};
+    if(mi&&typeof mi==='object'&&Number(mi.seq||0)>monsterInputSeqApplied){
+     monsterInput={dx:+mi.dx||0,dy:+mi.dy||0,aim:Number.isFinite(+mi.aim)?+mi.aim:monsterInput.aim,sprint:!!mi.sprint,possess:!!mi.possess,reveal:!!mi.reveal,seq:Number(mi.seq)||0};
      monsterInputSeqApplied=monsterInput.seq;
      if(mi.possess)monsterPossessQueued=true;
      if(mi.reveal)monsterRevealQueued=true;
+    } else if(Number.isFinite(ctrl.x)&&Number.isFinite(ctrl.y)&&monster){
+     // Fallback for servers that omit nested monsterInput from player-state broadcasts:
+     // infer direction from the controller's locally predicted monster position.
+     const prev=netMonsterLastPos[ctrl.id];
+     netMonsterLastPos[ctrl.id]={x:ctrl.x,y:ctrl.y,t:performance.now()};
+     if(prev){const vx=ctrl.x-prev.x,vy=ctrl.y-prev.y,vl=Math.hypot(vx,vy);if(vl>0.25){monsterInput.dx=vx/vl;monsterInput.dy=vy/vl;monsterInput.aim=Number.isFinite(+ctrl.aim)?+ctrl.aim:monsterInput.aim;monsterInput.sprint=!!ctrl.sprinting;}else{monsterInput.dx=0;monsterInput.dy=0;}}
     }
    }
   }
   if(performance.now()<netIgnoreDeathUntil){netPlayers=netPlayers.map(p=>({...p,alive:true}));}
-  const me=netPlayers.find(p=>p.id===netMyId);if(me&&me.alive===false&&phase==='play'&&!isMonsterController)netEnterSpectator(me.x,me.y,true);
+  const me=netPlayers.find(p=>p.id===netMyId);
+  // A single stale player snapshot can briefly mark a living client dead during lag/reconnect.
+  // Require the dead state to persist before acting on players-update; the explicit player-died event remains authoritative.
+  if(me&&me.alive===false&&phase==='play'&&!isMonsterController){if(!netDeadSeenAt)netDeadSeenAt=performance.now();if(performance.now()-netDeadSeenAt>1400)netEnterSpectator(me.x,me.y,true)}else if(me&&me.alive!==false){netDeadSeenAt=0;}
   if(multiplayer){netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||'------'}\n${livingCrewCount()} ALIVE · ${netBotSlots} BOTS`+(netMonsterControllerId?`\nMONSTER: ${netMonsterControllerName||'PLAYER'}`:'') )}
  });
  netSocket.on('player-died',p=>{if(performance.now()<netIgnoreDeathUntil){return;}netPlayers=netPlayers.map(q=>q.id===p.id?{...q,...p,alive:false}:q);if(Number.isFinite(p.x)&&Number.isFinite(p.y))spawnCorpse({x:p.x,y:p.y,worldId:`player:${p.id}`,netId:p.id,name:p.name||'MINER',pal:PAL.MINER,fromBot:true,fx:true});syncNetworkBodies();if(p.id===netMyId&&phase==='play'&&!isMonsterController)netEnterSpectator(p.x,p.y,true);if(isNetHost)checkMonsterWipe();});
@@ -2369,10 +2403,10 @@ function netJoinAction(type){
  else {const code=$('roomCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);if(!code){netMessage('Enter the room code first.');return}netSocket.emit('join-lobby',{...payload,code})}
  netMessage('Contacting the mine server…');
 }
-function netLeave(){if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];netHostId=null;isNetHost=false;netSocket=null;netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;hostPlayerMonster=false;$('spectate').style.display='none';$('netStatus').style.display='none';$('onlinePanel').style.display='none';$('menu').style.display='flex';phase='menu';}
+function netLeave(){netDeadSeenAt=0;if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];netHostId=null;isNetHost=false;netSocket=null;netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;hostPlayerMonster=false;$('spectate').style.display='none';$('netStatus').style.display='none';$('onlinePanel').style.display='none';$('menu').style.display='flex';phase='menu';}
 function netSeededSetup(seed){const old=Math.random,oldWorldSeed=worldSeedForVisuals,s=(Number(seed)>>>0)||1;worldSeedForVisuals=s;Math.random=mulberry(s);try{setup()}finally{Math.random=old;worldSeedForVisuals=oldWorldSeed}}
 function netStartGame(d){
- multiplayer=true;netSeed=d.seed;netBotSlots=Math.max(0,Math.min(4,Number(d.botSlots)||0));netAlive=true;netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
+ multiplayer=true;netSeed=d.seed;netBotSlots=Math.max(0,Math.min(4,Number(d.botSlots)||0));netAlive=true;netDeadSeenAt=0;netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
  netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;
  monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};monsterInputSeqApplied=0;monsterPossessQueued=false;monsterRevealQueued=false;
  // Host assigns a random human as the monster when the lobby option is enabled.
@@ -2631,7 +2665,7 @@ function netTick(){
    let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
    const len=Math.hypot(dx,dy);if(len>0){dx/=len;dy/=len;}
    const lampOk=monster&&monster.state==='disguise'&&flashlightOn;
-   const payload={x:monster?monster.x:player.x,y:monster?monster.y:player.y,aim:player.aim,mv:0,foot:0,alive:false,flashlightOn:!!lampOk,noise:0,moving:len>0,name:netName,role:'monster',
+   const payload={x:monster?monster.x:player.x,y:monster?monster.y:player.y,aim:player.aim,mv:0,foot:0,alive:false,flashlightOn:!!lampOk,noise:0,moving:len>0,sprinting:!!keys.shift,name:netName,role:'monster',
     monsterInput:{dx,dy,aim:player.aim,sprint:!!keys.shift,possess:!!monsterPossessQueued,reveal:!!monsterRevealQueued,seq:(monsterInput.seq||0)+1,flashlightOn:!!lampOk}};
    monsterInput.seq=payload.monsterInput.seq;
    // Consume one-shot actions after queueing
