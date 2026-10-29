@@ -38,7 +38,7 @@ canvas#game{display:block;width:100vw;height:100vh}
 #descentAnim .rail1{left:17%}#descentAnim .rail2{left:28%}#descentAnim .rail3{right:28%}#descentAnim .rail4{right:17%}
 #descentAnim .crossbar{position:absolute;left:0;right:0;height:4px;background:#353b36;border-top:1px solid #7d806b;animation:crossRush .5s linear infinite}
 #descentAnim .liftCar{position:absolute;left:31%;right:31%;height:38px;top:35%;border:3px solid #8b8b78;background:linear-gradient(#50564c,#151a17 60%,#080a09);box-shadow:0 0 20px #e6b45b44;animation:liftDrop 1.6s cubic-bezier(.42,0,.8,.35) infinite}
-#descentAnim .liftCar:before,#descentAnim .liftCar:after{content:;position:absolute;top:-7px;bottom:-7px;width:4px;background:#b3a47b;box-shadow:0 0 8px #ffd47a}#descentAnim .liftCar:before{left:22%}#descentAnim .liftCar:after{right:22%}
+#descentAnim .liftCar:before,#descentAnim .liftCar:after{content:'';position:absolute;top:-7px;bottom:-7px;width:4px;background:#b3a47b;box-shadow:0 0 8px #ffd47a}#descentAnim .liftCar:before{left:22%}#descentAnim .liftCar:after{right:22%}
 #descentAnim .spark{position:absolute;left:var(--x);top:var(--y);width:3px;height:3px;background:#ffe7a0;box-shadow:0 0 7px 2px #ff9a35;animation:sparkFly .55s ease-out infinite;animation-delay:var(--delay)}
 #descentAnim .animLabel{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:10px;letter-spacing:.25em;color:#d6b36a;text-shadow:0 0 8px #000}
 #descentAnim.halted *{animation-play-state:paused!important}
@@ -62,31 +62,61 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
 @media(max-width:700px){#netStatus{top:auto;bottom:45px;left:8px;transform:none;max-width:155px;font-size:9px}}
 
 #shop{display:none;z-index:12;background:radial-gradient(ellipse at center,#1a221fd8,#030506f5 75%);align-items:stretch;justify-content:center}
-#shop .shopCard{width:min(980px,96vw);max-height:94vh;overflow:auto;padding:clamp(16px,3vw,28px);border:1px solid #6e766b80;background:#0a0e0ff6;box-shadow:0 0 80px #000;text-align:left}
-#shop .shopHead{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:baseline;justify-content:space-between;margin-bottom:10px}
-#shop .shopTitle{font-size:clamp(28px,5vw,44px);letter-spacing:-.04em;color:#d6d3c8;margin:0}
+#shop .shopCard{width:min(1120px,98vw);max-height:96vh;overflow:auto;padding:clamp(14px,2.4vw,26px);border:1px solid #6e766b80;background:#0a0e0ff6;box-shadow:0 0 80px #000;text-align:left;margin:auto}
+#shop .shopHead{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+#shop .shopTitle{font-size:clamp(26px,4.6vw,42px);letter-spacing:-.04em;color:#d6d3c8;margin:0}
 #shop .shopTitle span{color:#c9a352}
-#shop .silver{color:#d7b66d;font-size:14px;letter-spacing:.08em}
-#shop .convertNote{font-size:12px;color:#9aa39a;line-height:1.5;margin:6px 0 14px}
-#shopTree{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:12px 0 18px}
-.upNode{background:#111715e8;border:1px solid #3b453f;padding:10px 12px;position:relative}
-.upNode.owned{border-color:#7f9a83}
-.upNode.locked{opacity:.55}
-.upNode h4{margin:0 0 4px;font-size:13px;color:#e8e1cf;letter-spacing:.06em}
-.upNode .desc{font-size:11px;color:#9aa39a;line-height:1.45;min-height:2.8em}
-.upNode .meta{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:11px;color:#b9c0b6}
-.upNode button{width:100%;margin-top:8px;padding:8px 10px;font-size:11px}
-.upNode button:disabled{opacity:.45;cursor:default;background:#2a2f2c;border-color:#3b453f}
-#shopReadyRow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:8px}
-#shopReadyList{font-size:11px;color:#9aa39a;line-height:1.7}
-#shopReadyBtn,#shopDescendBtn{min-width:160px}
-.branch{font-size:10px;letter-spacing:.2em;color:#8c9a91;margin:14px 0 6px}
+#shop .silver{color:#d7b66d;font-size:15px;letter-spacing:.08em;display:flex;align-items:center;gap:7px}
+#shop .silver b{color:#e6e9ea;font-size:22px}
+.coin{display:inline-block;width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#c9ced1 45%,#7b8389);border:1px solid #4a5156;margin:0 1px 1px 0;vertical-align:middle}
+.coin.big{width:17px;height:17px}
+#shop .convertNote{font-size:12px;color:#aab3aa;line-height:1.65;margin:6px 0 10px}
+#shop .convertNote b{color:#e6e9ea}
+#shopTabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.shopTab{padding:7px 11px;font-size:11px;letter-spacing:.12em;background:#0d1210;border:1px solid #3b453f;color:#aab3aa;cursor:pointer}
+.shopTab.on{background:#161d19;border-color:var(--bc,#8c9a91);color:var(--bc,#e8e1cf)}
+#shopTreeWrap{overflow:auto;border:1px solid #2c3530;background:#070a09;padding:8px;max-height:min(52vh,470px)}
+#shopTree{position:relative}
+#shopTree svg{position:absolute;left:0;top:0;pointer-events:none}
+.upNode{position:absolute;width:196px;height:92px;box-sizing:border-box;background:#111715;border:1px solid #3b453f;padding:7px 9px;display:flex;flex-direction:column;justify-content:space-between;text-align:left}
+.upNode h4{margin:0 0 2px;font-size:11px;color:#e8e1cf;letter-spacing:.07em;font-weight:600}
+.upNode .desc{font-size:10px;color:#98a198;line-height:1.35;overflow:hidden}
+.upNode .foot{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px;color:#b9c0b6}
+.upNode button{padding:4px 9px;font-size:10px;min-width:0;flex:0 0 auto}
+.upNode.owned{border-color:var(--bc,#7f9a83);background:#14201a}
+.upNode.owned h4{color:var(--bc,#cfe3d2)}
+.upNode.locked{opacity:.45}
+.upNode.poor .foot span{color:#b9857b}
+.upNode button:disabled{opacity:.5;cursor:default}
+#shopReadyRow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:6px}
+#shopReadyList{font-size:11px;color:#9aa39a;line-height:1.7;flex:1;min-width:220px}
+#shopReadyBtn,#shopDescendBtn{min-width:170px}
+
+/* Detailed, animated upgrade circuitry */
+#shopTreeWrap{background:radial-gradient(ellipse at 50% 35%,#111a16 0%,#070a09 72%);scroll-behavior:smooth}
+#shopTree{isolation:isolate;padding-bottom:8px}
+.upNode{border-radius:3px;overflow:hidden;box-shadow:inset 0 0 0 1px #ffffff05,0 5px 14px #0008;transition:transform .22s ease,border-color .25s,background .25s,opacity .25s,box-shadow .25s;animation:nodeWake .45s both;animation-delay:calc(var(--node-i,0)*22ms)}
+.upNode:before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bc,#7f9a83);opacity:.45}
+.upNode:after{content:'';position:absolute;inset:-80% auto -80% -35%;width:25%;transform:rotate(22deg);background:linear-gradient(90deg,transparent,#ffffff0c,transparent);animation:nodeScan 5s ease-in-out infinite;pointer-events:none}
+.upNode:hover{transform:translateY(-3px) scale(1.015);z-index:3;border-color:var(--bc,#c9a352);box-shadow:0 0 0 1px #c9a35233,0 0 22px #c9a35222,0 8px 18px #000a}
+.upNode.owned{box-shadow:inset 0 0 22px #7f9a831f,0 0 12px #7f9a831f}
+.upNode.owned:before{opacity:1;box-shadow:0 0 12px var(--bc,#7f9a83)}
+.upNode button{position:relative;z-index:1;transition:filter .2s,transform .2s}
+.upNode button:not(:disabled):hover{filter:brightness(1.3);transform:scale(1.04)}
+.shopTab{transition:background .2s,border-color .2s,transform .2s}
+.shopTab:hover{transform:translateY(-1px)}
+.shopTab.on{box-shadow:inset 0 -2px 0 var(--bc,#c9a352),0 0 16px #c9a3521f}
+#shopTree svg path{transition:stroke .25s,opacity .25s;stroke-linecap:round}
+@keyframes nodeWake{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes nodeScan{0%,35%{left:-35%;opacity:0}48%{opacity:1}75%,100%{left:125%;opacity:0}}
+@media(prefers-reduced-motion:reduce){.upNode,.upNode:after,.shopTab{animation:none!important;transition:none!important}}
+
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
 <div id="hud">
- <div id="stats" class="panel">DEPTH <b id="depth">01</b> · <span id="layerName">UPPER SEAMS</span><br>SHIFT <b id="shift">01</b> · <span id="clock">00:00</span><br>GOLD <b id="gold">0 / 6</b><br>GRAFFITI <b id="tags">0 / 3</b><br>CREW <b id="crew">2 ALIVE</b><br>NOISE <b id="noise">LOW</b><div class="bar"><i id="noiseBar"></i></div>STAMINA<div class="bar"><i id="stamBar"></i></div><span id="batRow" style="display:none">LAMP<div class="bar"><i id="batBar"></i></div></span><div id="gimLine" style="color:#d7b66d;font-size:10px;line-height:1.4;margin-top:3px"></div><div id="memLine" style="color:#b9857b;font-size:10px;line-height:1.4;margin-top:2px"></div></div>
+ <div id="stats" class="panel">DEPTH <b id="depth">01</b> · <span id="layerName">UPPER SEAMS</span><br>SHIFT <b id="shift">01</b> · <span id="clock">00:00</span><br>GOLD <b id="gold">0 / 6</b><br>GRAFFITI <b id="tags">0 / 3</b><br>CREW <b id="crew">2 ALIVE</b><br>NOISE <b id="noise">LOW</b><div class="bar"><i id="noiseBar"></i></div>STAMINA<div class="bar"><i id="stamBar"></i></div><span id="batRow" style="display:none">LAMP<div class="bar"><i id="batBar"></i></div></span><div id="gimLine" style="color:#d7b66d;font-size:10px;line-height:1.4;margin-top:3px"></div><div id="memLine" style="color:#b9857b;font-size:10px;line-height:1.4;margin-top:2px"></div><div id="silverLine" style="color:#c9ced1;font-size:10px;line-height:1.4;margin-top:2px"></div></div>
  <div id="objective" class="panel"><b style="color:#d7b66d">CONTRACT</b><br>Take 6 gold chunks and tag 3 marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Once the quota is met, bring every living crew member within a 500 × 500 pixel area around the lift to extract.<br>Your two crew members gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span></div>
  <canvas id="mini"></canvas>
  <div id="puzzle" class="panel"><div class="t">TAGGING · REPEAT THE SEQUENCE</div><div class="seq" id="puzzleSeq"></div><div class="bar"><i id="puzzleBar"></i></div><div class="s">WASD / arrow keys · wrong keys are loud · E to step away</div></div>
@@ -121,16 +151,17 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
 <div id="shop" class="overlay"><div class="shopCard">
  <div class="shopHead">
   <div class="shopTitle">BLACK <span>MARKET</span></div>
-  <div class="silver">SILVER <b id="shopSilver">0</b></div>
+  <div class="silver"><span id="shopCoins"></span>SILVER <b id="shopSilver">0</b></div>
  </div>
  <div class="kicker">FLOOR CLEARED · SPEND BEFORE THE NEXT DESCENT</div>
  <div id="shopConvert" class="convertNote"></div>
- <div id="shopTree"></div>
- <div class="rule"></div>
+ <div id="shopTabs"></div>
+ <div id="shopTreeWrap"><div id="shopTree"></div></div>
+ <div class="rule" style="margin:12px 0 8px"></div>
  <div id="shopReadyRow">
-  <div id="shopReadyList" class="small">Prepare your kit. Excess gold and tags from this floor became silver.</div>
+  <div id="shopReadyList" class="small"></div>
   <div class="online-row" style="margin:0">
-   <button id="shopReadyBtn">READY</button>
+   <button id="shopReadyBtn">READY UP</button>
    <button id="shopDescendBtn">DESCEND</button>
   </div>
  </div>
@@ -245,7 +276,7 @@ const Snd=(()=>{
 })();
 
 /* ---------- graffiti glyphs ---------- */
-const GCOL=['#d8694c','#5fc0d6','#d9c94f','#a56be0'];
+const GCOL=['#d8694c','#5fc0d6','#d9c94f','#a56be0','#6fcf8a'];
 const GLYPHS=(()=>{
  const circ=(cx,cy,r,n,a0,a1)=>Array.from({length:n+1},(_,i)=>{const a=a0+(a1-a0)*i/n;return[cx+Math.cos(a)*r,cy+Math.sin(a)*r]});
  const top=Array.from({length:15},(_,i)=>{const x=-14+28*i/14;return[x,-9*(1-(x/14)**2)]}),bot=Array.from({length:15},(_,i)=>{const x=14-28*i/14;return[x,9*(1-(x/14)**2)]});
@@ -254,7 +285,8 @@ const GLYPHS=(()=>{
   [top.concat(bot),circ(0,0,4.2,12,0,TAU),[[-18,-12],[-14,-8]],[[18,-12],[14,-8]],[[0,-16],[0,-11]]],
   [circ(0,-3,11,20,-2.6,-.55).concat(circ(0,-3,11,20,-.55,5.7).slice(0,0)),circ(0,-3,11,24,0,TAU),circ(-4.5,-3,3,10,0,TAU),circ(4.5,-3,3,10,0,TAU),[[0,1],[-1.6,4.5],[1.6,4.5],[0,1]],[[-6,8],[-6,13],[6,13],[6,8]],[[-2,8],[-2,13]],[[2,8],[2,13]]],
   [spiral],
-  [[[-14,9],[-14,-6],[-7,2],[0,-11],[7,2],[14,-6],[14,9],[-14,9]],circ(0,-1,2.4,8,0,TAU),[[-9,13],[9,13]]]
+  [[[-14,9],[-14,-6],[-7,2],[0,-11],[7,2],[14,-6],[14,9],[-14,9]],circ(0,-1,2.4,8,0,TAU),[[-9,13],[9,13]]],
+  [[[-3,-15],[6,-3],[-4,-1],[5,14]],circ(0,0,15,22,0,TAU),[[-9,-9],[-5,-12]],[[9,-9],[5,-12]]]
  ];
 })();
 function drawGlyph(g,idx,prog,s,col,w){
@@ -357,7 +389,7 @@ function drawWater(camX,camY){
 // Set only while a shared multiplayer world is being generated.
 let worldSeedForVisuals=0;
 let brightBoost=0; // 0 off, 1 mild, 2 strong — accessibility for dim screens
-let silver=0,runUpgrades={},shopOpen=false,shopReady=false,shopReadyMap={},shopFloorBonus={gold:0,tags:0,silverGained:0};
+let silver=0,runUpgrades={},shopOpen=false,shopReady=false,shopReadyMap={},shopFloorBonus={eg:0,et:0,silver:0},shopBranch='BODY',shopOpenedAt=0,shopTick=0,shopFootT=0,charmReady=false;
 let phase='menu',paused=false,last=0,elapsed=0,noise=0,flashlightOn=true,shake=0,hintT=0,alertT=0,hbT=0,heartPulse=0,rumbleT=40,knockT=25,growlT=12,liftOpen=0,endT=0,miniT=0,exploreT=0,showMini=true,endWin=false,painting=null,prevPainting=false,fxClock=0,whT=8,breathT=0,puzzle=null,lastQuota=false,depth=1,quotaGold=6,quotaTags=3;
 let rocks=[],spores=[],battery=100,sporeAmt=0,coughT=1,rockT=3.5,bellN=0,bellFlash=0,bellPing=0,blackOn=0,blackWarn=false;
 const DEPTH_NAMES=['UPPER SEAMS','THE OLD WORKINGS','THE FLOODED VEIN','THE BLACK SHAFT','THE ROOT CHAMBER','THE UNLIT DEEP','THE BURIED CHOIR','THE LAST STRATUM'];
@@ -639,8 +671,8 @@ function setup(){
  mouse.moved=false;
  // graffiti marks sit on rock faces next to a reachable tunnel
  tags=[];const faces=shuffle(wallFaces.slice());
- for(let sp=320;tags.length<4&&sp>=0;sp-=80){
-  for(const f of faces){if(tags.length>=4)break;const cx=(f.x+.5)*TILE,cy=(f.y+.5)*TILE;
+ for(let sp=320;tags.length<5&&sp>=0;sp-=80){
+  for(const f of faces){if(tags.length>=5)break;const cx=(f.x+.5)*TILE,cy=(f.y+.5)*TILE;
    if(Math.hypot(cx-player.x,cy-player.y)<240||Math.hypot(cx-exit.x,cy-exit.y)<140||tags.some(t=>Math.hypot(t.x-cx,t.y-cy)<sp))continue;
    const i=tags.length;tags.push({x:cx,y:cy,ax:(f.ax+.5)*TILE,ay:(f.ay+.5)*TILE,glyph:i,col:GCOL[i],done:false,progress:0,claimed:null})}
  }
@@ -659,7 +691,7 @@ function setup(){
  const baseTags=2+Math.min(2,Math.floor((depth-1)/4));const tagSwing=Math.random()<.24?-1:Math.random()<.62?0:1;
  quotaTags=Math.min(4,Math.max(2,baseTags+tagSwing-(bots.length>=4?1:0)));quotaTags=Math.min(quotaTags,tags.length);
  gold=[];
- for(let i=0;i<quotaGold+1;i++){let p=null;for(let t=0;t<800&&!p;t++){const c=randomFloor(180,player.x,player.y);if(Math.hypot(c.x-exit.x,c.y-exit.y)<105)continue;if(tags.some(q=>Math.hypot(c.x-q.ax,c.y-q.ay)<60))continue;if(bodies.some(b=>Math.hypot(c.x-b.x,c.y-b.y)<72))continue;if(gold.some(q=>Math.hypot(c.x-q.x,c.y-q.y)<95))continue;p=c}
+ for(let i=0;i<quotaGold+2+Math.min(3,Math.floor(depth/2));i++){let p=null;for(let t=0;t<800&&!p;t++){const c=randomFloor(180,player.x,player.y);if(Math.hypot(c.x-exit.x,c.y-exit.y)<105)continue;if(tags.some(q=>Math.hypot(c.x-q.ax,c.y-q.ay)<60))continue;if(bodies.some(b=>Math.hypot(c.x-b.x,c.y-b.y)<72))continue;if(gold.some(q=>Math.hypot(c.x-q.x,c.y-q.y)<95))continue;p=c}
   if(!p)p=randomFloor(100,player.x,player.y);gold.push({...p,taken:false,claimed:null,ph:rnd(0,6),kind:(gold.length+depth)%3})}
  lanterns=[];
  const cand=shuffle(floorList.filter(c=>D4.some(([dx,dy])=>map[c.y+dy]&&map[c.y+dy][c.x+dx]===1)).slice());
@@ -677,6 +709,7 @@ function setup(){
  rumbleT=rnd(30,50);knockT=rnd(18,32);growlT=rnd(10,18);
  flashlightOn=true;mmNewLevel();rocks=[];spores=[];battery=100;sporeAmt=0;coughT=1;rockT=3.5;bellN=0;bellFlash=0;bellPing=0;blackOn=0;blackWarn=false;
  if(gim('spores')){const n=6+Math.min(6,depth);for(let i=0;i<n;i++){let p=null;for(let t=0;t<12;t++){const c=randomFloor(230,player.x,player.y);if(Math.hypot(c.x-exit.x,c.y-exit.y)<150)continue;p=c;break}if(!p)p=randomFloor(230,player.x,player.y);spores.push({bx:p.x,by:p.y,a:rnd(18,46),s:rnd(.22,.5),ph:rnd(0,TAU),r:rnd(62,92),p:{x:p.x,y:p.y}})}}
+ applyRunUpgradeEffects();
  setText('gold','0 / '+quotaGold);setText('tags','0 / '+quotaTags);setText('crew',bots.length+' ALIVE');setText('hint',DEFAULT_HINT);
  $('objective').innerHTML='<b style="color:#d7b66d">CONTRACT</b><br>Take '+quotaGold+' gold chunks and tag '+quotaTags+' marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Once quota is met, bring every living crew member within a 500 × 500 pixel area around the lift to extract.<br>Your '+bots.length+' crew miners gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span>';appendGimmickObjective(); 
 }
@@ -764,196 +797,336 @@ function interact(){
  else if(near.t==='tag')startPuzzle(near.o);
  else say(near.o.possessed?'It is gone. Something else is walking around in its boots.':near.o.fromBot?`${near.o.name}. Still warm. You really should not look closer.`:'Cold. Heavy. You really should not look closer.',2.4);
 }
-/* ---------- black market upgrade tree ---------- */
-const UPGRADE_DEFS=[
- // SURVIVAL
- {id:'lungs1',branch:'SURVIVAL',name:'DEEPER LUNGS I',desc:'+20 max stamina.',cost:8,req:[],max:1},
- {id:'lungs2',branch:'SURVIVAL',name:'DEEPER LUNGS II',desc:'+25 max stamina.',cost:16,req:['lungs1'],max:1},
- {id:'lungs3',branch:'SURVIVAL',name:'IRON BREATH',desc:'+30 max stamina. Sprint drains slightly less.',cost:28,req:['lungs2'],max:1},
- {id:'quiet1',branch:'SURVIVAL',name:'SOFT SOLES I',desc:'Footsteps are quieter.',cost:10,req:[],max:1},
- {id:'quiet2',branch:'SURVIVAL',name:'SOFT SOLES II',desc:'Even quieter movement and crouch.',cost:20,req:['quiet1'],max:1},
- {id:'quiet3',branch:'SURVIVAL',name:'GHOST STEP',desc:'Major noise reduction while walking.',cost:34,req:['quiet2'],max:1},
- {id:'sprint1',branch:'SURVIVAL',name:'QUICK BURST I',desc:'+8% sprint speed.',cost:12,req:['lungs1'],max:1},
- {id:'sprint2',branch:'SURVIVAL',name:'QUICK BURST II',desc:'+12% sprint speed.',cost:22,req:['sprint1'],max:1},
- // LIGHT
- {id:'lamp1',branch:'LIGHT',name:'BRIGHTER CELL I',desc:'Wider personal lamp.',cost:9,req:[],max:1},
- {id:'lamp2',branch:'LIGHT',name:'BRIGHTER CELL II',desc:'Longer flashlight beam.',cost:18,req:['lamp1'],max:1},
- {id:'lamp3',branch:'LIGHT',name:'MINER\'S SUN',desc:'Strong beam and slightly less flicker near the threat.',cost:30,req:['lamp2'],max:1},
- {id:'beam1',branch:'LIGHT',name:'FOCUS LENS',desc:'Tighter, farther cone.',cost:14,req:['lamp1'],max:1},
- // EXTRACTION
- {id:'pockets1',branch:'EXTRACTION',name:'DEEP POCKETS I',desc:'+1 bonus silver per excess gold on clear.',cost:11,req:[],max:1},
- {id:'pockets2',branch:'EXTRACTION',name:'DEEP POCKETS II',desc:'+1 more silver per excess gold.',cost:20,req:['pockets1'],max:1},
- {id:'paint1',branch:'EXTRACTION',name:'STEADY HAND I',desc:'Tagging puzzle is slightly more forgiving (extra time).',cost:12,req:[],max:1},
- {id:'paint2',branch:'EXTRACTION',name:'STEADY HAND II',desc:'More puzzle time and quieter sprays.',cost:24,req:['paint1'],max:1},
- {id:'sense1',branch:'EXTRACTION',name:'GOLD SENSE I',desc:'Nearby gold glints stronger.',cost:13,req:[],max:1},
- {id:'sense2',branch:'EXTRACTION',name:'GOLD SENSE II',desc:'Gold is easier to spot at range.',cost:25,req:['sense1'],max:1},
- // CREW
- {id:'crew1',branch:'CREW',name:'SHARED RATIONS I',desc:'Bots move a little faster.',cost:14,req:[],max:1},
- {id:'crew2',branch:'CREW',name:'SHARED RATIONS II',desc:'Bots gather more aggressively.',cost:26,req:['crew1'],max:1},
- {id:'crew3',branch:'CREW',name:'HARD HATS',desc:'Bots panic less easily.',cost:32,req:['crew2'],max:1},
- // INSTINCT
- {id:'heart1',branch:'INSTINCT',name:'CALM PULSE I',desc:'Heartbeat warning is clearer when it is close.',cost:10,req:[],max:1},
- {id:'heart2',branch:'INSTINCT',name:'CALM PULSE II',desc:'Earlier proximity alerts.',cost:20,req:['heart1'],max:1},
- {id:'nerve1',branch:'INSTINCT',name:'STEADY NERVE',desc:'Less screen shake from rumbles.',cost:15,req:['heart1'],max:1},
- {id:'escape1',branch:'INSTINCT',name:'LAST GASP',desc:'Brief speed boost when the monster is very close.',cost:28,req:['heart2'],max:1},
- {id:'bank1',branch:'EXTRACTION',name:'COIN PURSE',desc:'Start each depth with +3 silver already banked next time you clear (this run).',cost:18,req:['pockets1'],max:1},
- {id:'bank2',branch:'EXTRACTION',name:'VAULT KEY',desc:'+5 silver banked after each clear.',cost:30,req:['bank1'],max:1},
+/* ---------- BLACK MARKET: silver coins + the upgrade tree ----------
+   Clearing a floor turns anything beyond the quota (extra gold, extra graffiti marks) into silver coins.
+   Silver buys permanent upgrades for the rest of the run. In online play everyone shops on their own
+   silver and the next depth only starts once the whole crew has readied up. */
+const BRANCHES=[
+ {id:'BODY',name:'BODY',col:'#9bc8a4'},{id:'LIGHT',name:'LIGHT',col:'#e8d684'},{id:'LOOT',name:'EXTRACTION',col:'#d7b66d'},
+ {id:'CREW',name:'CREW',col:'#8fb7d9'},{id:'SENSE',name:'INSTINCT',col:'#d98b8b'},{id:'GHOST',name:'GHOST',col:'#b49ad9'},{id:'FORT',name:'FORTUNE',col:'#e0a66a'}
 ];
-function upLevel(id){return runUpgrades[id]|0}
-function upOwned(id){return upLevel(id)>0}
-function upUnlocked(def){
- if(!def.req||!def.req.length)return true;
- return def.req.every(r=>upOwned(r));
-}
-function upMaxed(def){return upLevel(def.id)>=(def.max||1)}
-function buyUpgrade(id){
- const def=UPGRADE_DEFS.find(u=>u.id===id);if(!def)return false;
- if(!upUnlocked(def)||upMaxed(def))return false;
- if(silver<def.cost){say('Not enough silver.',1.5);return false}
- silver-=def.cost;runUpgrades[id]=(runUpgrades[id]|0)+1;Snd.ding();renderShop();return true;
-}
-function silverFromExcess(goldAmt,tagAmt){
- const g=Math.max(0,(goldAmt|0)-quotaGold),t=Math.max(0,(tagAmt|0)-quotaTags);
- let s=g*4+t*5;
- if(upOwned('pockets1'))s+=g*1;
- if(upOwned('pockets2'))s+=g*1;
- if(upOwned('bank1'))s+=3;
- if(upOwned('bank2'))s+=5;
- return {goldExtra:g,tagExtra:t,silver:s};
-}
-function applyRunUpgradeEffects(){
- // Applied each setup / continuously via getters used in gameplay.
- if(!player)return;
- const maxStam=100+(upOwned('lungs1')?20:0)+(upOwned('lungs2')?25:0)+(upOwned('lungs3')?30:0);
- player.maxStamina=maxStam;
- if(player.stamina>maxStam)player.stamina=maxStam;
-}
-function upgradeNoiseMult(){
- let m=1;
- if(upOwned('quiet1'))m*=0.82;
- if(upOwned('quiet2'))m*=0.78;
- if(upOwned('quiet3'))m*=0.72;
- return m;
-}
-function upgradeSprintMult(){
- let m=1;
- if(upOwned('sprint1'))m*=1.08;
- if(upOwned('sprint2'))m*=1.12;
- if(upOwned('escape1')&&monster&&dist(player,monster)<120)m*=1.15;
- return m;
-}
-function upgradeStaminaDrainMult(){return upOwned('lungs3')?0.88:1}
-function upgradeLampReachBonus(){return (upOwned('lamp1')?30:0)+(upOwned('lamp2')?45:0)+(upOwned('lamp3')?55:0)+(upOwned('beam1')?25:0)}
-function upgradePersonalLightBonus(){return (upOwned('lamp1')?12:0)+(upOwned('lamp2')?18:0)+(upOwned('lamp3')?22:0)}
-function upgradePuzzleTime(){return PZ_TIME+(upOwned('paint1')?0.45:0)+(upOwned('paint2')?0.55:0)}
-function upgradeBotSpeedMult(){return 1+(upOwned('crew1')?0.1:0)+(upOwned('crew2')?0.12:0)}
-function upgradeBotPanicMult(){return upOwned('crew3')?0.55:1}
-function upgradeShakeMult(){return upOwned('nerve1')?0.55:1}
+// b = branch, t = tier column, r = row, q = prerequisites (all needed), c = silver cost
+const UPS=[
+ {id:'b1',b:'BODY',t:1,r:1,q:[],c:8,n:'DEEPER LUNGS I',d:'+20 max stamina.'},
+ {id:'b2',b:'BODY',t:2,r:1,q:['b1'],c:18,n:'DEEPER LUNGS II',d:'+25 max stamina.'},
+ {id:'b3',b:'BODY',t:3,r:1,q:['b2'],c:38,n:'IRON BREATH',d:'+30 max stamina and sprinting drains 12% less.'},
+ {id:'b4',b:'BODY',t:2,r:0,q:['b1'],c:16,n:'SECOND WIND I',d:'Stamina recovers 30% faster.'},
+ {id:'b5',b:'BODY',t:3,r:0,q:['b4'],c:34,n:'SECOND WIND II',d:'Stamina recovers another 40% faster.'},
+ {id:'b6',b:'BODY',t:2,r:2,q:['b1'],c:16,n:'QUICK BURST I',d:'+8% sprint speed.'},
+ {id:'b7',b:'BODY',t:3,r:2,q:['b6'],c:32,n:'QUICK BURST II',d:'+12% more sprint speed.'},
+ {id:'b8',b:'BODY',t:3,r:3,q:['b6'],c:28,n:'SURE FEET',d:'Deep water slows you far less.'},
+ {id:'b9',b:'BODY',t:4,r:1,q:['b3','b7'],c:70,n:'MARATHONER',d:'Sprinting makes 30% less noise.'},
+ {id:'b10',b:'BODY',t:4,r:2,q:['b7'],c:46,n:'LOW PROFILE',d:'Crouch-walk 25% faster.'},
 
-function openShopAfterClear(){
- const conv=silverFromExcess(player.gold,player.tags);
- shopFloorBonus={gold:conv.goldExtra,tags:conv.tagExtra,silverGained:conv.silver};
- silver+=conv.silver;
- shopOpen=true;shopReady=false;shopReadyMap={};
- if(multiplayer)shopReadyMap[netMyId]=false;
- phase='shop';
- $('end').style.display='none';
- $('shop').style.display='flex';
- renderShop();
- Snd.unlock();
+ {id:'l1',b:'LIGHT',t:1,r:1,q:[],c:9,n:'BRIGHTER CELL I',d:'Wider personal glow and a longer beam.'},
+ {id:'l2',b:'LIGHT',t:2,r:1,q:['l1'],c:20,n:'BRIGHTER CELL II',d:'More glow, longer beam.'},
+ {id:'l3',b:'LIGHT',t:3,r:1,q:['l2'],c:40,n:'MINER\'S SUN',d:'Strong glow and a much longer beam.'},
+ {id:'l4',b:'LIGHT',t:2,r:0,q:['l1'],c:18,n:'FOCUS LENS',d:'The beam reaches further.'},
+ {id:'l5',b:'LIGHT',t:3,r:0,q:['l4'],c:36,n:'WIDE ANGLE',d:'A bigger personal glow.'},
+ {id:'l6',b:'LIGHT',t:2,r:2,q:['l1'],c:16,n:'SPARE CELLS I',d:'Dying-lamp floors: battery drains 25% slower, recharges 30% faster.'},
+ {id:'l7',b:'LIGHT',t:3,r:2,q:['l6'],c:32,n:'SPARE CELLS II',d:'Drains another 25% slower, recharges another 30% faster.'},
+ {id:'l8',b:'LIGHT',t:2,r:3,q:['l1'],c:18,n:'GLOWSTONE',d:'Dead lanterns give off a faint glow.'},
+ {id:'l9',b:'LIGHT',t:3,r:3,q:['l8'],c:34,n:'AFTERGLOW',d:'Dead and blacked-out lanterns glow more.'},
+ {id:'l10',b:'LIGHT',t:4,r:1,q:['l3','l5'],c:85,n:'SUNBURST',d:'The beam reaches a lot further.'},
+
+ {id:'e1',b:'LOOT',t:1,r:1,q:[],c:10,n:'DEEP POCKETS I',d:'+1 silver per excess gold.'},
+ {id:'e2',b:'LOOT',t:2,r:1,q:['e1'],c:22,n:'DEEP POCKETS II',d:'+1 more silver per excess gold.'},
+ {id:'e3',b:'LOOT',t:3,r:1,q:['e2'],c:60,n:'DEEP POCKETS III',d:'+2 more silver per excess gold.'},
+ {id:'e4',b:'LOOT',t:2,r:0,q:['e1'],c:20,n:'MARKER PAY I',d:'+1 silver per excess graffiti mark.'},
+ {id:'e5',b:'LOOT',t:3,r:0,q:['e4'],c:42,n:'MARKER PAY II',d:'+2 more silver per excess mark.'},
+ {id:'e6',b:'LOOT',t:1,r:3,q:[],c:12,n:'STEADY HAND I',d:'Tagging gets +0.45s of puzzle time.'},
+ {id:'e7',b:'LOOT',t:2,r:3,q:['e6'],c:24,n:'STEADY HAND II',d:'+0.55s more, and sprays are 30% quieter.'},
+ {id:'e8',b:'LOOT',t:3,r:3,q:['e7'],c:42,n:'STEADY HAND III',d:'+0.8s more puzzle time.'},
+ {id:'e9',b:'LOOT',t:1,r:4,q:[],c:13,n:'GOLD SENSE I',d:'Gold within 240 px glints through the dark.'},
+ {id:'e10',b:'LOOT',t:2,r:4,q:['e9'],c:26,n:'GOLD SENSE II',d:'Gold within 380 px glints through the dark.'},
+ {id:'e11',b:'LOOT',t:2,r:2,q:['e1'],c:18,n:'COIN PURSE',d:'+3 silver every time you clear a floor.'},
+ {id:'e12',b:'LOOT',t:3,r:2,q:['e11'],c:34,n:'VAULT KEY',d:'+5 more silver every floor.'},
+ {id:'e13',b:'LOOT',t:4,r:1,q:['e3','e12'],c:100,n:'MOTHER LODE',d:'+8 more silver every floor.'},
+
+ {id:'c1',b:'CREW',t:1,r:1,q:[],c:14,n:'SHARED RATIONS I',d:'Crew miners move 10% faster.'},
+ {id:'c2',b:'CREW',t:2,r:0,q:['c1'],c:26,n:'SHARED RATIONS II',d:'Crew miners move 12% faster again.'},
+ {id:'c3',b:'CREW',t:2,r:2,q:['c1'],c:24,n:'HARD HATS',d:'Crew miners recover from panic much faster.'},
+ {id:'c4',b:'CREW',t:3,r:0,q:['c2'],c:34,n:'SHARP EYES',d:'Crew miners pocket gold 40% quicker.'},
+ {id:'c5',b:'CREW',t:4,r:0,q:['c4'],c:62,n:'OVERTIME',d:'Crew miners move 15% faster again.'},
+ {id:'c6',b:'CREW',t:3,r:2,q:['c3'],c:36,n:'HAZARD PAY',d:'+3 silver per crew miner alive at the lift.'},
+
+ {id:'i1',b:'SENSE',t:1,r:1,q:[],c:10,n:'CALM PULSE I',d:'Your heartbeat warns you from further away.'},
+ {id:'i2',b:'SENSE',t:2,r:1,q:['i1'],c:20,n:'CALM PULSE II',d:'Earlier heartbeat warning again.'},
+ {id:'i3',b:'SENSE',t:2,r:0,q:['i1'],c:16,n:'STEADY NERVE',d:'Screen shake is 45% weaker.'},
+ {id:'i4',b:'SENSE',t:3,r:1,q:['i2'],c:44,n:'SIXTH SENSE',d:'A red arrow points at the creature when it is near but off-screen.'},
+ {id:'i5',b:'SENSE',t:3,r:0,q:['i3'],c:32,n:'THICK SKIN',d:'Cave-in hits stagger you half as long.'},
+ {id:'i6',b:'SENSE',t:3,r:2,q:['i3'],c:34,n:'HAZARD PROOF',d:'Cave-in rings last 0.6s longer; spores drain 40% less.'},
+ {id:'i7',b:'SENSE',t:4,r:1,q:['i4'],c:58,n:'LAST GASP',d:'+15% speed while the creature is within 140 px.'},
+ {id:'i8',b:'SENSE',t:5,r:0,q:['i5','i7'],c:120,n:'LUCKY CHARM',d:'Solo only: once per floor the creature lets go of you and is thrown back.'},
+
+ {id:'g1',b:'GHOST',t:1,r:1,q:[],c:10,n:'SOFT SOLES I',d:'Footsteps 18% quieter.'},
+ {id:'g2',b:'GHOST',t:2,r:1,q:['g1'],c:20,n:'SOFT SOLES II',d:'Footsteps a further 22% quieter.'},
+ {id:'g3',b:'GHOST',t:3,r:1,q:['g2'],c:36,n:'GHOST STEP',d:'Footsteps a further 28% quieter.'},
+ {id:'g4',b:'GHOST',t:2,r:0,q:['g1'],c:24,n:'LIGHT FINGERS I',d:'The creature senses your lamp through rock from 15% less distance.'},
+ {id:'g5',b:'GHOST',t:3,r:0,q:['g4'],c:44,n:'LIGHT FINGERS II',d:'30% less distance in total.'},
+ {id:'g6',b:'GHOST',t:2,r:2,q:['g1'],c:18,n:'HUSHED SPRAY',d:'Tagging makes 35% less noise.'},
+ {id:'g7',b:'GHOST',t:3,r:2,q:['g2'],c:40,n:'POKER FACE I',d:'The creature learns your habits 30% slower.'},
+ {id:'g8',b:'GHOST',t:4,r:2,q:['g7'],c:70,n:'POKER FACE II',d:'60% slower in total.'},
+ {id:'g9',b:'GHOST',t:4,r:0,q:['g5','g7'],c:65,n:'SHORT MEMORY',d:'Each new floor the creature forgets 25% of what it learned (host only online).'},
+ {id:'g10',b:'GHOST',t:5,r:1,q:['g8','g9'],c:110,n:'AMNESIA',d:'It forgets another 25% each floor (host only online).'},
+
+ {id:'f1',b:'FORT',t:1,r:0,q:[],c:30,n:'LIGHT LOAD I',d:'Solo only: the gold quota is 1 lower (never below 3).'},
+ {id:'f2',b:'FORT',t:2,r:0,q:['f1'],c:55,n:'LIGHT LOAD II',d:'Solo only: 1 lower again.'},
+ {id:'f3',b:'FORT',t:1,r:1,q:[],c:28,n:'LIGHT TAGS',d:'Solo only: one fewer graffiti mark needed.'},
+ {id:'f4',b:'FORT',t:1,r:2,q:[],c:24,n:'HAGGLER I',d:'Every upgrade costs 10% less.'},
+ {id:'f5',b:'FORT',t:2,r:2,q:['f4'],c:48,n:'HAGGLER II',d:'A further 12% off every upgrade.'},
+ {id:'f6',b:'FORT',t:3,r:2,q:['f5'],c:70,n:'INTEREST',d:'+10% of your banked silver on every clear (max 25).'},
+ {id:'b11',b:'BODY',t:4,r:0,q:['b5'],c:48,n:'ADRENAL RESERVE',d:'Stamina regenerates 20% faster.'},
+ {id:'b12',b:'BODY',t:5,r:1,q:['b9','b10'],c:95,n:'SILENT STRIDE',d:'Sprint noise is reduced even further.'},
+ {id:'l11',b:'LIGHT',t:4,r:2,q:['l7'],c:48,n:'EMERGENCY CAPACITOR',d:'Lamp battery drains 20% slower.'},
+ {id:'l12',b:'LIGHT',t:5,r:1,q:['l10','l9'],c:110,n:'PHOSPHOR CROWN',d:'A powerful final boost to lamp reach.'},
+ {id:'e14',b:'LOOT',t:4,r:3,q:['e8','e10'],c:68,n:'CONTRABAND ROUTE',d:'+2 silver per excess gold chunk.'},
+ {id:'e15',b:'LOOT',t:5,r:2,q:['e13','e14'],c:125,n:'BLACK VAULT',d:'+6 silver every cleared floor.'},
+ {id:'c7',b:'CREW',t:4,r:2,q:['c6','c5'],c:78,n:'RALLY SIGNAL',d:'Crew miners move 12% faster and recover from panic faster.'},
+ {id:'c8',b:'CREW',t:5,r:1,q:['c7'],c:120,n:'LAST SHIFT',d:'Crew miners work and collect gold 20% faster.'},
+ {id:'i9',b:'SENSE',t:5,r:2,q:['i6','i8'],c:100,n:'RED WARNING',d:'Heartbeat warning reaches even further.'},
+ {id:'i10',b:'SENSE',t:6,r:1,q:['i9'],c:145,n:'DEATH’S COMPASS',d:'Your warning arrow detects the creature from farther away.'},
+ {id:'g11',b:'GHOST',t:5,r:3,q:['g6','g8'],c:82,n:'MUTE HANDS',d:'Tagging makes 25% less noise.'},
+ {id:'g12',b:'GHOST',t:6,r:2,q:['g10','g11'],c:140,n:'ERASED FOOTPRINTS',d:'Footsteps become exceptionally quiet.'},
+ {id:'f7',b:'FORT',t:4,r:1,q:['f6'],c:88,n:'COMPOUND INTEREST',d:'+15% of banked silver on a clear (max 35).'},
+ {id:'f8',b:'FORT',t:5,r:2,q:['f7'],c:135,n:'INSIDER TRADING',d:'All upgrade costs are another 8% cheaper.'}
+];
+const N=id=>runUpgrades[id]?1:0;
+function upDef(id){return UPS.find(u=>u.id===id)}
+function upUnlocked(u){return u.q.every(q=>N(q))}
+function upCost(u){const d=Math.min(.48,.1*N('f4')+.12*N('f5')+.08*N('f8'));return Math.max(1,Math.round(u.c*(1-d)))}
+function upMaxStamina(){return 100+20*N('b1')+25*N('b2')+30*N('b3')}
+/* ----- effects (the names match the hooks placed around the game) ----- */
+function upgradeStaminaDrainMult(){return N('b3')?.88:1}
+function upgradeRegenMult(){return 1+.3*N('b4')+.4*N('b5')+.2*N('b11')}
+function upgradeSprintMult(){return 1+.08*N('b6')+.12*N('b7')}
+function upgradeCrouchMult(){return N('b10')?1.25:1}
+function upgradeWaterMult(){return N('b8')?.72:.56}
+function upgradeChaseBoost(){return N('i7')&&monster&&monster.state!=='possess'&&monster.state!=='disguise'&&player&&dist(player,monster)<140?1.15:1}
+function upgradeNoiseMult(sprint){let m=1;if(N('g1'))m*=.82;if(N('g2'))m*=.78;if(N('g3'))m*=.72;if(sprint&&N('b9'))m*=.7;if(sprint&&N('b12'))m*=.75;if(N('g11'))m*=.75;if(N('g12'))m*=.7;return m}
+function upgradePersonalLightBonus(){return 12*N('l1')+18*N('l2')+22*N('l3')+20*N('l5')+25*N('l12')}
+function upgradeBeamBonus(){return 30*N('l1')+45*N('l2')+55*N('l3')+25*N('l4')+90*N('l10')+110*N('l12')}
+function upgradeBatDrain(){return 1-.25*N('l6')-.25*N('l7')-.2*N('l11')}
+function upgradeBatCharge(){return 1+.3*N('l6')+.3*N('l7')}
+function upgradeDeadGlow(){return .1*N('l8')+.1*N('l9')}
+function upgradePuzzleTime(){return PZ_TIME+.45*N('e6')+.55*N('e7')+.8*N('e8')}
+function upgradeSprayMult(){return Math.max(.35,1-.3*N('e7')-.35*N('g6'))}
+function upgradeGoldSense(){return N('e10')?380:N('e9')?240:0}
+function upgradeHeartRange(){return 90*N('i1')+120*N('i2')+100*N('i9')}
+function upgradeShakeMult(){return N('i3')?.55:1}
+function upgradeStunMult(){return N('i5')?.5:1}
+function upgradeWarnBonus(){return N('i6')?.6:0}
+function upgradeSporeMult(){return N('i6')?.6:1}
+function upgradeSenseMult(){return 1-.15*N('g4')-.15*N('g5')}
+function upgradeMMSlow(){return 1-.3*N('g7')-.3*N('g8')}
+function upgradeForget(){return .25*N('g9')+.25*N('g10')}
+// Other players' numbers arrive during the shop (see netShopPing) and are cached here by player id.
+let netUps={};
+function upsOf(id){return netUps[id]||null}
+// Crew perks run on the host's simulation, so online the best crew perk among all players is used.
+function teamBest(key,lower,local){let b=local;if(multiplayer)for(const id in netUps){const v=netUps[id]&&netUps[id][key];if(Number.isFinite(v))b=lower?Math.min(b,v):Math.max(b,v)}return b}
+function crewSpeedLocal(){return 1+.1*N('c1')+.12*N('c2')+.15*N('c5')+.12*N('c7')}
+function crewPanicLocal(){return N('c3')?.55:N('c7')?.75:1}
+function crewWorkLocal(){return N('c8')?.48:N('c4')?.6:1}
+function upgradeBotSpeedMult(){return teamBest('bs',false,crewSpeedLocal())}
+function upgradeBotPanicMult(){return teamBest('bp',true,crewPanicLocal())}
+function upgradeBotWorkMult(){return teamBest('bw',true,crewWorkLocal())}
+function upsPacket(){return{sn:upgradeSenseMult(),ms:upgradeMMSlow(),bs:crewSpeedLocal(),bp:crewPanicLocal(),bw:crewWorkLocal()}}
+function senseOf(tp){const u=tp&&tp.isLocal===false?upsOf(tp.id):null;return u&&Number.isFinite(u.sn)?u.sn:(tp&&tp.isLocal===false?1:upgradeSenseMult())}
+function mmSlowOf(tp){const u=tp&&tp.isLocal===false?upsOf(tp.id):null;return u&&Number.isFinite(u.ms)?u.ms:(tp&&tp.isLocal===false?1:upgradeMMSlow())}
+// Called at the end of setup() so every new floor (including a retry) gets the run's upgrades.
+function applyRunUpgradeEffects(){
+ if(!player)return;
+ player.maxStamina=upMaxStamina();player.stamina=player.maxStamina;
+ charmReady=!!N('i8');
+ if(!multiplayer){quotaGold=Math.max(3,quotaGold-N('f1')-N('f2'));quotaTags=Math.max(1,quotaTags-N('f3'))}
+ const fg=upgradeForget();if(fg>0)for(const k of['loop','dark','loud','hide'])MM[k]*=1-fg;
 }
+function tryCharm(){
+ if(!charmReady||multiplayer||!player)return false;
+ charmReady=false;player.safeT=3.5;player.stun=0;
+ const m=monster;
+ if(m&&m.state!=='possess'){
+  const ang=Math.atan2(m.y-player.y,m.x-player.x);
+  for(let d=300;d>=80;d-=40){const x=player.x+Math.cos(ang)*d,y=player.y+Math.sin(ang)*d;if(!blocked(x,y,16)){m.x=x;m.y=y;break}}
+  m.pause=3.5;m.path=null;m.mv=0;if(m.state==='hunt'){m.state='search';m.search=3;m.lastSeen={x:player.x,y:player.y}}
+ }
+ showAlert('LUCKY CHARM');say('The charm burns out in your pocket. It lets go of you. Run.',3.5);Snd.stinger(1);shake=Math.max(shake,12);
+ return true;
+}
+function drawUpgradeOverlays(camX,camY){
+ if(!player||phase!=='play'||isMonsterController)return;
+ const gr=upgradeGoldSense();
+ if(gr>0)for(const g of gold){
+  if(g.taken)continue;const d=Math.hypot(g.x-player.x,g.y-player.y);if(d>gr||d<36)continue;
+  const a=1-d/gr,sx=g.x-camX,sy=g.y-camY,R=10+8*a;
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const gg=ctx.createRadialGradient(sx,sy,0,sx,sy,R*1.8);gg.addColorStop(0,`rgba(255,226,110,${.22+.4*a})`);gg.addColorStop(1,'rgba(255,200,60,0)');
+  ctx.fillStyle=gg;ctx.beginPath();ctx.arc(sx,sy,R*1.8,0,TAU);ctx.fill();
+  const tw=.5+.5*Math.sin(fxClock*4+g.ph);ctx.strokeStyle=`rgba(255,244,170,${(.25+.5*a)*tw})`;ctx.lineWidth=1.2;
+  ctx.beginPath();ctx.moveTo(sx-6,sy);ctx.lineTo(sx+6,sy);ctx.moveTo(sx,sy-6);ctx.lineTo(sx,sy+6);ctx.stroke();ctx.restore();
+ }
+ if(N('i4')&&monster&&monster.state!=='possess'){
+  const dx=monster.x-player.x,dy=monster.y-player.y,d=Math.hypot(dx,dy),sx=monster.x-camX,sy=monster.y-camY;
+  if(d<760&&d>90&&!(sx>30&&sx<W-30&&sy>30&&sy<H-30)){
+   const a=Math.atan2(dy,dx),px=W/2+Math.cos(a)*(W/2-34),py=H/2+Math.sin(a)*(H/2-34),k=(1-d/760)*(.55+.45*Math.sin(fxClock*7));
+   ctx.save();ctx.translate(px,py);ctx.rotate(a);ctx.fillStyle=`rgba(230,50,40,${.25+.6*k})`;ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-7,-8);ctx.lineTo(-3,0);ctx.lineTo(-7,8);ctx.closePath();ctx.fill();ctx.restore();
+  }
+ }
+ if((player.safeT||0)>0){
+  const px=player.x-camX,py=player.y-camY,k=Math.min(1,player.safeT);
+  ctx.save();ctx.strokeStyle=`rgba(255,226,140,${.25+.35*Math.sin(fxClock*14)*k})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(px,py,20+4*Math.sin(fxClock*10),0,TAU);ctx.stroke();ctx.restore();
+ }
+}
+
+/* ----- silver from a cleared floor ----- */
+function silverFromClear(){
+ const gold=player.gold|0,tags=player.tags|0;
+ const eg=Math.max(0,gold-quotaGold),et=Math.max(0,tags-quotaTags);
+ const perG=5+N('e1')+N('e2')+2*N('e3')+2*N('e14'),perT=6+N('e4')+2*N('e5');
+ const alive=bots.filter(b=>b.alive).length;
+ const purse=3*N('e11')+5*N('e12')+8*N('e13')+6*N('e15'),pay=N('c6')?3*alive:0;
+ const interest=Math.min(N('f7')?35:N('f6')?25:0,Math.floor(silver*(N('f7')?.15:N('f6')?.1:0)));
+ return{gold,tags,eg,et,perG,perT,purse,pay,interest,silver:eg*perG+et*perT+purse+pay+interest};
+}
+function openShopAfterClear(){
+ const conv=silverFromClear();
+ shopFloorBonus=conv;silver+=conv.silver;
+ shopOpen=true;shopReady=false;shopReadyMap={};shopOpenedAt=performance.now();shopTick=0;shopFootT=0;
+ phase='shop';paused=false;
+ for(const id of['end','pause','spectate','puzzle'])if($(id))$(id).style.display='none';
+ $('shop').style.display='flex';
+ if(player)player.maxStamina=upMaxStamina();
+ renderShop();renderShopFooter();
+ if(conv.silver>0)Snd.clink();else Snd.unlock();
+ if(multiplayer)netShopPing();
+}
+function leaveShop(){shopOpen=false;shopReady=false;shopReadyMap={};$('shop').style.display='none'}
+function buyUpgrade(id){
+ const u=upDef(id);if(!u||N(id)||!upUnlocked(u))return false;
+ const c=upCost(u);if(silver<c){say('Not enough silver.',1.6);Snd.buzz();return false}
+ silver-=c;runUpgrades[id]=1;Snd.ding();
+ if(player)player.maxStamina=upMaxStamina();
+ renderShop();return true;
+}
+const TREE_X=214,TREE_Y=104,NODE_W=196,NODE_H=92;
+function coinsHtml(n,big){let s='';for(let i=0;i<Math.min(24,n);i++)s+=`<i class="coin${big?' big':''}"></i>`;return s}
+function escTxt(s){return String(s==null?'':s).replace(/[<>&"]/g,'')}
 function renderShop(){
  setText('shopSilver',String(silver|0));
- const conv=shopFloorBonus||{gold:0,tags:0,silverGained:0};
- $('shopConvert').textContent=conv.silverGained
-  ?`Excess this floor: +${conv.gold} gold and +${conv.tags} tags → +${conv.silverGained} silver banked. Total silver: ${silver}.`
-  :`No excess loot this floor. Silver banked: ${silver}. Buy upgrades for the next descent.`;
- const tree=$('shopTree');tree.innerHTML='';
- let lastBranch='';
- for(const def of UPGRADE_DEFS){
-  if(def.branch!==lastBranch){
-   lastBranch=def.branch;
-   const h=document.createElement('div');h.className='branch';h.style.gridColumn='1 / -1';h.textContent=def.branch;tree.appendChild(h);
-  }
-  const owned=upMaxed(def),locked=!upUnlocked(def),can=upUnlocked(def)&&!owned&&silver>=def.cost;
-  const el=document.createElement('div');
-  el.className='upNode'+(owned?' owned':'')+(locked?' locked':'');
-  el.innerHTML=`<h4>${def.name}</h4><div class="desc">${def.desc}</div><div class="meta"><span>${owned?'OWNED':locked?'LOCKED':def.cost+' SILVER'}</span><span>${def.req.length?'Needs '+def.req.map(r=>{const d=UPGRADE_DEFS.find(u=>u.id===r);return d?d.name.split(' ')[0]:r}).join(', '):'ROOT'}</span></div>`;
-  const btn=document.createElement('button');
-  btn.textContent=owned?'PURCHASED':locked?'LOCKED':can?'BUY':'NEED SILVER';
-  btn.disabled=!can;
-  btn.onclick=()=>buyUpgrade(def.id);
-  el.appendChild(btn);tree.appendChild(el);
+ $('shopCoins').innerHTML=coinsHtml(Math.min(12,Math.ceil(silver/8)),true);
+ const f=shopFloorBonus,nextHaz=gimmickNames(depth+1);
+ let t=`Cleared with <b>${f.gold} / ${quotaGold}</b> gold and <b>${f.tags} / ${quotaTags}</b> marks. `;
+ if(f.eg||f.et||f.purse||f.pay||f.interest){
+  const parts=[];if(f.eg)parts.push(`${f.eg} excess gold × ${f.perG}`);if(f.et)parts.push(`${f.et} excess marks × ${f.perT}`);if(f.purse)parts.push(`${f.purse} from your vault upgrades`);if(f.pay)parts.push(`${f.pay} hazard pay`);if(f.interest)parts.push(`${f.interest} interest`);
+  t+=`That turned into <b>+${f.silver} silver</b> (${parts.join(' + ')}). ${coinsHtml(f.silver)}`;
+ }else t+=`Nothing was left over to convert. Bring back more than the quota (extra gold and extra marks) to earn silver.`;
+ t+=`<br>NEXT: DEPTH ${String(depth+1).padStart(2,'0')}${nextHaz?' · HAZARD: '+nextHaz:''}`;
+ $('shopConvert').innerHTML=t;
+ const tabs=$('shopTabs');tabs.innerHTML='';
+ for(const b of BRANCHES){
+  const all=UPS.filter(u=>u.b===b.id),have=all.filter(u=>N(u.id)).length,el=document.createElement('button');
+  el.className='shopTab'+(shopBranch===b.id?' on':'');el.style.setProperty('--bc',b.col);el.textContent=`${b.name} ${have}/${all.length}`;
+  el.onclick=()=>{shopBranch=b.id;renderShop()};tabs.appendChild(el);
  }
- // Ready UI
- const readyBtn=$('shopReadyBtn'),descBtn=$('shopDescendBtn');
+ const br=BRANCHES.find(b=>b.id===shopBranch)||BRANCHES[0],nodes=UPS.filter(u=>u.b===br.id);
+ const maxT=Math.max(...nodes.map(n=>n.t)),maxR=Math.max(...nodes.map(n=>n.r)),tree=$('shopTree');
+ tree.style.width=(maxT*TREE_X)+'px';tree.style.height=((maxR+1)*TREE_Y)+'px';tree.style.setProperty('--bc',br.col);
+ const pos=n=>({x:6+(n.t-1)*TREE_X,y:4+n.r*TREE_Y});
+ let svg=`<svg width="${maxT*TREE_X}" height="${(maxR+1)*TREE_Y}">`;
+ for(const n of nodes)for(const qid of n.q){
+  const q=upDef(qid);if(!q||q.b!==n.b)continue;
+  const a=pos(q),b=pos(n),x1=a.x+NODE_W,y1=a.y+NODE_H/2,x2=b.x,y2=b.y+NODE_H/2,mx=(x1+x2)/2;
+  svg+=`<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${N(qid)?br.col:'#3b453f'}" stroke-width="${N(qid)?2.6:1.4}" opacity="${N(qid)?.95:.55}" stroke-dasharray="${N(qid)?'8 5':'3 7'}"/>`;
+ }
+ tree.innerHTML=svg+'</svg>';
+ for(const n of nodes){
+  const owned=!!N(n.id),open=upUnlocked(n),cost=upCost(n),can=open&&!owned&&silver>=cost,p=pos(n),el=document.createElement('div');
+  el.className='upNode'+(owned?' owned':'')+(!open&&!owned?' locked':'')+(open&&!owned&&!can?' poor':'');
+  el.style.left=p.x+'px';el.style.top=p.y+'px';el.style.setProperty('--bc',br.col);el.style.setProperty('--node-i',String(nodes.indexOf(n)));
+  const need=n.q.filter(q=>!N(q)).map(q=>{const d=upDef(q);return d?d.n:q}).join(', ');
+  el.innerHTML=`<div><h4>${escTxt(n.n)}</h4><div class="desc">${escTxt(n.d)}</div></div><div class="foot"><span>${owned?'OWNED':(!open?'NEEDS '+escTxt(need.split(',')[0]):cost+' SILVER')}</span></div>`;
+  if(!owned&&open){const btn=document.createElement('button');btn.textContent=can?'BUY':'NEED '+(cost-silver);btn.disabled=!can;btn.onclick=()=>buyUpgrade(n.id);el.querySelector('.foot').appendChild(btn)}
+  tree.appendChild(el);
+ }
+}
+/* ----- ready-up (online) -----
+   The game server only forwards the player fields it knows about, so a custom "shopReady" flag can be dropped on the way
+   to the other players. Every ping therefore carries the ready state three ways, and anyone reading it accepts any of them:
+   1) plain fields (shopReady / shopFor / ups), 2) inside the monsterInput object, 3) packed into the aim number
+   (aim is a normal field that the server already relays; nothing reads it during the shop). */
+const SHOP_AIM=1000,SHOP_FORCE_MS=30000;
+function shopRid(){return netDescendPending?netDescendPending.roundId:0}
+function shopPack(){return SHOP_AIM+shopRid()*4+(shopReady?2:0)+1}
+function shopDecode(p){
+ if(!p)return null;
+ if(p.shopFor!==undefined&&p.shopReady!==undefined)return{rid:Number(p.shopFor)||0,ready:!!p.shopReady};
+ const mi=p.monsterInput;
+ if(mi&&typeof mi==='object'&&mi.shop!==null&&mi.shop!==undefined&&Number.isFinite(Number(mi.shop))){const v=Math.round(Number(mi.shop))-SHOP_AIM;if(v>=0&&(v&1))return{rid:v>>2,ready:(v&2)>0}}
+ const a=Number(p.aim);
+ if(Number.isFinite(a)&&a>=SHOP_AIM-.5&&a<SHOP_AIM+4e6){const v=Math.round(a)-SHOP_AIM;if(v&1)return{rid:v>>2,ready:(v&2)>0}}
+ return null;
+}
+function shopIsReady(p){
+ if(p.id===netMyId)return shopReady;
+ const d=shopDecode(p);return !!(d&&d.rid===shopRid()&&d.ready);
+}
+function shopRoster(){const r=(netPlayers||[]).filter(p=>p&&p.id);if(!r.some(p=>p.id===netMyId))r.push({id:netMyId,name:netName});return r}
+// Remember every player's perk numbers (sent along with the ready ping) for the host-side simulation.
+function netCacheUps(){
+ if(!multiplayer)return;
+ for(const p of netPlayers||[]){
+  if(!p||!p.id||p.id===netMyId)continue;
+  const u=(p.ups&&typeof p.ups==='object')?p.ups:(p.monsterInput&&typeof p.monsterInput==='object'&&p.monsterInput.ups&&typeof p.monsterInput.ups==='object'?p.monsterInput.ups:null);
+  if(u)netUps[p.id]=u;
+ }
+}
+function renderShopFooter(){
+ const rb=$('shopReadyBtn'),db=$('shopDescendBtn'),list=$('shopReadyList');if(!rb||!db||!list)return;
  if(!multiplayer){
-  readyBtn.style.display='none';
-  descBtn.style.display='inline-block';
-  descBtn.textContent='DESCEND TO NEXT DEPTH';
-  descBtn.disabled=false;
-  $('shopReadyList').textContent='Solo run — buy what you need, then descend when ready.';
- }else{
-  readyBtn.style.display='inline-block';
-  descBtn.style.display='inline-block';
-  readyBtn.textContent=shopReady?'UNREADY':'READY UP';
-  const living=(netPlayers||[]).filter(p=>p&&p.id!==netMonsterControllerId);
-  // Everyone currently connected who is not pure spectator-only still in the match
-  const roster=(netPlayers||[]).filter(p=>p&&p.id);
-  for(const p of roster){if(shopReadyMap[p.id]===undefined)shopReadyMap[p.id]=false}
-  shopReadyMap[netMyId]=!!shopReady;
-  const lines=roster.map(p=>`${p.name||'MINER'}${p.id===netMonsterControllerId?' (was monster)':''}: ${shopReadyMap[p.id]?'READY':'…'}`);
-  const allReady=roster.length>0&&roster.every(p=>shopReadyMap[p.id]);
-  $('shopReadyList').innerHTML='Multiplayer: everyone must ready up before the host can open the next depth.<br>'+lines.join('<br>');
-  descBtn.textContent=isNetHost?(allReady?'START NEXT DEPTH':'WAITING FOR READY'):'WAITING FOR HOST';
-  descBtn.disabled=!(isNetHost&&allReady);
+  rb.style.display='none';db.style.display='inline-block';db.disabled=false;
+  db.textContent='DESCEND TO DEPTH '+String(depth+1).padStart(2,'0');
+  list.textContent='Spend your silver, then take the lift down when you are ready.';return;
  }
+ const roster=shopRoster(),ready=roster.filter(shopIsReady).length,all=ready===roster.length;
+ const force=performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
+ rb.style.display='inline-block';rb.textContent=shopReady?'NOT READY':'READY UP';
+ list.innerHTML=`<b>${ready} / ${roster.length} READY</b> · the next depth starts when the whole crew is ready.<br>`+
+  roster.map(p=>`${escTxt(p.name||'MINER')}${p.id===netMyId?' (you)':''}: ${shopIsReady(p)?'<span style="color:#9bc8a4">READY</span>':'<span style="color:#b9857b">shopping…</span>'}`).join(' · ');
+ db.style.display='inline-block';
+ if(isNetHost){db.disabled=!(all||force);db.textContent=all?'START DEPTH '+String(depth+1).padStart(2,'0'):force?`START ANYWAY (${roster.length-ready} NOT READY)`:'WAITING FOR READY'}
+ else{db.disabled=true;db.textContent=all?'WAITING FOR HOST':'WAITING FOR READY'}
+}
+function netShopPing(){
+ if(!multiplayer||!netSocket||!netSocket.connected||!player)return;
+ const ups=upsPacket(),packed=shopPack();
+ netSocket.emit('player-state',{x:player.x,y:player.y,aim:packed,mv:0,foot:0,alive:!!netAlive&&!isMonsterController,flashlightOn:false,noise:0,moving:false,name:netName,
+  role:isMonsterController?'monster':undefined,shopReady,shopFor:shopRid(),ups,monsterInput:{dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0,shop:packed,ups}});
+}
+function shopFrame(dt){
+ shopTick-=dt;if(shopTick<=0){shopTick=.4;netShopPing()}
+ shopFootT-=dt;if(shopFootT<=0){shopFootT=1;netCacheUps();renderShopFooter()}
 }
 function toggleShopReady(){
  if(!multiplayer)return;
  shopReady=!shopReady;shopReadyMap[netMyId]=shopReady;
- renderShop();
- if(netSocket)netSocket.emit('player-state',{x:player?player.x:0,y:player?player.y:0,aim:player?player.aim:0,alive:netAlive,name:netName,shopReady,shopSilver:silver,role:isMonsterController?'monster':'miner'});
+ netShopPing();renderShopFooter();
 }
 function closeShopAndDescend(){
- if(multiplayer&&isNetHost){
-  const roster=(netPlayers||[]).filter(p=>p&&p.id);
-  if(!roster.every(p=>shopReadyMap[p.id])){say('Not everyone is ready.',2);return}
-  const pending=window.__shopNext||{};
-  window.__shopNext=null;
-  const seed=pending.seed||(((Math.random()*1e9)|0)||1);
-  const nextDepth=pending.depth||((depth|0)+1);
-  netPendingRoundRestart={type:'shop-descend',depth:nextDepth,seed,roundId:(pending.roundId||((netRoundId||0)+1)),controllerId:pending.controllerId||netMonsterControllerId,controllerName:pending.controllerName||netMonsterControllerName};
-  if(netSocket&&monster){try{netSocket.emit('monster-state',Object.assign(netPackMonster(),{roundEvent:netPendingRoundRestart}))}catch(e){}}
-  applyShopDescend(netPendingRoundRestart);
-  return;
- }
- if(multiplayer&&!isNetHost)return;
- applyShopDescend({type:'shop-descend',depth:(depth|0)+1});
+ if(!shopOpen)return;
+ if(!multiplayer){leaveShop();endWin=true;phase='over';start();return}
+ if(!isNetHost)return;
+ netCacheUps();
+ const roster=shopRoster(),all=roster.every(shopIsReady),force=performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
+ if(!all&&!force){say('Not everyone is ready.',2);return}
+ const rr=netDescendPending;
+ if(!rr){say('The lift is not ready.',2);return}
+ // "go" reuses the same round-restart descent event the clients already accepted when the lift was called.
+ const go=()=>{try{if(netSocket&&netSocket.connected)netSocket.emit('monster-state',Object.assign(netPackMonster(),{roundEvent:Object.assign({},rr,{go:true})}))}catch(e){}};
+ go();setTimeout(go,150);setTimeout(go,450);setTimeout(go,900);
+ leaveShop();applyRoundRestart(rr);
 }
-function applyShopDescend(rr){
- shopOpen=false;shopReady=false;shopReadyMap={};$('shop').style.display='none';
- endWin=true;
- depth=(rr&&rr.depth)?(rr.depth|0):(depth+1);
- Snd.init();
- const keepSilver=silver,keepUp=Object.assign({},runUpgrades);
- // setup() regenerates the mine for current depth (and depth gimmicks via MM in v11).
- if(multiplayer&&rr&&rr.seed){netSeed=rr.seed;netSeededSetup(netSeed);} else setup();
- silver=keepSilver;runUpgrades=keepUp;applyRunUpgradeEffects();
- netAlive=!isMonsterController;
- netPlayers=(netPlayers||[]).map(p=>({...p,alive:true}));
- player.gold=0;player.tags=0;player.stamina=player.maxStamina||100;player.tired=false;flashlightOn=!isMonsterController;
- phase='play';paused=false;$('menu').style.display='none';$('end').style.display='none';$('pause').style.display='none';$('spectate').style.display='none';
- last=performance.now();for(const k in keys)keys[k]=false;miniT=0;markExplored();
- setText('depth',String(depth).padStart(2,'0'));setText('layerName',depthName());
- setText('gold','0 / '+quotaGold);setText('tags','0 / '+quotaTags);setText('crew',livingCrewLabel());
- showAlert(`DESCENDING TO DEPTH ${String(depth).padStart(2,'0')}`);
- let msg=depth>=4?'The rock is warm. Something is breathing below you.':'The lift seals overhead. You are deeper now.';
- if(typeof gimmickNames==='function'&&gimmickNames(depth))msg+=' Hazard: '+gimmickNames(depth)+'.';
- say(msg,3);
- if(isMonsterController){netAlive=false;flashlightOn=false}
- if(typeof netPendingRoundRestart!=='undefined')netPendingRoundRestart=null;
-}
+
 function showEnd(win){
  endWin=win;Snd.spray(false);
  if(win){
@@ -1007,6 +1180,8 @@ function forceNetBodySync(){
 }
 function die(){
  if(phase!=='play')return;
+ if((player.safeT||0)>0)return;
+ if(!multiplayer&&tryCharm())return;
  if(multiplayer){
   spawnCorpse({x:player.x,y:player.y,worldId:`player:${netMyId||'local'}`,netId:netMyId||null,name:netName||'MINER',pal:PAL.player,fromBot:true,fx:true});
   if(isNetHost)forceNetBodySync();
@@ -1096,15 +1271,15 @@ function patrolLoops(m,dt,spd){
 }
 function learnPlayer(dt,m,tp,pd){
  if(!tp||m.state==='possess')return;
- MM.clock+=dt;m.eye=MM.dark;
+ MM.clock+=dt;m.eye=MM.dark;const slow=mmSlowOf(tp);
  const lamp=tp.flashlightOn===undefined?flashlightOn:tp.flashlightOn,nz=tp.noise===undefined?noise:tp.noise;
  // How you use light and noise while it is near you, judged in 12-second windows.
  if(pd<380&&m.state!=='disguise'){
   MM.nearT+=dt;if(lamp)MM.lampT+=dt;MM.nzT+=nz*dt;
   if(MM.nearT>=12){
    const f=MM.lampT/MM.nearT,avg=MM.nzT/MM.nearT;
-   MM.dark=clamp(MM.dark+(clamp((.5-f)/.5,0,1)*.9-MM.dark)*.4,0,1);
-   MM.loud=clamp(MM.loud+(clamp((avg-22)/45,0,1)-MM.loud)*.4,0,1);
+   MM.dark=clamp(MM.dark+(clamp((.5-f)/.5,0,1)*.9-MM.dark)*.4*slow,0,1);
+   MM.loud=clamp(MM.loud+(clamp((avg-22)/45,0,1)-MM.loud)*.4*slow,0,1);
    MM.nearT=MM.lampT=MM.nzT=0;mmNotice();
   }
  }
@@ -1119,7 +1294,7 @@ function learnPlayer(dt,m,tp,pd){
    if(hit>=0){
     let far=0;for(let j=hit;j<MM.trail.length;j++)far=Math.max(far,Math.hypot(MM.trail[j].x-tp.x,MM.trail[j].y-tp.y));
     if(far>170){
-     MM.loop=clamp(MM.loop+.22,0,1);MM.cool=8;MM.liveLoop=6;
+     MM.loop=clamp(MM.loop+.22*slow,0,1);MM.cool=8;MM.liveLoop=6;
      const lead=1.5+3.5*MM.loop,tt=MM.trail[hit].t+lead;let cp=MM.trail[hit];for(const p of MM.trail)if(p.t<=tt)cp=p;
      MM.cut={x:cp.x,y:cp.y};
      const sx=(cp.x+tp.x)/2,sy=(cp.y+tp.y)/2,near=MM.sp.find(s=>Math.hypot(s.x-sx,s.y-sy)<120);
@@ -1209,7 +1384,7 @@ function updateMonster(dt){
    if(Math.random()<dt*45)P(m.x+rnd(-8,8),m.y+rnd(-8,8),rnd(-40,40),rnd(-40,40),.3,1.4,'#5a1510',{drag:.9});
    if(m.twT>=1){m.twT=0;explodeBody(m);reveal(targetPlayer)}
   }
-  else if((pd<revealNear&&lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y))||pd<Math.max(55,75-(depth-1)*2)||closeBot||m.dT>revealTimeout||((targetPlayer.flashlightOn===undefined?flashlightOn:targetPlayer.flashlightOn)&&pd<300+(depth-1)*12)){reveal(targetPlayer)}
+  else if((pd<revealNear&&lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y))||pd<Math.max(55,75-(depth-1)*2)||closeBot||m.dT>revealTimeout||((targetPlayer.flashlightOn===undefined?flashlightOn:targetPlayer.flashlightOn)&&pd<(300+(depth-1)*12)*senseOf(targetPlayer))){reveal(targetPlayer)}
   else{
    let mv=false;
    // A quarter of all disguises stalk the player: they walk straight at them like a normal miner would,
@@ -1246,7 +1421,7 @@ function updateMonster(dt){
   const hear=pd<(targetLamp?hearRange:hearRange*.72);
   const seen=los&&pd<(m.state==='hunt'&&m.huntT==='player'?chaseSightRange:sightRange);
   // A lit flashlight can be sensed through solid rock at close range, so the creature homes in on it without line of sight.
-  const sensed=targetLamp&&pd<300+(depth-1)*12;
+  const sensed=targetLamp&&pd<(300+(depth-1)*12)*senseOf(targetPlayer);
   if(botT&&botT.d<pd+60){m.state='hunt';m.huntT='bot';m.lastSeen={x:botT.b.x,y:botT.b.y};m.search=3.5}
   else if(seen||sensed){if(m.state==='search')MM.hide=Math.max(0,MM.hide-.05);if(m.state!=='hunt'){Snd.growl(.55,clamp((m.x-targetPlayer.x)/500,-1,1));Snd.screech(.5,clamp((m.x-targetPlayer.x)/500,-1,1));say(seen?'Something has noticed you.':'It sensed your light through the rock.',1.8)}m.state='hunt';m.huntT='player';m.lastSeen={x:targetPlayer.x,y:targetPlayer.y};m.search=4.5}
   else if(hear&&m.state!=='hunt'){m.state='investigate';m.lastSeen={x:targetPlayer.x+rnd(-40,40),y:targetPlayer.y+rnd(-40,40)};m.search=Math.max(m.search,3.5)}
@@ -1383,7 +1558,7 @@ function applyRoundRestart(rr){
  while(bots.length<netBotSlots){const slot=bots.length,c=floorList[(47+slot*71)%floorList.length],p={x:(c.x+.5)*TILE,y:(c.y+.5)*TILE};const names=['BOT-01','BOT-02','BOT-03','BOT-04'];bots.push({...p,r:9,alive:true,name:names[slot]||'BOT',pal:PAL.MINER,path:null,pi:0,think:0,ph:slot,gold:0,tags:0,panic:0,goal:null,paint:0,work:0,fx:0,fy:1,ang:Math.PI/2,moving:false,repath:0})}
  const players=netPlayers||[],slot=Math.max(0,players.findIndex(p=>p.id===netMyId)),sp=NET_SPAWNS[slot%NET_SPAWNS.length];
  if(!isMonsterController){player.x=sp.x;player.y=sp.y;}
- player.gold=0;player.tags=0;player.stamina=100;player.tired=false;flashlightOn=!isMonsterController;
+ player.gold=0;player.tags=0;player.stamina=player.maxStamina||100;player.tired=false;flashlightOn=!isMonsterController;
  netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
  phase='play';paused=false;elapsed=0;noise=0;painting=null;puzzle=null;stopPuzzle();
  $('end').style.display='none';$('spectate').style.display='none';$('pause').style.display='none';$('menu').style.display='none';$('onlinePanel').style.display='none';
@@ -1410,7 +1585,7 @@ function updateBots(dt){
   if(!b.alive)continue;
   b.moving=false;
   const md=dist(b,m),threat=m.state!=='disguise'&&m.state!=='possess'&&(md<120||(md<230&&lineOfSight(b.x,b.y,m.x,m.y)));
-  if(threat){b.panic=2.8;noise=Math.min(100,noise+dt*3);if(b.paint>0){b.paint=0;if(b.goal&&b.goal.obj)b.goal.obj.progress=0}}else b.panic=Math.max(0,b.panic-dt);
+  if(threat){b.panic=2.8*upgradeBotPanicMult();noise=Math.min(100,noise+dt*3);if(b.paint>0){b.paint=0;if(b.goal&&b.goal.obj)b.goal.obj.progress=0}}else b.panic=Math.max(0,b.panic-dt);
   b.think-=dt;
   const keep=b.panic<=0&&b.goal&&(b.goal.kind==='gold'||b.goal.kind==='tag')&&!(b.goal.obj.taken||b.goal.obj.done);
   if(b.think<=0&&!keep&&b.paint<=0&&b.work<=0){
@@ -1435,7 +1610,7 @@ function updateBots(dt){
   }else if(b.work>0){b.work-=dt;if(b.work<=0&&b.goal&&b.goal.kind==='gold'){const o=b.goal.obj;if(!o.taken){o.taken=true;b.gold++;player.gold++;if(multiplayer&&isNetHost)netEmitWorldAction('gold',gold.indexOf(o));setText('gold',player.gold+' / '+quotaGold);say(`${b.name} found gold and called it in.`,1.8);Snd.clink();Snd.callout(clamp((b.x-player.x)/400,-1,1));if(player.gold===quotaGold)showAlert('GOLD QUOTA MET')}b.goal=null;b.think=0}}
   else if(b.goal){
    const arrive=dist(b,b.goal)<(b.goal.kind==='rest'?30:20);
-   if(arrive&&b.goal.kind==='gold'){b.work=.7}
+   if(arrive&&b.goal.kind==='gold'){b.work=.7*upgradeBotWorkMult()}
    else if(arrive&&b.goal.kind==='tag'){if(puzzle&&puzzle.tag===b.goal.obj){b.goal=null;b.think=0}else{b.paint=3;b.goal.obj.progress=0}}
    else if(arrive&&b.goal.kind==='rest'){b.goal=null;b.think=2}
    else{
@@ -1476,7 +1651,7 @@ function rockImpact(h){
  Snd.crash(clamp(1-d/700,.15,1),pan);if(d<400)shake=Math.max(shake,clamp(9-d/60,3,9));
  for(let i=0;i<22;i++)P(h.x,h.y,rnd(-110,110),rnd(-110,110),rnd(.5,1.2),rnd(1.2,3),i%3?'#8a8a78':'#5b5a4e',{drag:.92});
  for(let i=0;i<9;i++){dctx.fillStyle=i%2?'#2f322d':'#454a42';dctx.beginPath();dctx.ellipse(h.x+rnd(-h.r*.7,h.r*.7),h.y+rnd(-h.r*.7,h.r*.7),rnd(2.5,6),rnd(2,4.5),rnd(0,3),0,TAU);dctx.fill()}
- if(d<h.r+8&&!isMonsterController){player.stun=1.3;player.stamina=Math.max(0,player.stamina-30);noise=Math.min(100,noise+30);say('A slab clips you. You stagger.',2)}
+ if(d<h.r+8&&!isMonsterController){player.stun=1.3*upgradeStunMult();player.stamina=Math.max(0,player.stamina-30*upgradeStunMult());noise=Math.min(100,noise+30);say('A slab clips you. You stagger.',2)}
  if((!multiplayer||isNetHost)&&monster&&!isMonsterController&&(monster.state==='stalk'||monster.state==='search')&&Math.hypot(monster.x-h.x,monster.y-h.y)<720){monster.state='investigate';monster.lastSeen={x:h.x,y:h.y};monster.search=4;monster.path=null}
 }
 function ringBell(ctl){
@@ -1497,14 +1672,14 @@ function updateGimmicks(dt,ctl){
  if(gim('bell')){const n=Math.floor((elapsed+14)/34);if(n>bellN){bellN=n;ringBell(ctl)}}
  if(ctl){rocks.length=0;sporeAmt=0;return}
  if(gim('battery')){
-  if(flashlightOn){battery-=dt*1.3;if(battery<=0){battery=0;flashlightOn=false;say('The lamp died. It recharges slowly in the dark.',2.5);Snd.lamp()}}
-  else battery=Math.min(100,battery+dt*3.5);
+  if(flashlightOn){battery-=dt*1.3*upgradeBatDrain();if(battery<=0){battery=0;flashlightOn=false;say('The lamp died. It recharges slowly in the dark.',2.5);Snd.lamp()}}
+  else battery=Math.min(100,battery+dt*3.5*upgradeBatCharge());
  }
  if(gim('rockfall')){
   rockT-=dt;
   if(rockT<=0){
    rockT=Math.max(2.2,rnd(3.5,7)-Math.min(2,(depth-2)*.15));
-   for(let i=0;i<25;i++){const a=rnd(0,TAU),d=rnd(30,230),x=player.x+Math.cos(a)*d,y=player.y+Math.sin(a)*d;if(!walk(x,y)||Math.hypot(x-exit.x,y-exit.y)<60)continue;rocks.push({x,y,r:rnd(38,56),t:0,warn:1.7,hit:false,fl:0});break}
+   for(let i=0;i<25;i++){const a=rnd(0,TAU),d=rnd(30,230),x=player.x+Math.cos(a)*d,y=player.y+Math.sin(a)*d;if(!walk(x,y)||Math.hypot(x-exit.x,y-exit.y)<60)continue;rocks.push({x,y,r:rnd(38,56),t:0,warn:1.7+upgradeWarnBonus(),hit:false,fl:0});break}
   }
   for(const h of rocks){h.t+=dt;if(!h.hit&&h.t>=h.warn)rockImpact(h);if(h.hit)h.fl-=dt}
   rocks=rocks.filter(h=>!h.hit||h.fl>0);
@@ -1514,7 +1689,7 @@ function updateGimmicks(dt,ctl){
   for(const c of spores){const p=c.p=sporePos(c);if(Math.hypot(player.x-p.x,player.y-p.y)<c.r&&lineOfSight(p.x,p.y,player.x,player.y))inS=true}
   sporeAmt=lerp(sporeAmt,inS?1:0,Math.min(1,dt*(inS?3:1.5)));
   if(inS){
-   player.stamina=Math.max(0,player.stamina-dt*16);if(player.stamina<=0)player.tired=true;
+   player.stamina=Math.max(0,player.stamina-dt*16*upgradeSporeMult());if(player.stamina<=0)player.tired=true;
    coughT-=dt;if(coughT<=0){coughT=rnd(.8,1.6);noise=Math.min(100,noise+9);Snd.cough();shake=Math.max(shake,1.5)}
   }
  }
@@ -1587,10 +1762,10 @@ function updateGame(dt){
  noise=Math.max(0,noise-dt*(moving?3.5:puzzle?3.2:38));
  if(player.tired||player.stamina<30){breathT-=dt;if(breathT<=0){breathT=player.tired?.7:1.2;Snd.breath()}}
  if(sprint){player.stamina-=26*upgradeStaminaDrainMult()*dt;if(player.stamina<=0){player.stamina=0;player.tired=true;say('Out of breath.',1.5)}}
- else player.stamina=Math.min(100,player.stamina+(moving?10:22)*dt);
+ else player.stamina=Math.min(player.maxStamina||100,player.stamina+(moving?10:22)*upgradeRegenMult()*dt);
  const inWater=inFlood(player.x,player.y);
- player.stun=Math.max(0,(player.stun||0)-dt);
- const spd=140*(sprint?1.55*upgradeSprintMult():crouch?.52:1)*(player.tired&&moving?.8:1)*(inWater?.56:1)*(player.stun>0?.4:1)*(sporeAmt>.3?.8:1);
+ player.stun=Math.max(0,(player.stun||0)-dt);player.safeT=Math.max(0,(player.safeT||0)-dt);
+ const spd=140*(sprint?1.55*upgradeSprintMult():crouch?.52*upgradeCrouchMult():1)*upgradeChaseBoost()*(player.tired&&moving?.8:1)*(inWater?upgradeWaterMult():1)*(player.stun>0?.4:1)*(sporeAmt>.3?.8:1);
  moveEntity(player,dx*spd*dt,dy*spd*dt,player.r);
  player.mv=lerp(player.mv,moving?(sprint?1.5:crouch?.55:1):0,Math.min(1,dt*10));
  if(moving){
@@ -1604,7 +1779,7 @@ function updateGame(dt){
   const si=Math.floor(player.foot/Math.PI);
   if(si!==player.stepI){
    player.stepI=si;
-   const footfallNoise=Math.round(((crouch?2:sprint?12:(player.moveTime<.9?4:7))+(inWater?(crouch?7:sprint?23:18):0))*upgradeNoiseMult());
+   const footfallNoise=Math.round(((crouch?2:sprint?12:(player.moveTime<.9?4:7))+(inWater?(crouch?7:sprint?23:18):0))*upgradeNoiseMult(sprint));
    noise=Math.min(100,noise+footfallNoise);
    if(inWater){Snd.splash(crouch?.65:sprint?1.5:1,clamp((player.x-monster.x)/400,-1,1));wSplash(player.x,player.y,crouch?.5:sprint?1.3:.9)}
    else{Snd.step(sprint,crouch?.28:1);
@@ -1617,7 +1792,7 @@ function updateGame(dt){
  // tagging puzzle: you are rooted to the floor marker while the mine keeps running
  painting=null;
  if(puzzle){
-  const t=puzzle.tag;painting=t;noise=Math.min(100,noise+dt*2.5);puzzle.timer-=dt;
+  const t=puzzle.tag;painting=t;noise=Math.min(100,noise+dt*2.5*upgradeSprayMult());puzzle.timer-=dt;
   if(Math.random()<dt*14)P(t.x+rnd(-10,10),t.y+rnd(-10,10),rnd(-14,14),rnd(-14,14),.45,1.5,t.col,{drag:.9});
   if(puzzle.timer<=0)puzzleFail(true);
  }
@@ -1633,7 +1808,7 @@ function updateGame(dt){
  }
  updateGimmicks(dt,false);
  // sound design: heartbeat, drone, knocks and rumbles
- const md=dist(player,monster),prox=clamp(1-(md-120)/420,0,1)*(monster.state==='disguise'?0:1)+(monster.state==='hunt'?.25:0);
+ const md=dist(player,monster),prox=clamp(1-(md-120)/(420+upgradeHeartRange()),0,1)*(monster.state==='disguise'?0:1)+(monster.state==='hunt'?.25:0);
  Snd.tension(prox);hbT-=dt;
  if(prox>.06&&hbT<=0){hbT=lerp(1.15,.4,clamp(prox,0,1));Snd.heart(.3+prox*.7);heartPulse=1}
  heartPulse*=Math.pow(.9,dt*60);
@@ -1848,7 +2023,7 @@ function draw(){
  ctx.fillStyle='#030404';ctx.fillRect(0,0,W,H);
  const cameraFocus=(multiplayer&&isMonsterController&&monster)?monster:(multiplayer&&phase==='spectate')?netSpectateFocus():player;
  let camX=cameraFocus.x-W/2,camY=cameraFocus.y-H/2;
- if(shake>0){camX+=(Math.random()-.5)*shake;camY+=(Math.random()-.5)*shake}
+ if(shake>0){const shk=shake*upgradeShakeMult();camX+=(Math.random()-.5)*shk;camY+=(Math.random()-.5)*shk}
  camX=Math.round(camX);camY=Math.round(camY);
  ctx.save();ctx.translate(-camX,-camY);
  ctx.drawImage(mapC,0,0);
@@ -1919,7 +2094,7 @@ function draw(){
  /* ----- lighting: dark mask with shadow-cast holes ----- */
  const lights=[];
  const md=dist(player,monster),flick=1-Math.min(.76,.4+(depth-1)*.035)*Math.max(0,Math.sin(fxClock*37)*Math.sin(fxClock*23))*clamp((320-md)/220,0,1)*(monster.state==='disguise'?.3:1);
- const psx=cameraFocus.x-camX,psy=cameraFocus.y-camY,lightReach=Math.max(270,430-(depth-1)*18),personalLight=Math.max(92,140-(depth-1)*5)+upgradeLampReachBonus()+upgradePersonalLightBonus();
+ const psx=cameraFocus.x-camX,psy=cameraFocus.y-camY,lightReach=Math.max(270,430-(depth-1)*18)+upgradeBeamBonus(),personalLight=Math.max(92,140-(depth-1)*5)+upgradePersonalLightBonus();
  if(flashlightOn&&phase!=='spectate'&&!isMonsterController)lights.push({x:psx,y:psy,r:lightReach,poly:visPoly(player.x,player.y,lightReach,150,camX,camY),kind:'player',k:flick*(gim('battery')&&battery<25?(.45+.55*Math.max(0,Math.sin(fxClock*29)*Math.sin(fxClock*13))):1),aim:player.aim});
  // Monster lamp only while disguised (possessing a body).
  if(isMonsterController&&monster&&monster.state==='disguise'&&flashlightOn){
@@ -1928,7 +2103,7 @@ function draw(){
  }
  if(multiplayer){for(const rp of netPlayers){if(rp.id===netMyId||isMonsterPlayerId(rp.id)||!rp.alive||!rp.flashlightOn||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;const sx=rp.x-camX,sy=rp.y-camY;if(sx<-lightReach||sx>W+lightReach||sy<-lightReach||sy>H+lightReach)continue;lights.push({x:sx,y:sy,r:lightReach,poly:visPoly(rp.x,rp.y,lightReach,120,camX,camY),kind:'player',k:.72,aim:rp.aim||0})}}
  for(const l of lanterns){
-  if(l.dead||blackOn>0){l.cur=l.dead?.15:.03;continue}
+  if(l.dead||blackOn>0){l.cur=(l.dead?.15:.03)+upgradeDeadGlow();continue}
   let k=.82+.18*Math.sin(fxClock*8.3+l.ph)*Math.sin(fxClock*3.1+l.ph*2);if(blackWarn)k*=Math.sin(fxClock*47+l.ph*3)>0?1:.15;
   const dm=Math.hypot(l.x-monster.x,l.y-monster.y);
   if(dm<260&&monster.state!=='disguise')k*=Math.sin(fxClock*41+l.ph)>.25?1:.2;
@@ -1982,6 +2157,7 @@ function draw(){
    ctx.restore();
   }
  }
+ drawUpgradeOverlays(camX,camY);
  // gimmick overlays are drawn in screen space so warnings stay readable in the dark
  for(const h of rocks){const sx=h.x-camX,sy=h.y-camY;if(sx<-90||sx>W+90||sy<-90||sy>H+90)continue;
   if(!h.hit){const k=clamp(h.t/h.warn,0,1);ctx.save();ctx.lineWidth=2;ctx.strokeStyle=`rgba(235,95,65,${.5+.3*Math.sin(fxClock*18)})`;ctx.setLineDash([6,5]);ctx.lineDashOffset=-fxClock*24;ctx.beginPath();ctx.arc(sx,sy,h.r,0,TAU);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=`rgba(200,60,40,${.05+k*.2})`;ctx.fill();ctx.strokeStyle='rgba(255,190,160,.65)';ctx.beginPath();ctx.arc(sx,sy,h.r*k,0,TAU);ctx.stroke();ctx.fillStyle='rgba(235,210,190,.5)';for(let i=0;i<4;i++){const px=sx+Math.sin(i*2.3+fxClock*3)*h.r*.6,py=sy-((fxClock*70+i*23)%50)+10;ctx.fillRect(px,py,1.6,3)}ctx.restore()}
@@ -2034,11 +2210,11 @@ function updateHud(){
  if(multiplayer)setText('crew',livingCrewLabel());
  const t=Math.floor(elapsed);setText('shift',String(Math.floor(t/60)+1).padStart(2,'0'));setText('clock',`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`);
  setText('noise',noise>=75?'LOUD':noise>=35?'ELEVATED':'LOW');
- $('noiseBar').style.width=Math.round(noise)+'%';$('stamBar').style.width=Math.round(player.stamina)+'%';$('stamBar').style.background=player.tired?'#a85a4a':'#8fb39a';
+ $('noiseBar').style.width=Math.round(noise)+'%';$('stamBar').style.width=Math.round(player.stamina/(player.maxStamina||100)*100)+'%';$('stamBar').style.background=player.tired?'#a85a4a':'#8fb39a';
  if(puzzle)$('puzzleBar').style.width=Math.round(puzzle.timer/Math.max(0.5,upgradePuzzleTime())*100)+'%';
  $('alert').style.opacity=clamp(alertT*2,0,1);
  {const bar=v=>{const n=Math.round(v*5);return '▮'.repeat(n)+'▯'.repeat(5-n)},ml=[['LOOPS',MM.loop],['DARK-EYES',MM.dark],['LISTENING',MM.loud],['PATIENCE',MM.hide]].filter(a=>a[1]>.08).map(a=>a[0]+' '+bar(a[1]));setText('memLine',ml.length?'IT KNOWS YOU: '+ml.join(' · '):'');
- const gl=gimmickNames(depth);setText('gimLine',gl?'HAZARD: '+gl:'');const hb=gim('battery');$('batRow').style.display=hb?'block':'none';if(hb){$('batBar').style.width=Math.round(battery)+'%';$('batBar').style.background=battery<25?'#a85a4a':'#d7c97a'}}
+ setText('silverLine',silver>0?'SILVER '+(silver|0):'');const gl=gimmickNames(depth);setText('gimLine',gl?'HAZARD: '+gl:'');const hb=gim('battery');$('batRow').style.display=hb?'block':'none';if(hb){$('batBar').style.width=Math.round(battery)+'%';$('batBar').style.background=battery<25?'#a85a4a':'#d7c97a'}}
  if(hintT<=0){
   let txt=DEFAULT_HINT;
   if(puzzle)txt='Press the arrows shown (WASD or arrow keys) \u00b7 E to step away';
@@ -2058,14 +2234,14 @@ function loop(t){
  if(phase==='play'){updateGame(dt);updateFx(dt);updateHud()}
  else if(phase==='menu'){updateFx(dt);elapsed+=dt}
  else if(phase==='dying'){endT+=dt;updateFx(dt);shake=Math.max(shake,6*(1-endT));if(endT>1.5)showEnd(false)}
- else if(phase==='winning'){endT+=dt;updateFx(dt);liftOpen=lerp(liftOpen,0,Math.min(1,dt*2));if(endT>1.9){/* Floor clear always opens the black market; multiplayer ready-up gates the next depth. */if(multiplayer&&netDescendPending){window.__shopNext=netDescendPending;netDescendPending=null}showEnd(true)}}
- else if(phase==='over'||phase==='shop'){updateFx(dt)}
+ else if(phase==='winning'){endT+=dt;updateFx(dt);liftOpen=lerp(liftOpen,0,Math.min(1,dt*2));if(endT>1.9){showEnd(true)}}
+ else if(phase==='over'||phase==='shop'){updateFx(dt);if(phase==='shop')shopFrame(dt)}
  else if(phase==='spectate'){elapsed+=dt;if(multiplayer&&isNetHost){updateBots(dt);updateMonster(dt)}updateGimmicks(dt,true);updateFx(dt);updateHud()}
  draw();
 }
 function start(){
  $('again').onclick=start;
- const wasMenu=phase==='menu',wasEnd=phase==='over',wasShop=phase==='shop';if(wasMenu){depth=1;MM=freshMM();silver=0;runUpgrades={};}else if(wasEnd&&endWin&&!wasShop)depth++;
+ const wasMenu=phase==='menu',wasEnd=phase==='over';if(wasMenu){depth=1;MM=freshMM();silver=0;runUpgrades={}}else if(wasEnd&&endWin)depth++;
  Snd.init();setup();$('puzzle').style.display='none';phase='play';paused=false;$('menu').style.display='none';$('end').style.display='none';$('pause').style.display='none';mini.style.display=showMini&&innerWidth>700?'block':'none';last=performance.now();for(const k in keys)keys[k]=false;miniT=0;markExplored();setText('depth',String(depth).padStart(2,'0'));setText('layerName',depthName());
  if(depth>1){showAlert(wasEnd&&endWin?`DESCENDING TO DEPTH ${String(depth).padStart(2,'0')}`:`DEPTH ${String(depth).padStart(2,'0')}: ${depthName()}`);say(depth>=4?'The rock is warm. Something is breathing below you.':'The lift seals overhead. You are deeper now.',3)}
  {const g=activeGimmicks();if(g.length)setTimeout(()=>{if(phase==='play')say(g.map(k=>GIMMICKS[k].name).join(' + ')+': '+GIMMICKS[g[0]].desc,6)},2200)}
@@ -2157,7 +2333,7 @@ function ensureNet(){
  netSocket.on('players-update',d=>{
   netPlayers=d.players||[];if(d.hostId){netHostId=d.hostId;isNetHost=netHostId===netMyId}
   for(const p of netPlayers){if(p&&p.shopReady!==undefined)shopReadyMap[p.id]=!!p.shopReady}
-  if(shopOpen)renderShop();
+  netCacheUps();if(shopOpen)renderShopFooter();
   syncNetworkBodies();
   if(isNetHost)netHostReadClients();
   // Host reads the assigned monster player's movement intents (relayed through player-state).
@@ -2207,7 +2383,7 @@ function netStartGame(d){
    netMonsterControllerId=pick.id;netMonsterControllerName=pick.name||'MINER';
   }
  }
- netLocalWorld=false;netMyActs=[];netDescendPending=null;netLiftUse=null;netRoundId=0;netMonsterWinPending=false;depth=1;MM=freshMM();netSeededSetup(netSeed);
+ netLocalWorld=false;netMyActs=[];netDescendPending=null;netLiftUse=null;netRoundId=0;netMonsterWinPending=false;depth=1;MM=freshMM();silver=0;runUpgrades={};shopOpen=false;netUps={};netSeededSetup(netSeed);
  // Reuse the game's existing crew AI as the bot-filled player slots. Add/remove bots deterministically to exactly match the lobby.
  bots=bots.slice(0,netBotSlots);
  while(bots.length<netBotSlots){const slot=bots.length,c=floorList[(47+slot*71)%floorList.length],p={x:(c.x+.5)*TILE,y:(c.y+.5)*TILE};const names=['BOT-01','BOT-02','BOT-03','BOT-04'];bots.push({...p,r:9,alive:true,name:names[slot]||'BOT',pal:PAL.MINER,path:null,pi:0,think:0,ph:slot, gold:0,tags:0,panic:0,goal:null,paint:0,work:0,fx:0,fy:1,ang:Math.PI/2,moving:false,repath:0})}
@@ -2242,6 +2418,11 @@ function netEmitWorldAction(type,index){
 // Anyone may call the lift once quota is met and every living crew member is inside the 500 x 500 zone. The host then sends the whole lobby down together.
 function mapHash(){let h=7;for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)h=(Math.imul(h,31)+map[y][x]+1)|0;return h}
 function netBeginDescend(rr){
+ // Already in the shop for this descent: the host re-sending it (go) means everyone is ready.
+ if(phase==='shop'&&netDescendPending&&netDescendPending.roundId===rr.roundId){
+  if(!isNetHost&&(rr.go||performance.now()-shopOpenedAt>3000)){const p=netDescendPending;leaveShop();applyRoundRestart(p)}
+  return;
+ }
  if(netDescendPending&&netDescendPending.roundId===rr.roundId)return;
  if(phase!=='play'&&phase!=='spectate')return;
  netDescendPending=rr;phase='winning';endT=0;paused=false;stopPuzzle();Snd.ding();Snd.door();Snd.spray(false);
@@ -2393,9 +2574,7 @@ function netApplyMonster(msg){
  if(msg.roundEvent&&msg.roundEvent.type==='round-restart'&&!isNetHost){
   {const rr=msg.roundEvent;if(!rr.roundId||rr.roundId>netRoundId){if(rr.descend)netBeginDescend(rr);else applyRoundRestart(rr)}}
  }
- if(msg.roundEvent&&msg.roundEvent.type==='shop-descend'&&!isNetHost){
-  applyShopDescend(msg.roundEvent);
- }
+
  if(msg.controllerId){
   const was=isMonsterController;
   netMonsterControllerId=msg.controllerId;netMonsterControllerName=msg.controllerName||netMonsterControllerName;
