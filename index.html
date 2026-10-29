@@ -723,13 +723,21 @@ function quotaMet(){return player.gold>=quotaGold&&player.tags>=quotaTags}
 const LIFT_ASSEMBLY_SIZE=500,LIFT_ASSEMBLY_HALF=LIFT_ASSEMBLY_SIZE/2;
 function withinLiftAssemblyZone(entity){return !!entity&&Number.isFinite(entity.x)&&Number.isFinite(entity.y)&&Math.abs(entity.x-exit.x)<=LIFT_ASSEMBLY_HALF&&Math.abs(entity.y-exit.y)<=LIFT_ASSEMBLY_HALF}
 function isMonsterPlayerId(id){return !!(id&&netMonsterControllerId&&id===netMonsterControllerId)}
+// A player corpse being worn by the creature is not a living miner, even if a
+// delayed network packet still advertises that player's old alive state.
+function isPossessedPlayerBodyId(id){
+ if(!id)return false;
+ const m=monster,host=m&&m.state==='possess'?m.host:null;
+ if(host&&(host.netId===id||host.worldId===`player:${id}`))return true;
+ return (bodies||[]).some(b=>b&&b.netId===id&&(b.possessed||b.used)&&(!m||m.state!=='possess'||m.host!==b));
+}
 function livingHumanMiners(){
  const list=[];
  if(multiplayer){
   if(netAlive&&player&&!isMonsterController)list.push({id:netMyId,x:player.x,y:player.y,name:netName||'YOU',isLocal:true});
   for(const p of (netPlayers||[])){
    if(!p||p.alive===false||!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;
-   if(p.id===netMyId||isMonsterPlayerId(p.id)||p.role==='monster')continue;
+   if(p.id===netMyId||isMonsterPlayerId(p.id)||p.role==='monster'||isPossessedPlayerBodyId(p.id))continue;
    list.push(p);
   }
  }else if(player&&phase==='play')list.push({id:'local',x:player.x,y:player.y,name:'YOU',isLocal:true});
@@ -744,7 +752,7 @@ function liftAssemblyStatus(){
  // should block extraction; local AI crew are ambient support and must not hold the lift.
  if(!multiplayer)for(const b of (bots||[]))if(b.alive)crew.push(b);
  if(multiplayer)for(const p of (netPlayers||[])){
-  if(p.id===netMyId||p.alive!==true||isMonsterPlayerId(p.id)||p.role==='monster')continue;
+  if(p.id===netMyId||p.alive!==true||isMonsterPlayerId(p.id)||p.role==='monster'||isPossessedPlayerBodyId(p.id))continue;
   crew.push(p);
  }
  const outside=crew.filter(member=>!withinLiftAssemblyZone(member));
@@ -1103,7 +1111,7 @@ function renderShopFooter(){
   list.textContent='Spend your silver, then take the lift down when you are ready.';return;
  }
  const roster=shopRoster(),ready=roster.filter(shopIsReady).length,all=ready===roster.length;
- const force=performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
+ const force=isNetHost&&performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
  rb.style.display='inline-block';rb.textContent=shopReady?'NOT READY':'READY UP';
  list.innerHTML=`<b>${ready} / ${roster.length} READY</b> · the next depth starts when the whole crew is ready.<br>`+
   roster.map(p=>`${escTxt(p.name||'MINER')}${p.id===netMyId?' (you)':''}: ${shopIsReady(p)?'<span style="color:#9bc8a4">READY</span>':'<span style="color:#b9857b">shopping…</span>'}`).join(' · ');
@@ -1131,7 +1139,7 @@ function closeShopAndDescend(){
  if(!multiplayer){leaveShop();endWin=true;phase='over';start();return}
  if(!isNetHost)return;
  netCacheUps();
- const roster=shopRoster(),all=roster.every(shopIsReady),force=performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
+ const roster=shopRoster(),all=roster.every(shopIsReady),force=isNetHost&&performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
  if(!all&&!force){say('Not everyone is ready.',2);return}
  const rr=netDescendPending;
  if(!rr){say('The lift is not ready.',2);return}
@@ -1360,6 +1368,9 @@ function updateMonster(dt){
   if(m.pause>0){m.pause-=dt;m.mv=0;}
   else{
    const mi=monsterInput||{};
+   // Drop stale movement when the controller's network packets stop arriving.
+   if(!monsterInputReceivedAt)monsterInputReceivedAt=performance.now();
+   if(performance.now()-monsterInputReceivedAt>650){mi.dx=0;mi.dy=0;mi.sprint=false;mi.possess=false;mi.reveal=false;}
    // Optional: force-reveal while disguised
    if((monsterRevealQueued||mi.reveal)&&m.state==='disguise'){reveal(netMonsterTarget(m));}
    monsterRevealQueued=false;mi.reveal=false;
@@ -1475,7 +1486,7 @@ function monsterKillContacts(m){
  const reach=34; // slightly generous so fast movement / lag still drops a body
  for(const b of bots)if(b.alive&&dist(b,m)<reach)killBot(b);
  // Local miner
- if((!multiplayer||(isNetHost&&netAlive))&&player&&phase==='play'&&!isMonsterController&&dist(player,m)<reach){
+ if((!multiplayer||(isNetHost&&netAlive&&performance.now()>=(netSpawnGraceUntil[netMyId]||0)))&&player&&phase==='play'&&!isMonsterController&&dist(player,m)<reach){
   die();
   if(multiplayer&&isNetHost){forceNetBodySync();checkMonsterWipe();}
   return;
@@ -1484,7 +1495,8 @@ function monsterKillContacts(m){
   // Host always resolves player kills. Controller host path is the same.
   if(isNetHost){
    for(const p of netPlayers){
-    if(!p||!p.alive||p.id===netMyId||p.id===netMonsterControllerId)continue;
+    if(!p||!p.alive||p.id===netMyId||p.id===netMonsterControllerId||isPossessedPlayerBodyId(p.id))continue;
+    if(performance.now()<(netSpawnGraceUntil[p.id]||0))continue;
     if(!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;
     if(dist(p,m)<reach)netKillRemote(p.id,p.x,p.y);
    }
@@ -1556,7 +1568,9 @@ function netHostStartNextRound(){
 function applyRoundRestart(rr){
  if(!rr||rr.type!=='round-restart')return;
  netMonsterWinPending=false;netPendingRoundRestart=null;netLocalWorld=true;netMyActs=[];netDescendPending=null;
- netIgnoreDeathUntil=performance.now()+4000;
+ netIgnoreDeathUntil=performance.now()+NET_SPAWN_GRACE_MS;
+ for(const p of (netPlayers||[]))if(p&&p.id)netSpawnGraceUntil[p.id]=performance.now()+NET_SPAWN_GRACE_MS;
+ netSpawnGraceUntil[netMyId]=performance.now()+NET_SPAWN_GRACE_MS;
  netRoundId=rr.roundId||netRoundId;
  netPrevMonsterIds=rr.prevMonsterIds||netPrevMonsterIds;
  netMonsterControllerId=rr.controllerId;netMonsterControllerName=rr.controllerName||'MINER';
@@ -2317,9 +2331,11 @@ let hostPlayerMonster=false;
 let netMonsterControllerId=null,netMonsterControllerName=null,isMonsterController=false;
 // Latest movement/actions from the assigned monster player (host applies these).
 let monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};
-let monsterInputSeqApplied=0,monsterPossessQueued=false,monsterRevealQueued=false;
+let monsterInputSeqApplied=0,monsterPossessQueued=false,monsterRevealQueued=false,monsterInputReceivedAt=0;
 const netMonsterLastPos=Object.create(null);
 let netRoundId=0,netMonsterWinPending=false,netPrevMonsterIds=[],netIgnoreDeathUntil=0,netDeadSeenAt=0;
+const netSpawnGraceUntil=Object.create(null);
+const NET_SPAWN_GRACE_MS=4500;
 // After the first lift ride the lobby's world (gold taken / walls tagged) is tracked per level by the host instead of the server.
 let netLocalWorld=false,netMyActs=[],netDescendPending=null,netLiftUse=null,netLiftSeq=0,netLiftSeen={},netMapBad=0;
 const NET_SPAWNS=[{x:2.5*TILE,y:2.5*TILE},{x:3.5*TILE,y:2.5*TILE},{x:2.5*TILE,y:3.5*TILE},{x:3.5*TILE,y:3.5*TILE},{x:2.5*TILE,y:1.5*TILE}];
@@ -2356,7 +2372,8 @@ function ensureNet(){
  netSocket.on('lobby-update',netUpdateLobby);
  netSocket.on('game-start',d=>{netHostId=d.hostId;isNetHost=netHostId===netMyId;netPlayers=d.players||[];netStartGame(d)});
  netSocket.on('players-update',d=>{
-  netPlayers=d.players||[];if(d.hostId){netHostId=d.hostId;isNetHost=netHostId===netMyId}
+  const priorIds=new Set((netPlayers||[]).map(p=>p&&p.id).filter(Boolean));netPlayers=d.players||[];if(d.hostId){netHostId=d.hostId;isNetHost=netHostId===netMyId}
+  if(isNetHost)for(const p of netPlayers)if(p&&p.id&&!priorIds.has(p.id))netSpawnGraceUntil[p.id]=performance.now()+NET_SPAWN_GRACE_MS;
   for(const p of netPlayers){if(p&&p.shopReady!==undefined)shopReadyMap[p.id]=!!p.shopReady}
   netCacheUps();if(shopOpen)renderShopFooter();
   syncNetworkBodies();
@@ -2368,7 +2385,7 @@ function ensureNet(){
     const mi=ctrl.monsterInput;
     if(mi&&typeof mi==='object'&&Number(mi.seq||0)>monsterInputSeqApplied){
      monsterInput={dx:+mi.dx||0,dy:+mi.dy||0,aim:Number.isFinite(+mi.aim)?+mi.aim:monsterInput.aim,sprint:!!mi.sprint,possess:!!mi.possess,reveal:!!mi.reveal,seq:Number(mi.seq)||0};
-     monsterInputSeqApplied=monsterInput.seq;
+     monsterInputSeqApplied=monsterInput.seq;monsterInputReceivedAt=performance.now();
      if(mi.possess)monsterPossessQueued=true;
      if(mi.reveal)monsterRevealQueued=true;
     } else if(Number.isFinite(ctrl.x)&&Number.isFinite(ctrl.y)&&monster){
@@ -2376,7 +2393,7 @@ function ensureNet(){
      // infer direction from the controller's locally predicted monster position.
      const prev=netMonsterLastPos[ctrl.id];
      netMonsterLastPos[ctrl.id]={x:ctrl.x,y:ctrl.y,t:performance.now()};
-     if(prev){const vx=ctrl.x-prev.x,vy=ctrl.y-prev.y,vl=Math.hypot(vx,vy);if(vl>0.25){monsterInput.dx=vx/vl;monsterInput.dy=vy/vl;monsterInput.aim=Number.isFinite(+ctrl.aim)?+ctrl.aim:monsterInput.aim;monsterInput.sprint=!!ctrl.sprinting;}else{monsterInput.dx=0;monsterInput.dy=0;}}
+     if(prev){const vx=ctrl.x-prev.x,vy=ctrl.y-prev.y,vl=Math.hypot(vx,vy);if(vl>0.25&&vl<180){monsterInput.dx=vx/vl;monsterInput.dy=vy/vl;monsterInput.aim=Number.isFinite(+ctrl.aim)?+ctrl.aim:monsterInput.aim;monsterInput.sprint=!!ctrl.sprinting;monsterInputReceivedAt=performance.now();}else if(vl>=180){monsterInput.dx=0;monsterInput.dy=0;}}
     }
    }
   }
@@ -2406,9 +2423,9 @@ function netJoinAction(type){
 function netLeave(){netDeadSeenAt=0;if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];netHostId=null;isNetHost=false;netSocket=null;netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;hostPlayerMonster=false;$('spectate').style.display='none';$('netStatus').style.display='none';$('onlinePanel').style.display='none';$('menu').style.display='flex';phase='menu';}
 function netSeededSetup(seed){const old=Math.random,oldWorldSeed=worldSeedForVisuals,s=(Number(seed)>>>0)||1;worldSeedForVisuals=s;Math.random=mulberry(s);try{setup()}finally{Math.random=old;worldSeedForVisuals=oldWorldSeed}}
 function netStartGame(d){
- multiplayer=true;netSeed=d.seed;netBotSlots=Math.max(0,Math.min(4,Number(d.botSlots)||0));netAlive=true;netDeadSeenAt=0;netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
+ multiplayer=true;netSeed=d.seed;netBotSlots=Math.max(0,Math.min(4,Number(d.botSlots)||0));netAlive=true;netDeadSeenAt=0;netIgnoreDeathUntil=performance.now()+NET_SPAWN_GRACE_MS;for(const p of (d.players||netPlayers||[]))if(p&&p.id)netSpawnGraceUntil[p.id]=performance.now()+NET_SPAWN_GRACE_MS;netSpawnGraceUntil[netMyId]=performance.now()+NET_SPAWN_GRACE_MS;netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
  netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;
- monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};monsterInputSeqApplied=0;monsterPossessQueued=false;monsterRevealQueued=false;
+ monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};monsterInputSeqApplied=0;monsterInputReceivedAt=performance.now();monsterPossessQueued=false;monsterRevealQueued=false;
  // Host assigns a random human as the monster when the lobby option is enabled.
  if(isNetHost&&hostPlayerMonster){
   const pool=(d.players||netPlayers||[]).filter(p=>p&&p.id);
@@ -2626,7 +2643,7 @@ function netApplyMonster(msg){
  if(msg.world&&!(isNetHost&&netLocalWorld))netApplyWorld(msg.world);
  if(msg.worldObjects)netApplyWorldObjects(msg.worldObjects);
  if(msg.bots&&Array.isArray(bots)&&!isNetHost){msg.bots.forEach((b,i)=>{if(!bots[i])return;Object.assign(bots[i],b);bots[i].goal=null;bots[i].paint=0})}
- if(!isNetHost&&monster&&msg.monster){const m=msg.monster;Object.assign(monster,{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen||null,search:m.search||0,huntT:m.huntT||'player',dT:m.dT||0,mv:m.mv||0,gait:m.gait||0,revealed:!!m.revealed,pause:m.pause||0,disguise:m.disguise||null,stuck:m.stuck||0,wCool:m.wCool||0,eye:m.eye||0});monster.path=null;monster.host=m.hostBodyId?(bodies.find(b=>b.worldId===m.hostBodyId)||null):(m.hostId?bodies.find(b=>b.netId===m.hostId)||null:null);
+ if(!isNetHost&&monster&&msg.monster){const m=msg.monster;const oldX=monster.x,oldY=monster.y;Object.assign(monster,{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen||null,search:m.search||0,huntT:m.huntT||'player',dT:m.dT||0,mv:m.mv||0,gait:m.gait||0,revealed:!!m.revealed,pause:m.pause||0,disguise:m.disguise||null,stuck:m.stuck||0,wCool:m.wCool||0,eye:m.eye||0});if(Math.hypot((m.x||0)-oldX,(m.y||0)-oldY)>42)monster.path=null;monster.host=m.hostBodyId?(bodies.find(b=>b.worldId===m.hostBodyId)||null):(m.hostId?bodies.find(b=>b.netId===m.hostId)||null:null);
   // If the host body is fully possessed on the authority side, force local body hidden.
   if(m.state==='disguise'||m.state==='hunt'||m.state==='stalk'){
    if(m.hostBodyId){const hb=bodies.find(b=>b.worldId===m.hostBodyId);if(hb){hb.possessed=true;hb.used=true;hb.possessing=0}}
@@ -2667,7 +2684,7 @@ function netTick(){
    const lampOk=monster&&monster.state==='disguise'&&flashlightOn;
    const payload={x:monster?monster.x:player.x,y:monster?monster.y:player.y,aim:player.aim,mv:0,foot:0,alive:false,flashlightOn:!!lampOk,noise:0,moving:len>0,sprinting:!!keys.shift,name:netName,role:'monster',
     monsterInput:{dx,dy,aim:player.aim,sprint:!!keys.shift,possess:!!monsterPossessQueued,reveal:!!monsterRevealQueued,seq:(monsterInput.seq||0)+1,flashlightOn:!!lampOk}};
-   monsterInput.seq=payload.monsterInput.seq;
+   monsterInput.seq=payload.monsterInput.seq;monsterInputReceivedAt=now;
    // Consume one-shot actions after queueing
    monsterPossessQueued=false;monsterRevealQueued=false;
    netSocket.emit('player-state',payload);
