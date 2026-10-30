@@ -38,7 +38,7 @@ canvas#game{display:block;width:100vw;height:100vh}
 #descentAnim .rail1{left:17%}#descentAnim .rail2{left:28%}#descentAnim .rail3{right:28%}#descentAnim .rail4{right:17%}
 #descentAnim .crossbar{position:absolute;left:0;right:0;height:4px;background:#353b36;border-top:1px solid #7d806b;animation:crossRush .5s linear infinite}
 #descentAnim .liftCar{position:absolute;left:31%;right:31%;height:38px;top:35%;border:3px solid #8b8b78;background:linear-gradient(#50564c,#151a17 60%,#080a09);box-shadow:0 0 20px #e6b45b44;animation:liftDrop 1.6s cubic-bezier(.42,0,.8,.35) infinite}
-#descentAnim .liftCar:before,#descentAnim .liftCar:after{content:'';position:absolute;top:-7px;bottom:-7px;width:4px;background:#b3a47b;box-shadow:0 0 8px #ffd47a}#descentAnim .liftCar:before{left:22%}#descentAnim .liftCar:after{right:22%}
+#descentAnim .liftCar:before,#descentAnim .liftCar:after{content:;position:absolute;top:-7px;bottom:-7px;width:4px;background:#b3a47b;box-shadow:0 0 8px #ffd47a}#descentAnim .liftCar:before{left:22%}#descentAnim .liftCar:after{right:22%}
 #descentAnim .spark{position:absolute;left:var(--x);top:var(--y);width:3px;height:3px;background:#ffe7a0;box-shadow:0 0 7px 2px #ff9a35;animation:sparkFly .55s ease-out infinite;animation-delay:var(--delay)}
 #descentAnim .animLabel{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:10px;letter-spacing:.25em;color:#d6b36a;text-shadow:0 0 8px #000}
 #descentAnim.halted *{animation-play-state:paused!important}
@@ -62,55 +62,128 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
 @media(max-width:700px){#netStatus{top:auto;bottom:45px;left:8px;transform:none;max-width:155px;font-size:9px}}
 
 #shop{display:none;z-index:12;background:radial-gradient(ellipse at center,#1a221fd8,#030506f5 75%);align-items:stretch;justify-content:center}
-#shop .shopCard{width:min(1120px,98vw);max-height:96vh;overflow:auto;padding:clamp(14px,2.4vw,26px);border:1px solid #6e766b80;background:#0a0e0ff6;box-shadow:0 0 80px #000;text-align:left;margin:auto}
+#shop .shopCard{position:relative;width:min(1240px,98vw);max-height:97vh;overflow:auto;padding:clamp(14px,2.2vw,24px);border:1px solid #6e766b80;background:#0a0e0ff6;box-shadow:0 0 80px #000;text-align:left;margin:auto;animation:shopIn .5s ease-out}
+@keyframes shopIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
 #shop .shopHead{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
 #shop .shopTitle{font-size:clamp(26px,4.6vw,42px);letter-spacing:-.04em;color:#d6d3c8;margin:0}
-#shop .shopTitle span{color:#c9a352}
+#shop .shopTitle span{color:#c9a352;animation:titleGlow 3.2s ease-in-out infinite}
+@keyframes titleGlow{0%,100%{text-shadow:0 0 0 #c9a35200}50%{text-shadow:0 0 18px #c9a352aa}}
 #shop .silver{color:#d7b66d;font-size:15px;letter-spacing:.08em;display:flex;align-items:center;gap:7px}
-#shop .silver b{color:#e6e9ea;font-size:22px}
+#shop .silver b{color:#e6e9ea;font-size:24px;min-width:3ch;text-align:right;font-variant-numeric:tabular-nums}
+#shopCoins{display:inline-flex;max-width:150px;flex-wrap:wrap}
 .coin{display:inline-block;width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#c9ced1 45%,#7b8389);border:1px solid #4a5156;margin:0 1px 1px 0;vertical-align:middle}
 .coin.big{width:17px;height:17px}
-#shop .convertNote{font-size:12px;color:#aab3aa;line-height:1.65;margin:6px 0 10px}
+#shopCoins .coin{animation:coinPop .4s ease-out backwards}
+@keyframes coinPop{from{transform:translateY(-14px) scale(.3);opacity:0}to{transform:none;opacity:1}}
+#shopRain{position:absolute;left:0;right:0;top:0;height:0;overflow:visible;pointer-events:none;z-index:30}
+#shopRain .fall{position:absolute;top:-20px;animation:coinFall 1.2s cubic-bezier(.5,0,.8,.6) both}
+@keyframes coinFall{0%{transform:translateY(0) rotate(0);opacity:0}15%{opacity:1}100%{transform:translateY(300px) rotate(540deg);opacity:0}}
+#shop .convertNote{font-size:12px;color:#aab3aa;line-height:1.65;margin:6px 0 8px}
 #shop .convertNote b{color:#e6e9ea}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.chip{border:1px solid #6b5f3c;background:#1a1810;color:#e1c987;padding:2px 8px;font-size:10px;letter-spacing:.06em;animation:chipIn .5s ease-out var(--d,0ms) backwards}
+@keyframes chipIn{from{opacity:0;transform:translateY(8px) scale(.9)}to{opacity:1;transform:none}}
+.nextLine{margin-top:6px;font-size:10px;letter-spacing:.14em;color:#8f998f}
 #shopTabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.shopTab{padding:7px 11px;font-size:11px;letter-spacing:.12em;background:#0d1210;border:1px solid #3b453f;color:#aab3aa;cursor:pointer}
-.shopTab.on{background:#161d19;border-color:var(--bc,#8c9a91);color:var(--bc,#e8e1cf)}
-#shopTreeWrap{overflow:auto;border:1px solid #2c3530;background:#070a09;padding:8px;max-height:min(52vh,470px)}
+.shopTab{position:relative;display:flex;align-items:center;gap:6px;padding:5px 10px 8px;font-size:10px;letter-spacing:.1em;background:#0e1311;border:1px solid #2c3530;color:#a9b2a8;overflow:hidden;transition:transform .15s,border-color .2s,background .2s}
+.shopTab:hover{transform:translateY(-2px);border-color:var(--bc)}
+.shopTab .tIc{width:16px;height:16px;color:var(--bc);display:inline-flex}
+.shopTab .tIc svg{width:16px;height:16px}
+.shopTab .tCt{color:#788279;font-size:9px}
+.shopTab .tBar{position:absolute;left:0;bottom:0;height:3px;width:100%;background:#1a211e}
+.shopTab .tBar i{display:block;height:100%;background:var(--bc);transition:width .7s ease;box-shadow:0 0 8px var(--bc)}
+.shopTab.on{background:#151d19;border-color:var(--bc);color:#eee;box-shadow:0 0 14px color-mix(in srgb,var(--bc) 35%,transparent) inset}
+.shopTab.done .tCt{color:var(--bc)}
+.shopTab.done .tIc{animation:spinSlow 6s linear infinite}
+@keyframes spinSlow{to{transform:rotate(360deg)}}
+#shopTotal{font-size:10px;letter-spacing:.14em;color:#8f998f;margin:0 0 6px}
+.shopMain{display:flex;gap:10px;align-items:stretch}
+#shopTreeWrap{flex:1;min-width:0;overflow:auto;border:1px solid #2c3530;background:radial-gradient(ellipse at 20% 0%,#101814,#070a09 70%);padding:8px;max-height:min(54vh,500px);cursor:grab}
+#shopTreeWrap:active{cursor:grabbing}
 #shopTree{position:relative}
-#shopTree svg{position:absolute;left:0;top:0;pointer-events:none}
-.upNode{position:absolute;width:196px;height:92px;box-sizing:border-box;background:#111715;border:1px solid #3b453f;padding:7px 9px;display:flex;flex-direction:column;justify-content:space-between;text-align:left}
+#shopTree>svg{position:absolute;left:0;top:0;pointer-events:none}
+#shopTree canvas{position:absolute;left:0;top:0;pointer-events:none;z-index:2}
+.tierLbl{fill:#5b665e;font-size:10px;letter-spacing:.2em}
+.tierLine{stroke:#1d2521;stroke-dasharray:3 6}
+.lk{fill:none;stroke-width:2.5;transition:stroke-width .2s,opacity .2s}
+.lk.off{stroke-dasharray:3 7;opacity:.55}
+.lk.nx{opacity:.55;stroke-dasharray:6 6;animation:dashMove 1.4s linear infinite}
+.lk.on{opacity:.95;filter:drop-shadow(0 0 4px var(--bc,#fff))}
+.lk.ign{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1s ease-out forwards}
+.lk.hl{stroke-width:4;opacity:1}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes dashMove{to{stroke-dashoffset:-24}}
+.lkFlow{fill:none;stroke-width:1.6;stroke-dasharray:4 16;opacity:.85;animation:flow 1.1s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-20}}
+.upNode{position:absolute;z-index:1;width:198px;height:94px;box-sizing:border-box;background:linear-gradient(160deg,#141b18,#0d1210);border:1px solid #3b453f;padding:7px 9px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;cursor:pointer;overflow:hidden;transition:transform .18s,border-color .2s,box-shadow .25s,opacity .3s,filter .3s}
+.upNode:hover{transform:translateY(-3px);border-color:var(--bc)}
+.upNode.enter{animation:nodeIn .55s cubic-bezier(.2,.9,.3,1.2) var(--d,0ms) backwards}
+@keyframes nodeIn{from{opacity:0;transform:translateY(18px) scale(.9)}to{opacity:1;transform:none}}
+.upNode .nTop{display:flex;gap:8px;align-items:flex-start}
+.upNode .nIcon{flex:0 0 30px;width:30px;height:30px;border:1px solid #3b453f;border-radius:50%;color:#6d7870;display:flex;align-items:center;justify-content:center;background:#0a0e0c;transition:color .3s,border-color .3s,box-shadow .3s}
+.upNode .nIcon svg{width:18px;height:18px}
 .upNode h4{margin:0 0 2px;font-size:11px;color:#e8e1cf;letter-spacing:.07em;font-weight:600}
-.upNode .desc{font-size:10px;color:#98a198;line-height:1.35;overflow:hidden}
+.upNode .desc{font-size:9.5px;color:#98a198;line-height:1.32;max-height:38px;overflow:hidden}
 .upNode .foot{display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:10px;color:#b9c0b6}
-.upNode button{padding:4px 9px;font-size:10px;min-width:0;flex:0 0 auto}
-.upNode.owned{border-color:var(--bc,#7f9a83);background:#14201a}
-.upNode.owned h4{color:var(--bc,#cfe3d2)}
-.upNode.locked{opacity:.45}
+.upNode button{padding:3px 9px;font-size:10px;min-width:0;flex:0 0 auto}
+.upNode.owned{border-color:var(--bc);background:linear-gradient(160deg,#17241d,#0f1813)}
+.upNode.owned h4{color:var(--bc)}
+.upNode.owned .nIcon{color:var(--bc);border-color:var(--bc);box-shadow:0 0 10px color-mix(in srgb,var(--bc) 55%,transparent)}
+.upNode.owned::after{content:"";position:absolute;top:0;bottom:0;width:38%;left:-60%;background:linear-gradient(100deg,transparent,#ffffff22,transparent);animation:shine 4.5s ease-in-out infinite;animation-delay:var(--d,0ms);pointer-events:none}
+@keyframes shine{0%,60%{left:-60%}100%{left:130%}}
+.upNode.locked{filter:grayscale(.8) brightness(.7);border-style:dashed;background:repeating-linear-gradient(135deg,#0c100e,#0c100e 6px,#101512 6px,#101512 12px)}
 .upNode.poor .foot span{color:#b9857b}
-.upNode button:disabled{opacity:.5;cursor:default}
+.upNode.can{border-color:var(--bc);animation:canPulse 1.8s ease-in-out infinite}
+.upNode.can .nIcon{color:var(--bc);border-color:var(--bc);animation:iconBeat 1.8s ease-in-out infinite}
+.upNode.can.enter{animation:nodeIn .55s cubic-bezier(.2,.9,.3,1.2) var(--d,0ms) backwards,canPulse 1.8s ease-in-out calc(var(--d,0ms) + .6s) infinite}
+@keyframes canPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--bc) 0%,transparent)}50%{box-shadow:0 0 16px 2px color-mix(in srgb,var(--bc) 45%,transparent)}}
+@keyframes iconBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+.upNode.key{border-color:#c9a352;background:linear-gradient(160deg,#1d1a10,#0e0d08)}
+.upNode.key::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,#ffe28a,transparent);background-size:200% 100%;animation:keyBar 2.4s linear infinite}
+@keyframes keyBar{from{background-position:200% 0}to{background-position:-200% 0}}
+.upNode .keyTag{position:absolute;right:0;top:0;font-size:7px;letter-spacing:.14em;background:#c9a352;color:#120f06;padding:1px 5px}
+.upNode.key.owned{box-shadow:0 0 18px #c9a35255;animation:keyGlow 2.6s ease-in-out infinite}
+@keyframes keyGlow{0%,100%{box-shadow:0 0 8px #c9a35244}50%{box-shadow:0 0 24px #ffd77a88}}
+.upNode.sel{outline:2px solid var(--bc);outline-offset:2px}
+.upNode.hl{border-color:var(--bc);background-color:#18221d}
+.upNode.nx{border-color:#e8e1cf}
+.upNode.nope{animation:nope .4s}
+@keyframes nope{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.upNode.bought{animation:boughtFlash .9s ease-out}
+@keyframes boughtFlash{0%{transform:scale(.93);filter:brightness(2.4)}40%{transform:scale(1.07)}100%{transform:none;filter:none}}
+#shopDetail{flex:0 0 268px;box-sizing:border-box;border:1px solid #2c3530;background:linear-gradient(180deg,#0e1311,#090c0b);padding:12px;display:flex;flex-direction:column;gap:8px;font-size:11px;max-height:min(54vh,500px);overflow:auto;transition:border-color .3s,box-shadow .3s}
+#shopDetail.can{border-color:var(--bc);box-shadow:0 0 18px color-mix(in srgb,var(--bc) 28%,transparent) inset}
+#shopDetail.owned{border-color:var(--bc)}
+#shopDetail .dEmpty{color:#6c766d;letter-spacing:.14em;margin:auto}
+#shopDetail>div{animation:dIn .35s ease-out backwards}
+#shopDetail>div:nth-child(2){animation-delay:.05s}#shopDetail>div:nth-child(3){animation-delay:.1s}#shopDetail>div:nth-child(4){animation-delay:.15s}#shopDetail>div:nth-child(5){animation-delay:.2s}
+@keyframes dIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+.dTop{display:flex;gap:10px;align-items:center}
+.dIcon{width:46px;height:46px;border-radius:50%;border:1px solid var(--bc);color:var(--bc);display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px color-mix(in srgb,var(--bc) 40%,transparent);position:relative}
+.dIcon svg{width:26px;height:26px}
+.dIcon::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:1px dashed var(--bc);opacity:.6;animation:spinSlow 9s linear infinite}
+.dName{font-size:14px;letter-spacing:.06em;color:#eee2c0}
+.dTag{font-size:9px;letter-spacing:.14em;color:#8a948b;margin-top:2px}
+.dTag em{color:#e6c46a;font-style:normal}
+.dDesc{color:#b7c0b5;line-height:1.5;font-size:11px}
+.dStats{border-top:1px solid #1f2723;border-bottom:1px solid #1f2723;padding:5px 0}
+.dRow{display:flex;justify-content:space-between;gap:8px;padding:2px 0;font-size:10px;letter-spacing:.05em;color:#8a948b}
+.dRow b{color:#dfe3dc;font-weight:500;text-align:right}
+.dRow i{color:#6f7a71;font-style:normal}
+.dRow em{color:#9be39b;font-style:normal;animation:statUp 1.4s ease-in-out infinite}
+@keyframes statUp{0%,100%{opacity:1}50%{opacity:.55}}
+.dReq{font-size:10px;letter-spacing:.06em;padding:1px 0}
+.dReq.ok{color:#8fc59a}.dReq.no{color:#c98a80}
+.dBuy{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dCost{font-size:10px;letter-spacing:.1em;color:#9aa39a}
+.dCost b{font-size:18px;color:#e6e9ea}.dCost s{color:#7a6f6a}
+.dBuy button{min-width:96px}
+.dBuy button:not(:disabled){animation:canPulse 1.6s ease-in-out infinite}
 #shopReadyRow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:6px}
 #shopReadyList{font-size:11px;color:#9aa39a;line-height:1.7;flex:1;min-width:220px}
 #shopReadyBtn,#shopDescendBtn{min-width:170px}
-
-/* Detailed, animated upgrade circuitry */
-#shopTreeWrap{background:radial-gradient(ellipse at 50% 35%,#111a16 0%,#070a09 72%);scroll-behavior:smooth}
-#shopTree{isolation:isolate;padding-bottom:8px}
-.upNode{border-radius:3px;overflow:hidden;box-shadow:inset 0 0 0 1px #ffffff05,0 5px 14px #0008;transition:transform .22s ease,border-color .25s,background .25s,opacity .25s,box-shadow .25s;animation:nodeWake .45s both;animation-delay:calc(var(--node-i,0)*22ms)}
-.upNode:before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bc,#7f9a83);opacity:.45}
-.upNode:after{content:'';position:absolute;inset:-80% auto -80% -35%;width:25%;transform:rotate(22deg);background:linear-gradient(90deg,transparent,#ffffff0c,transparent);animation:nodeScan 5s ease-in-out infinite;pointer-events:none}
-.upNode:hover{transform:translateY(-3px) scale(1.015);z-index:3;border-color:var(--bc,#c9a352);box-shadow:0 0 0 1px #c9a35233,0 0 22px #c9a35222,0 8px 18px #000a}
-.upNode.owned{box-shadow:inset 0 0 22px #7f9a831f,0 0 12px #7f9a831f}
-.upNode.owned:before{opacity:1;box-shadow:0 0 12px var(--bc,#7f9a83)}
-.upNode button{position:relative;z-index:1;transition:filter .2s,transform .2s}
-.upNode button:not(:disabled):hover{filter:brightness(1.3);transform:scale(1.04)}
-.shopTab{transition:background .2s,border-color .2s,transform .2s}
-.shopTab:hover{transform:translateY(-1px)}
-.shopTab.on{box-shadow:inset 0 -2px 0 var(--bc,#c9a352),0 0 16px #c9a3521f}
-#shopTree svg path{transition:stroke .25s,opacity .25s;stroke-linecap:round}
-@keyframes nodeWake{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes nodeScan{0%,35%{left:-35%;opacity:0}48%{opacity:1}75%,100%{left:125%;opacity:0}}
-@media(prefers-reduced-motion:reduce){.upNode,.upNode:after,.shopTab{animation:none!important;transition:none!important}}
-
+@media(max-width:860px){.shopMain{flex-direction:column}#shopDetail{flex:none;max-height:none}#shopTreeWrap{max-height:46vh}}
+@media(prefers-reduced-motion:reduce){#shop *{animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style>
 </head>
 <body>
@@ -148,7 +221,7 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
 <div id="monsterModeHint" class="small" style="display:none;margin-top:6px;color:#cfaaa0">Host option: pick a random human in the lobby to control the monster with full abilities (possess, disguise, hunt). Miners still fill the quota; the chosen player becomes the threat.</div>
 <div class="small">Share the room code with friends. Public matchmaking can also join an open lobby.</div></div>
  </div></div>
-<div id="shop" class="overlay"><div class="shopCard">
+<div id="shop" class="overlay"><div class="shopCard"><div id="shopRain"></div>
  <div class="shopHead">
   <div class="shopTitle">BLACK <span>MARKET</span></div>
   <div class="silver"><span id="shopCoins"></span>SILVER <b id="shopSilver">0</b></div>
@@ -156,7 +229,8 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
  <div class="kicker">FLOOR CLEARED · SPEND BEFORE THE NEXT DESCENT</div>
  <div id="shopConvert" class="convertNote"></div>
  <div id="shopTabs"></div>
- <div id="shopTreeWrap"><div id="shopTree"></div></div>
+ <div id="shopTotal"></div>
+ <div class="shopMain"><div id="shopTreeWrap"><div id="shopTree"></div></div><div id="shopDetail"></div></div>
  <div class="rule" style="margin:12px 0 8px"></div>
  <div id="shopReadyRow">
   <div id="shopReadyList" class="small"></div>
@@ -711,7 +785,7 @@ function setup(){
  if(gim('spores')){const n=6+Math.min(6,depth);for(let i=0;i<n;i++){let p=null;for(let t=0;t<12;t++){const c=randomFloor(230,player.x,player.y);if(Math.hypot(c.x-exit.x,c.y-exit.y)<150)continue;p=c;break}if(!p)p=randomFloor(230,player.x,player.y);spores.push({bx:p.x,by:p.y,a:rnd(18,46),s:rnd(.22,.5),ph:rnd(0,TAU),r:rnd(62,92),p:{x:p.x,y:p.y}})}}
  applyRunUpgradeEffects();
  setText('gold','0 / '+quotaGold);setText('tags','0 / '+quotaTags);setText('crew',bots.length+' ALIVE');setText('hint',DEFAULT_HINT);
- $('objective').innerHTML='<b style="color:#d7b66d">CONTRACT</b><br>Take '+quotaGold+' gold chunks and tag '+quotaTags+' marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Once quota is met, bring every living crew member within a 500 × 500 pixel area around the lift to extract. In multiplayer, NPC crew do not block extraction.<br>Your '+bots.length+' crew miners gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span>';appendGimmickObjective(); 
+ $('objective').innerHTML='<b style="color:#d7b66d">CONTRACT</b><br>Take '+quotaGold+' gold chunks and tag '+quotaTags+' marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Once quota is met, bring every living crew member within a 500 × 500 pixel area around the lift to extract.<br>Your '+bots.length+' crew miners gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span>';appendGimmickObjective(); 
 }
 
 /* ---------- particles & decals ---------- */
@@ -723,21 +797,13 @@ function quotaMet(){return player.gold>=quotaGold&&player.tags>=quotaTags}
 const LIFT_ASSEMBLY_SIZE=500,LIFT_ASSEMBLY_HALF=LIFT_ASSEMBLY_SIZE/2;
 function withinLiftAssemblyZone(entity){return !!entity&&Number.isFinite(entity.x)&&Number.isFinite(entity.y)&&Math.abs(entity.x-exit.x)<=LIFT_ASSEMBLY_HALF&&Math.abs(entity.y-exit.y)<=LIFT_ASSEMBLY_HALF}
 function isMonsterPlayerId(id){return !!(id&&netMonsterControllerId&&id===netMonsterControllerId)}
-// A player corpse being worn by the creature is not a living miner, even if a
-// delayed network packet still advertises that player's old alive state.
-function isPossessedPlayerBodyId(id){
- if(!id)return false;
- const m=monster,host=m&&m.state==='possess'?m.host:null;
- if(host&&(host.netId===id||host.worldId===`player:${id}`))return true;
- return (bodies||[]).some(b=>b&&b.netId===id&&(b.possessed||b.used)&&(!m||m.state!=='possess'||m.host!==b));
-}
 function livingHumanMiners(){
  const list=[];
  if(multiplayer){
   if(netAlive&&player&&!isMonsterController)list.push({id:netMyId,x:player.x,y:player.y,name:netName||'YOU',isLocal:true});
   for(const p of (netPlayers||[])){
    if(!p||p.alive===false||!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;
-   if(p.id===netMyId||isMonsterPlayerId(p.id)||p.role==='monster'||isPossessedPlayerBodyId(p.id))continue;
+   if(p.id===netMyId||isMonsterPlayerId(p.id)||p.role==='monster')continue;
    list.push(p);
   }
  }else if(player&&phase==='play')list.push({id:'local',x:player.x,y:player.y,name:'YOU',isLocal:true});
@@ -748,11 +814,9 @@ function livingCrewLabel(){return livingCrewCount()+' ALIVE'}
 function liftAssemblyStatus(){
  const crew=[];
  if(player&&(!multiplayer||(netAlive&&!isMonsterController)))crew.push({x:player.x,y:player.y,name:multiplayer?(netName||'YOU'):'YOU'});
- // Offline runs require the AI crew to regroup. In multiplayer, only human miners
- // should block extraction; local AI crew are ambient support and must not hold the lift.
- if(!multiplayer)for(const b of (bots||[]))if(b.alive)crew.push(b);
+ for(const b of (bots||[]))if(b.alive)crew.push(b);
  if(multiplayer)for(const p of (netPlayers||[])){
-  if(p.id===netMyId||p.alive!==true||isMonsterPlayerId(p.id)||p.role==='monster'||isPossessedPlayerBodyId(p.id))continue;
+  if(p.id===netMyId||p.alive!==true||isMonsterPlayerId(p.id)||p.role==='monster')continue;
   crew.push(p);
  }
  const outside=crew.filter(member=>!withinLiftAssemblyZone(member));
@@ -812,145 +876,173 @@ function interact(){
    Silver buys permanent upgrades for the rest of the run. In online play everyone shops on their own
    silver and the next depth only starts once the whole crew has readied up. */
 const BRANCHES=[
- {id:'BODY',name:'BODY',col:'#9bc8a4'},{id:'LIGHT',name:'LIGHT',col:'#e8d684'},{id:'LOOT',name:'EXTRACTION',col:'#d7b66d'},
- {id:'CREW',name:'CREW',col:'#8fb7d9'},{id:'SENSE',name:'INSTINCT',col:'#d98b8b'},{id:'GHOST',name:'GHOST',col:'#b49ad9'},{id:'FORT',name:'FORTUNE',col:'#e0a66a'}
+ {id:'BODY',name:'BODY',col:'#9bc8a4',ic:'lung'},{id:'LIGHT',name:'LIGHT',col:'#e8d684',ic:'sun'},{id:'LOOT',name:'EXTRACTION',col:'#d7b66d',ic:'coin'},
+ {id:'CREW',name:'CREW',col:'#8fb7d9',ic:'crew'},{id:'SENSE',name:'INSTINCT',col:'#d98b8b',ic:'eye'},{id:'GHOST',name:'GHOST',col:'#b49ad9',ic:'ghost'},
+ {id:'FORT',name:'FORTUNE',col:'#e0a66a',ic:'clover'},{id:'MAP',name:'MAPPING',col:'#7fc7c0',ic:'map'}
 ];
-// b = branch, t = tier column, r = row, q = prerequisites (all needed), c = silver cost
+// id, branch, tier column, row, prerequisites (all needed), silver cost, name, description, icon, stats shown in the detail panel
+const U=(id,b,t,r,q,c,n,d,ic,s)=>({id,b,t,r,q,c,n,d,ic,s:s||[]});
 const UPS=[
- {id:'b1',b:'BODY',t:1,r:1,q:[],c:8,n:'DEEPER LUNGS I',d:'+20 max stamina.'},
- {id:'b2',b:'BODY',t:2,r:1,q:['b1'],c:18,n:'DEEPER LUNGS II',d:'+25 max stamina.'},
- {id:'b3',b:'BODY',t:3,r:1,q:['b2'],c:38,n:'IRON BREATH',d:'+30 max stamina and sprinting drains 12% less.'},
- {id:'b4',b:'BODY',t:2,r:0,q:['b1'],c:16,n:'SECOND WIND I',d:'Stamina recovers 30% faster.'},
- {id:'b5',b:'BODY',t:3,r:0,q:['b4'],c:34,n:'SECOND WIND II',d:'Stamina recovers another 40% faster.'},
- {id:'b6',b:'BODY',t:2,r:2,q:['b1'],c:16,n:'QUICK BURST I',d:'+8% sprint speed.'},
- {id:'b7',b:'BODY',t:3,r:2,q:['b6'],c:32,n:'QUICK BURST II',d:'+12% more sprint speed.'},
- {id:'b8',b:'BODY',t:3,r:3,q:['b6'],c:28,n:'SURE FEET',d:'Deep water slows you far less.'},
- {id:'b9',b:'BODY',t:4,r:1,q:['b3','b7'],c:70,n:'MARATHONER',d:'Sprinting makes 30% less noise.'},
- {id:'b10',b:'BODY',t:4,r:2,q:['b7'],c:46,n:'LOW PROFILE',d:'Crouch-walk 25% faster.'},
+ U('b1','BODY',1,1,[],8,'DEEPER LUNGS I','+20 max stamina.','lung',['stam']),
+ U('b2','BODY',2,1,['b1'],18,'DEEPER LUNGS II','+25 max stamina.','lung',['stam']),
+ U('b3','BODY',3,1,['b2'],38,'IRON BREATH','+30 max stamina and sprinting drains 12% less.','lung',['stam','drain']),
+ U('b4','BODY',2,0,['b1'],16,'SECOND WIND I','Stamina recovers 30% faster.','wind',['regen']),
+ U('b5','BODY',3,0,['b4'],34,'SECOND WIND II','Stamina recovers another 40% faster.','wind',['regen']),
+ U('b6','BODY',2,2,['b1'],16,'QUICK BURST I','+8% sprint speed.','bolt',['sprint']),
+ U('b7','BODY',3,2,['b6'],32,'QUICK BURST II','+12% more sprint speed.','bolt',['sprint']),
+ U('b8','BODY',3,3,['b6'],28,'SURE FEET','Deep water slows you far less.','wave',['water']),
+ U('b9','BODY',4,1,['b3','b7'],70,'MARATHONER','Sprinting makes 30% less noise.','boot',['snoise']),
+ U('b10','BODY',4,2,['b7'],46,'LOW PROFILE','Crouch-walk 25% faster.','foot',['crouch']),
+ U('b11','BODY',4,0,['b5'],52,'ADRENAL GLAND','You shake off exhaustion at 15 stamina instead of 28.','pulse',['tired']),
+ U('b12','BODY',5,1,['b9','b11'],115,'SECOND HEART','+40 max stamina and sprinting drains 15% less.','heart',['stam','drain']),
 
- {id:'l1',b:'LIGHT',t:1,r:1,q:[],c:9,n:'BRIGHTER CELL I',d:'Wider personal glow and a longer beam.'},
- {id:'l2',b:'LIGHT',t:2,r:1,q:['l1'],c:20,n:'BRIGHTER CELL II',d:'More glow, longer beam.'},
- {id:'l3',b:'LIGHT',t:3,r:1,q:['l2'],c:40,n:'MINER\'S SUN',d:'Strong glow and a much longer beam.'},
- {id:'l4',b:'LIGHT',t:2,r:0,q:['l1'],c:18,n:'FOCUS LENS',d:'The beam reaches further.'},
- {id:'l5',b:'LIGHT',t:3,r:0,q:['l4'],c:36,n:'WIDE ANGLE',d:'A bigger personal glow.'},
- {id:'l6',b:'LIGHT',t:2,r:2,q:['l1'],c:16,n:'SPARE CELLS I',d:'Dying-lamp floors: battery drains 25% slower, recharges 30% faster.'},
- {id:'l7',b:'LIGHT',t:3,r:2,q:['l6'],c:32,n:'SPARE CELLS II',d:'Drains another 25% slower, recharges another 30% faster.'},
- {id:'l8',b:'LIGHT',t:2,r:3,q:['l1'],c:18,n:'GLOWSTONE',d:'Dead lanterns give off a faint glow.'},
- {id:'l9',b:'LIGHT',t:3,r:3,q:['l8'],c:34,n:'AFTERGLOW',d:'Dead and blacked-out lanterns glow more.'},
- {id:'l10',b:'LIGHT',t:4,r:1,q:['l3','l5'],c:85,n:'SUNBURST',d:'The beam reaches a lot further.'},
+ U('l1','LIGHT',1,1,[],9,'BRIGHTER CELL I','Wider personal glow and a longer beam.','sun',['glow','beam']),
+ U('l2','LIGHT',2,1,['l1'],20,'BRIGHTER CELL II','More glow, longer beam.','sun',['glow','beam']),
+ U('l3','LIGHT',3,1,['l2'],40,'MINER\'S SUN','Strong glow and a much longer beam.','sun',['glow','beam']),
+ U('l4','LIGHT',2,0,['l1'],18,'FOCUS LENS','The beam reaches further.','cone',['beam']),
+ U('l5','LIGHT',3,0,['l4'],36,'WIDE ANGLE','A bigger personal glow.','lens',['glow']),
+ U('l6','LIGHT',2,2,['l1'],16,'SPARE CELLS I','Dying-lamp floors: battery drains 25% slower, recharges 30% faster.','battery',['bdrain','bchg']),
+ U('l7','LIGHT',3,2,['l6'],32,'SPARE CELLS II','Drains another 25% slower, recharges another 30% faster.','battery',['bdrain','bchg']),
+ U('l8','LIGHT',2,3,['l1'],18,'GLOWSTONE','Dead lanterns give off a faint glow.','lantern',['dglow']),
+ U('l9','LIGHT',3,3,['l8'],34,'AFTERGLOW','Dead and blacked-out lanterns glow more.','lantern',['dglow']),
+ U('l10','LIGHT',4,1,['l3','l5'],85,'SUNBURST','The beam reaches a lot further.','cone',['beam']),
+ U('l11','LIGHT',4,2,['l7'],52,'TRICKLE CHARGE','Dying-lamp floors: the battery recovers even while the lamp is on.','battery',['trickle']),
+ U('l12','LIGHT',4,3,['l9'],58,'NIGHT EYES','Working lanterns light 15% further.','lantern',['lant']),
+ U('l13','LIGHT',5,2,['l10','l12'],125,'STARLIGHT','A huge boost to your personal glow and beam.','sun',['glow','beam']),
 
- {id:'e1',b:'LOOT',t:1,r:1,q:[],c:10,n:'DEEP POCKETS I',d:'+1 silver per excess gold.'},
- {id:'e2',b:'LOOT',t:2,r:1,q:['e1'],c:22,n:'DEEP POCKETS II',d:'+1 more silver per excess gold.'},
- {id:'e3',b:'LOOT',t:3,r:1,q:['e2'],c:60,n:'DEEP POCKETS III',d:'+2 more silver per excess gold.'},
- {id:'e4',b:'LOOT',t:2,r:0,q:['e1'],c:20,n:'MARKER PAY I',d:'+1 silver per excess graffiti mark.'},
- {id:'e5',b:'LOOT',t:3,r:0,q:['e4'],c:42,n:'MARKER PAY II',d:'+2 more silver per excess mark.'},
- {id:'e6',b:'LOOT',t:1,r:3,q:[],c:12,n:'STEADY HAND I',d:'Tagging gets +0.45s of puzzle time.'},
- {id:'e7',b:'LOOT',t:2,r:3,q:['e6'],c:24,n:'STEADY HAND II',d:'+0.55s more, and sprays are 30% quieter.'},
- {id:'e8',b:'LOOT',t:3,r:3,q:['e7'],c:42,n:'STEADY HAND III',d:'+0.8s more puzzle time.'},
- {id:'e9',b:'LOOT',t:1,r:4,q:[],c:13,n:'GOLD SENSE I',d:'Gold within 240 px glints through the dark.'},
- {id:'e10',b:'LOOT',t:2,r:4,q:['e9'],c:26,n:'GOLD SENSE II',d:'Gold within 380 px glints through the dark.'},
- {id:'e11',b:'LOOT',t:2,r:2,q:['e1'],c:18,n:'COIN PURSE',d:'+3 silver every time you clear a floor.'},
- {id:'e12',b:'LOOT',t:3,r:2,q:['e11'],c:34,n:'VAULT KEY',d:'+5 more silver every floor.'},
- {id:'e13',b:'LOOT',t:4,r:1,q:['e3','e12'],c:100,n:'MOTHER LODE',d:'+8 more silver every floor.'},
+ U('e1','LOOT',1,1,[],10,'DEEP POCKETS I','+1 silver per excess gold.','stack',['sg']),
+ U('e2','LOOT',2,1,['e1'],22,'DEEP POCKETS II','+1 more silver per excess gold.','stack',['sg']),
+ U('e3','LOOT',3,1,['e2'],60,'DEEP POCKETS III','+2 more silver per excess gold.','stack',['sg']),
+ U('e4','LOOT',2,0,['e1'],20,'MARKER PAY I','+1 silver per excess graffiti mark.','tag',['st']),
+ U('e5','LOOT',3,0,['e4'],42,'MARKER PAY II','+2 more silver per excess mark.','tag',['st']),
+ U('e6','LOOT',1,3,[],12,'STEADY HAND I','Tagging gets +0.45s of puzzle time.','brush',['puz']),
+ U('e7','LOOT',2,3,['e6'],24,'STEADY HAND II','+0.55s more, and sprays are 30% quieter.','spray',['puz','spray']),
+ U('e8','LOOT',3,3,['e7'],42,'STEADY HAND III','+0.8s more puzzle time.','brush',['puz']),
+ U('e9','LOOT',1,4,[],13,'GOLD SENSE I','Gold within 240 px glints through the dark.','nugget',['gsense']),
+ U('e10','LOOT',2,4,['e9'],26,'GOLD SENSE II','Gold within 380 px glints through the dark.','nugget',['gsense']),
+ U('e11','LOOT',2,2,['e1'],18,'COIN PURSE','+3 silver every time you clear a floor.','coin',['flat']),
+ U('e12','LOOT',3,2,['e11'],34,'VAULT KEY','+5 more silver every floor.','key',['flat']),
+ U('e13','LOOT',4,1,['e3','e12'],100,'MOTHER LODE','+8 more silver every floor.','key',['flat']),
+ U('e14','LOOT',3,4,['e10'],40,'THE FENCE','+1 silver for every gold in your quota.','scale',[]),
+ U('e15','LOOT',4,3,['e8'],58,'GRAFFITI ARTIST','+1 silver per mark in your quota, and +0.5s tagging time.','brush',['puz']),
+ U('e16','LOOT',4,4,['e14'],60,'GOLD SENSE III','Gold within 520 px glints through the dark.','nugget',['gsense']),
+ U('e17','LOOT',5,2,['e13','e15'],130,'DEEP VEINS','Every excess gold is worth 3 more silver.','stack',['sg']),
 
- {id:'c1',b:'CREW',t:1,r:1,q:[],c:14,n:'SHARED RATIONS I',d:'Crew miners move 10% faster.'},
- {id:'c2',b:'CREW',t:2,r:0,q:['c1'],c:26,n:'SHARED RATIONS II',d:'Crew miners move 12% faster again.'},
- {id:'c3',b:'CREW',t:2,r:2,q:['c1'],c:24,n:'HARD HATS',d:'Crew miners recover from panic much faster.'},
- {id:'c4',b:'CREW',t:3,r:0,q:['c2'],c:34,n:'SHARP EYES',d:'Crew miners pocket gold 40% quicker.'},
- {id:'c5',b:'CREW',t:4,r:0,q:['c4'],c:62,n:'OVERTIME',d:'Crew miners move 15% faster again.'},
- {id:'c6',b:'CREW',t:3,r:2,q:['c3'],c:36,n:'HAZARD PAY',d:'+3 silver per crew miner alive at the lift.'},
+ U('c1','CREW',1,1,[],14,'SHARED RATIONS I','Crew miners move 10% faster.','crew',['cspeed']),
+ U('c2','CREW',2,0,['c1'],26,'SHARED RATIONS II','Crew miners move 12% faster again.','crew',['cspeed']),
+ U('c3','CREW',2,2,['c1'],24,'HARD HATS','Crew miners recover from panic much faster.','helmet',['cpanic']),
+ U('c4','CREW',3,0,['c2'],34,'SHARP EYES','Crew miners pocket gold 40% quicker.','eye',['cwork']),
+ U('c5','CREW',4,0,['c4'],62,'OVERTIME','Crew miners move 15% faster again.','crew',['cspeed']),
+ U('c6','CREW',3,2,['c3'],36,'HAZARD PAY','+3 silver per crew miner alive at the lift.','coin',[]),
+ U('c7','CREW',5,1,['c5','c6'],100,'FOREMAN','Crew +10% speed, and hazard pay is +2 silver more per miner.','helmet',['cspeed']),
+ U('c8','CREW',4,2,['c6'],52,'TEAM SPIRIT','Crew miners calm down 30% faster after a scare.','heart',['cpanic']),
+ U('c9','CREW',4,1,['c4'],56,'SCAVENGERS','Crew miners pocket gold 25% quicker again.','nugget',['cwork']),
 
- {id:'i1',b:'SENSE',t:1,r:1,q:[],c:10,n:'CALM PULSE I',d:'Your heartbeat warns you from further away.'},
- {id:'i2',b:'SENSE',t:2,r:1,q:['i1'],c:20,n:'CALM PULSE II',d:'Earlier heartbeat warning again.'},
- {id:'i3',b:'SENSE',t:2,r:0,q:['i1'],c:16,n:'STEADY NERVE',d:'Screen shake is 45% weaker.'},
- {id:'i4',b:'SENSE',t:3,r:1,q:['i2'],c:44,n:'SIXTH SENSE',d:'A red arrow points at the creature when it is near but off-screen.'},
- {id:'i5',b:'SENSE',t:3,r:0,q:['i3'],c:32,n:'THICK SKIN',d:'Cave-in hits stagger you half as long.'},
- {id:'i6',b:'SENSE',t:3,r:2,q:['i3'],c:34,n:'HAZARD PROOF',d:'Cave-in rings last 0.6s longer; spores drain 40% less.'},
- {id:'i7',b:'SENSE',t:4,r:1,q:['i4'],c:58,n:'LAST GASP',d:'+15% speed while the creature is within 140 px.'},
- {id:'i8',b:'SENSE',t:5,r:0,q:['i5','i7'],c:120,n:'LUCKY CHARM',d:'Solo only: once per floor the creature lets go of you and is thrown back.'},
+ U('i1','SENSE',1,1,[],10,'CALM PULSE I','Your heartbeat warns you from further away.','pulse',['heart']),
+ U('i2','SENSE',2,1,['i1'],20,'CALM PULSE II','Earlier heartbeat warning again.','pulse',['heart']),
+ U('i3','SENSE',2,0,['i1'],16,'STEADY NERVE','Screen shake is 45% weaker.','shake',['shake']),
+ U('i4','SENSE',3,1,['i2'],44,'SIXTH SENSE','A red arrow points at the creature when it is near but off-screen.','radar',['sixth']),
+ U('i5','SENSE',3,0,['i3'],32,'THICK SKIN','Cave-in hits stagger you half as long.','shield',['stun']),
+ U('i6','SENSE',3,2,['i3'],34,'HAZARD PROOF','Cave-in rings last 0.6s longer; spores drain 40% less.','shield',['warn','spore']),
+ U('i7','SENSE',4,1,['i4'],58,'LAST GASP','+15% speed while the creature is within 140 px.','bolt',[]),
+ U('i8','SENSE',5,0,['i5','i7'],120,'LUCKY CHARM','Solo only: once per floor the creature lets go of you and is thrown back.','charm',[]),
+ U('i9','SENSE',4,2,['i6'],50,'HOMING BEACON','A green arrow points to the lift once your quota is met and it is off-screen.','compass',[]),
+ U('i10','SENSE',4,0,['i5'],48,'SHOCK ABSORBER','Cave-ins no longer drain stamina, and screen shake is a further 25% weaker.','shield',['stun','shake']),
+ U('i11','SENSE',5,2,['i9','i7'],110,'PREDATOR SENSE','Sixth Sense reaches 1100 px.','radar',['sixth']),
 
- {id:'g1',b:'GHOST',t:1,r:1,q:[],c:10,n:'SOFT SOLES I',d:'Footsteps 18% quieter.'},
- {id:'g2',b:'GHOST',t:2,r:1,q:['g1'],c:20,n:'SOFT SOLES II',d:'Footsteps a further 22% quieter.'},
- {id:'g3',b:'GHOST',t:3,r:1,q:['g2'],c:36,n:'GHOST STEP',d:'Footsteps a further 28% quieter.'},
- {id:'g4',b:'GHOST',t:2,r:0,q:['g1'],c:24,n:'LIGHT FINGERS I',d:'The creature senses your lamp through rock from 15% less distance.'},
- {id:'g5',b:'GHOST',t:3,r:0,q:['g4'],c:44,n:'LIGHT FINGERS II',d:'30% less distance in total.'},
- {id:'g6',b:'GHOST',t:2,r:2,q:['g1'],c:18,n:'HUSHED SPRAY',d:'Tagging makes 35% less noise.'},
- {id:'g7',b:'GHOST',t:3,r:2,q:['g2'],c:40,n:'POKER FACE I',d:'The creature learns your habits 30% slower.'},
- {id:'g8',b:'GHOST',t:4,r:2,q:['g7'],c:70,n:'POKER FACE II',d:'60% slower in total.'},
- {id:'g9',b:'GHOST',t:4,r:0,q:['g5','g7'],c:65,n:'SHORT MEMORY',d:'Each new floor the creature forgets 25% of what it learned (host only online).'},
- {id:'g10',b:'GHOST',t:5,r:1,q:['g8','g9'],c:110,n:'AMNESIA',d:'It forgets another 25% each floor (host only online).'},
+ U('g1','GHOST',1,1,[],10,'SOFT SOLES I','Footsteps 18% quieter.','foot',['noise']),
+ U('g2','GHOST',2,1,['g1'],20,'SOFT SOLES II','Footsteps a further 22% quieter.','foot',['noise']),
+ U('g3','GHOST',3,1,['g2'],36,'GHOST STEP','Footsteps a further 28% quieter.','ghost',['noise']),
+ U('g4','GHOST',2,0,['g1'],24,'LIGHT FINGERS I','The creature senses your lamp through rock from 15% less distance.','lamp',['lampS']),
+ U('g5','GHOST',3,0,['g4'],44,'LIGHT FINGERS II','30% less distance in total.','lamp',['lampS']),
+ U('g6','GHOST',2,2,['g1'],18,'HUSHED SPRAY','Tagging makes 35% less noise.','spray',['spray']),
+ U('g7','GHOST',3,2,['g2'],40,'POKER FACE I','The creature learns your habits 30% slower.','mask',['learn']),
+ U('g8','GHOST',4,2,['g7'],70,'POKER FACE II','60% slower in total.','mask',['learn']),
+ U('g9','GHOST',4,0,['g5','g7'],65,'SHORT MEMORY','Each new floor the creature forgets 25% of what it learned (host only online).','brain',['forget']),
+ U('g10','GHOST',5,1,['g8','g9'],110,'AMNESIA','It forgets another 25% each floor (host only online).','brain',['forget']),
+ U('g11','GHOST',4,1,['g3'],60,'SHADOW CLOAK','With your lamp off, the creature hears you from 20% less distance.','ghost',['hear']),
+ U('g12','GHOST',5,2,['g8','g11'],115,'DEAD CALM','While crouched you make no footstep noise at all.','ghost',['cnoise']),
 
- {id:'f1',b:'FORT',t:1,r:0,q:[],c:30,n:'LIGHT LOAD I',d:'Solo only: the gold quota is 1 lower (never below 3).'},
- {id:'f2',b:'FORT',t:2,r:0,q:['f1'],c:55,n:'LIGHT LOAD II',d:'Solo only: 1 lower again.'},
- {id:'f3',b:'FORT',t:1,r:1,q:[],c:28,n:'LIGHT TAGS',d:'Solo only: one fewer graffiti mark needed.'},
- {id:'f4',b:'FORT',t:1,r:2,q:[],c:24,n:'HAGGLER I',d:'Every upgrade costs 10% less.'},
- {id:'f5',b:'FORT',t:2,r:2,q:['f4'],c:48,n:'HAGGLER II',d:'A further 12% off every upgrade.'},
- {id:'f6',b:'FORT',t:3,r:2,q:['f5'],c:70,n:'INTEREST',d:'+10% of your banked silver on every clear (max 25).'},
- {id:'b11',b:'BODY',t:4,r:0,q:['b5'],c:48,n:'ADRENAL RESERVE',d:'Stamina regenerates 20% faster.'},
- {id:'b12',b:'BODY',t:5,r:1,q:['b9','b10'],c:95,n:'SILENT STRIDE',d:'Sprint noise is reduced even further.'},
- {id:'l11',b:'LIGHT',t:4,r:2,q:['l7'],c:48,n:'EMERGENCY CAPACITOR',d:'Lamp battery drains 20% slower.'},
- {id:'l12',b:'LIGHT',t:5,r:1,q:['l10','l9'],c:110,n:'PHOSPHOR CROWN',d:'A powerful final boost to lamp reach.'},
- {id:'e14',b:'LOOT',t:4,r:3,q:['e8','e10'],c:68,n:'CONTRABAND ROUTE',d:'+2 silver per excess gold chunk.'},
- {id:'e15',b:'LOOT',t:5,r:2,q:['e13','e14'],c:125,n:'BLACK VAULT',d:'+6 silver every cleared floor.'},
- {id:'c7',b:'CREW',t:4,r:2,q:['c6','c5'],c:78,n:'RALLY SIGNAL',d:'Crew miners move 12% faster and recover from panic faster.'},
- {id:'c8',b:'CREW',t:5,r:1,q:['c7'],c:120,n:'LAST SHIFT',d:'Crew miners work and collect gold 20% faster.'},
- {id:'i9',b:'SENSE',t:5,r:2,q:['i6','i8'],c:100,n:'RED WARNING',d:'Heartbeat warning reaches even further.'},
- {id:'i10',b:'SENSE',t:6,r:1,q:['i9'],c:145,n:'DEATH’S COMPASS',d:'Your warning arrow detects the creature from farther away.'},
- {id:'g11',b:'GHOST',t:5,r:3,q:['g6','g8'],c:82,n:'MUTE HANDS',d:'Tagging makes 25% less noise.'},
- {id:'g12',b:'GHOST',t:6,r:2,q:['g10','g11'],c:140,n:'ERASED FOOTPRINTS',d:'Footsteps become exceptionally quiet.'},
- {id:'f7',b:'FORT',t:4,r:1,q:['f6'],c:88,n:'COMPOUND INTEREST',d:'+15% of banked silver on a clear (max 35).'},
- {id:'f8',b:'FORT',t:5,r:2,q:['f7'],c:135,n:'INSIDER TRADING',d:'All upgrade costs are another 8% cheaper.'}
+ U('f1','FORT',1,0,[],30,'LIGHT LOAD I','Solo only: the gold quota is 1 lower (never below 3).','scale',['cutg']),
+ U('f2','FORT',2,0,['f1'],55,'LIGHT LOAD II','Solo only: 1 lower again.','scale',['cutg']),
+ U('f3','FORT',1,1,[],28,'LIGHT TAGS','Solo only: one fewer graffiti mark needed.','tag',['cutt']),
+ U('f4','FORT',1,2,[],24,'HAGGLER I','Every upgrade costs 10% less.','percent',['disc']),
+ U('f5','FORT',2,2,['f4'],48,'HAGGLER II','A further 12% off every upgrade.','percent',['disc']),
+ U('f6','FORT',3,2,['f5'],70,'INTEREST','+10% of your banked silver on every clear (max 25).','coin',[]),
+ U('f7','FORT',4,2,['f6'],85,'BULK DISCOUNT','A further 20% off every upgrade (42% off with all three Haggler perks).','percent',['disc']),
+ U('f8','FORT',2,1,['f3'],34,'DEPTH BONUS','+1 silver per depth on every clear, so deeper floors pay more.','coin',[]),
+ U('f9','FORT',3,1,['f8'],60,'LUCKY STRIKE','15% chance each clear to double your excess-loot silver.','clover',[]),
+ U('f10','FORT',3,0,['f2'],90,'LIGHT LOAD III','Solo only: the gold quota is 1 lower again.','scale',['cutg']),
+
+ U('m1','MAP',1,1,[],12,'CARTOGRAPHER I','You map the mine 60 px further around you.','map',['map']),
+ U('m2','MAP',2,1,['m1'],24,'CARTOGRAPHER II','Another 60 px of mapping radius.','map',['map']),
+ U('m3','MAP',3,1,['m2'],44,'CARTOGRAPHER III','Another 80 px of mapping radius.','map',['map']),
+ U('m4','MAP',2,0,['m1'],26,'PROSPECTOR\'S CHART','Gold within 500 px shows on the minimap.','nugget',[]),
+ U('m5','MAP',3,0,['m4'],40,'SURVEY MARKS','Unfinished graffiti walls within 800 px show on the minimap.','tag',[]),
+ U('m6','MAP',2,2,['m1'],22,'CREW RADIO','Crew miners always show on the minimap.','crew',[]),
+ U('m7','MAP',3,2,['m6'],42,'DEAD RECKONING','The creature shows on the minimap when it is within 420 px.','radar',[]),
+ U('m8','MAP',4,1,['m3','m5','m7'],110,'SEISMIC SURVEY','The whole mine is mapped as soon as a floor begins.','compass',[]),
+ U('m9','MAP',2,3,['m1'],20,'LIFT PING','The lift is always marked on the minimap.','arrow',[])
 ];
 const N=id=>runUpgrades[id]?1:0;
 function upDef(id){return UPS.find(u=>u.id===id)}
 function upUnlocked(u){return u.q.every(q=>N(q))}
-function upCost(u){const d=Math.min(.48,.1*N('f4')+.12*N('f5')+.08*N('f8'));return Math.max(1,Math.round(u.c*(1-d)))}
-function upMaxStamina(){return 100+20*N('b1')+25*N('b2')+30*N('b3')}
+function upDiscount(){return Math.min(.5,.1*N('f4')+.12*N('f5')+.2*N('f7'))}
+function upCost(u){return Math.max(1,Math.round(u.c*(1-upDiscount())))}
+function upMaxStamina(){return 100+20*N('b1')+25*N('b2')+30*N('b3')+40*N('b12')}
 /* ----- effects (the names match the hooks placed around the game) ----- */
-function upgradeStaminaDrainMult(){return N('b3')?.88:1}
-function upgradeRegenMult(){return 1+.3*N('b4')+.4*N('b5')+.2*N('b11')}
+function upgradeStaminaDrainMult(){return (N('b3')?.88:1)*(N('b12')?.85:1)}
+function upgradeRegenMult(){return 1+.3*N('b4')+.4*N('b5')}
+function upgradeTiredExit(){return N('b11')?15:28}
 function upgradeSprintMult(){return 1+.08*N('b6')+.12*N('b7')}
 function upgradeCrouchMult(){return N('b10')?1.25:1}
 function upgradeWaterMult(){return N('b8')?.72:.56}
 function upgradeChaseBoost(){return N('i7')&&monster&&monster.state!=='possess'&&monster.state!=='disguise'&&player&&dist(player,monster)<140?1.15:1}
-function upgradeNoiseMult(sprint){let m=1;if(N('g1'))m*=.82;if(N('g2'))m*=.78;if(N('g3'))m*=.72;if(sprint&&N('b9'))m*=.7;if(sprint&&N('b12'))m*=.75;if(N('g11'))m*=.75;if(N('g12'))m*=.7;return m}
-function upgradePersonalLightBonus(){return 12*N('l1')+18*N('l2')+22*N('l3')+20*N('l5')+25*N('l12')}
-function upgradeBeamBonus(){return 30*N('l1')+45*N('l2')+55*N('l3')+25*N('l4')+90*N('l10')+110*N('l12')}
-function upgradeBatDrain(){return 1-.25*N('l6')-.25*N('l7')-.2*N('l11')}
+function upgradeNoiseMult(sprint,crouch){if(crouch&&N('g12'))return 0;let m=1;if(N('g1'))m*=.82;if(N('g2'))m*=.78;if(N('g3'))m*=.72;if(sprint&&N('b9'))m*=.7;return m}
+function upgradePersonalLightBonus(){return 12*N('l1')+18*N('l2')+22*N('l3')+20*N('l5')+40*N('l13')}
+function upgradeBeamBonus(){return 30*N('l1')+45*N('l2')+55*N('l3')+25*N('l4')+90*N('l10')+60*N('l13')}
+function upgradeBatDrain(){return 1-.25*N('l6')-.25*N('l7')}
 function upgradeBatCharge(){return 1+.3*N('l6')+.3*N('l7')}
+function upgradeBatTrickle(){return N("l11")?.8:0}
 function upgradeDeadGlow(){return .1*N('l8')+.1*N('l9')}
-function upgradePuzzleTime(){return PZ_TIME+.45*N('e6')+.55*N('e7')+.8*N('e8')}
+function upgradeLanternMult(){return N('l12')?1.15:1}
+function upgradePuzzleTime(){return PZ_TIME+.45*N('e6')+.55*N('e7')+.8*N('e8')+.5*N('e15')}
 function upgradeSprayMult(){return Math.max(.35,1-.3*N('e7')-.35*N('g6'))}
-function upgradeGoldSense(){return N('e10')?380:N('e9')?240:0}
-function upgradeHeartRange(){return 90*N('i1')+120*N('i2')+100*N('i9')}
-function upgradeShakeMult(){return N('i3')?.55:1}
+function upgradeGoldSense(){return N('e16')?520:N('e10')?380:N('e9')?240:0}
+function upgradeHeartRange(){return 90*N('i1')+120*N('i2')}
+function upgradeShakeMult(){return (N('i3')?.55:1)*(N('i10')?.75:1)}
 function upgradeStunMult(){return N('i5')?.5:1}
 function upgradeWarnBonus(){return N('i6')?.6:0}
 function upgradeSporeMult(){return N('i6')?.6:1}
 function upgradeSenseMult(){return 1-.15*N('g4')-.15*N('g5')}
 function upgradeMMSlow(){return 1-.3*N('g7')-.3*N('g8')}
 function upgradeForget(){return .25*N('g9')+.25*N('g10')}
-// Other players' numbers arrive during the shop (see netShopPing) and are cached here by player id.
+function upgradeHearLocal(){return N('g11')?.8:1}
+function upgradeMapRadius(){return 60*N('m1')+60*N('m2')+80*N('m3')}
 let netUps={};
+// Other players' numbers arrive during the shop (see netShopPing) and are cached here by player id.
+
 function upsOf(id){return netUps[id]||null}
 // Crew perks run on the host's simulation, so online the best crew perk among all players is used.
 function teamBest(key,lower,local){let b=local;if(multiplayer)for(const id in netUps){const v=netUps[id]&&netUps[id][key];if(Number.isFinite(v))b=lower?Math.min(b,v):Math.max(b,v)}return b}
-function crewSpeedLocal(){return 1+.1*N('c1')+.12*N('c2')+.15*N('c5')+.12*N('c7')}
-function crewPanicLocal(){return N('c3')?.55:N('c7')?.75:1}
-function crewWorkLocal(){return N('c8')?.48:N('c4')?.6:1}
+function crewSpeedLocal(){return 1+.1*N('c1')+.12*N('c2')+.15*N('c5')+.1*N('c7')}
+function crewPanicLocal(){return (N('c3')?.55:1)*(N('c8')?.7:1)}
+function crewWorkLocal(){return (N('c4')?.6:1)*(N('c9')?.75:1)}
 function upgradeBotSpeedMult(){return teamBest('bs',false,crewSpeedLocal())}
 function upgradeBotPanicMult(){return teamBest('bp',true,crewPanicLocal())}
 function upgradeBotWorkMult(){return teamBest('bw',true,crewWorkLocal())}
-function upsPacket(){return{sn:upgradeSenseMult(),ms:upgradeMMSlow(),bs:crewSpeedLocal(),bp:crewPanicLocal(),bw:crewWorkLocal()}}
+function upsPacket(){return{sn:upgradeSenseMult(),ms:upgradeMMSlow(),hm:upgradeHearLocal(),bs:crewSpeedLocal(),bp:crewPanicLocal(),bw:crewWorkLocal()}}
 function senseOf(tp){const u=tp&&tp.isLocal===false?upsOf(tp.id):null;return u&&Number.isFinite(u.sn)?u.sn:(tp&&tp.isLocal===false?1:upgradeSenseMult())}
 function mmSlowOf(tp){const u=tp&&tp.isLocal===false?upsOf(tp.id):null;return u&&Number.isFinite(u.ms)?u.ms:(tp&&tp.isLocal===false?1:upgradeMMSlow())}
+function hearOf(tp){const u=tp&&tp.isLocal===false?upsOf(tp.id):null;return u&&Number.isFinite(u.hm)?u.hm:(tp&&tp.isLocal===false?1:upgradeHearLocal())}
 // Called at the end of setup() so every new floor (including a retry) gets the run's upgrades.
 function applyRunUpgradeEffects(){
  if(!player)return;
  player.maxStamina=upMaxStamina();player.stamina=player.maxStamina;
  charmReady=!!N('i8');
- if(!multiplayer){quotaGold=Math.max(3,quotaGold-N('f1')-N('f2'));quotaTags=Math.max(1,quotaTags-N('f3'))}
+ if(!multiplayer){quotaGold=Math.max(3,quotaGold-N('f1')-N('f2')-N('f10'));quotaTags=Math.max(1,quotaTags-N('f3'))}
  const fg=upgradeForget();if(fg>0)for(const k of['loop','dark','loud','hide'])MM[k]*=1-fg;
+ if(N('m8')&&explored)explored.fill(1);
 }
 function tryCharm(){
  if(!charmReady||multiplayer||!player)return false;
@@ -963,6 +1055,23 @@ function tryCharm(){
  }
  showAlert('LUCKY CHARM');say('The charm burns out in your pocket. It lets go of you. Run.',3.5);Snd.stinger(1);shake=Math.max(shake,12);
  return true;
+}
+function edgeArrow(wx,wy,camX,camY,r,g,b,k){
+ const sx=wx-camX,sy=wy-camY;
+ if(sx>30&&sx<W-30&&sy>30&&sy<H-30)return;
+ const a=Math.atan2(wy-player.y,wx-player.x),px=W/2+Math.cos(a)*(W/2-34),py=H/2+Math.sin(a)*(H/2-34);
+ ctx.save();ctx.translate(px,py);ctx.rotate(a);ctx.fillStyle=`rgba(${r},${g},${b},${.25+.6*k})`;ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-7,-8);ctx.lineTo(-3,0);ctx.lineTo(-7,8);ctx.closePath();ctx.fill();ctx.restore();
+}
+function drawSpectateMarkers(camX,camY,fo){
+ if(!multiplayer||phase!=='spectate'||!fo)return;
+ for(const rp of netPlayers){
+  if(!rp||rp.id===netMyId||isMonsterPlayerId(rp.id)||rp.role==='monster'||rp.alive===false||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;
+  const sx=rp.x-camX,sy=rp.y-camY;
+  if(sx>30&&sx<W-30&&sy>30&&sy<H-30)continue;
+  const a=Math.atan2(rp.y-fo.y,rp.x-fo.x),px=W/2+Math.cos(a)*(W/2-34),py=H/2+Math.sin(a)*(H/2-34);
+  ctx.save();ctx.translate(px,py);ctx.rotate(a);ctx.fillStyle='rgba(143,200,160,.8)';ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-7,-8);ctx.lineTo(-3,0);ctx.lineTo(-7,8);ctx.closePath();ctx.fill();ctx.restore();
+  ctx.save();ctx.font='10px Consolas,monospace';ctx.textAlign='center';ctx.fillStyle='rgba(215,216,189,.85)';ctx.fillText(String(rp.name||'MINER').slice(0,12),Math.max(40,Math.min(W-40,px-Math.cos(a)*30)),Math.max(14,Math.min(H-8,py-Math.sin(a)*30+4)));ctx.restore();
+ }
 }
 function drawUpgradeOverlays(camX,camY){
  if(!player||phase!=='play'||isMonsterController)return;
@@ -977,121 +1086,354 @@ function drawUpgradeOverlays(camX,camY){
   ctx.beginPath();ctx.moveTo(sx-6,sy);ctx.lineTo(sx+6,sy);ctx.moveTo(sx,sy-6);ctx.lineTo(sx,sy+6);ctx.stroke();ctx.restore();
  }
  if(N('i4')&&monster&&monster.state!=='possess'){
-  const dx=monster.x-player.x,dy=monster.y-player.y,d=Math.hypot(dx,dy),sx=monster.x-camX,sy=monster.y-camY;
-  if(d<760&&d>90&&!(sx>30&&sx<W-30&&sy>30&&sy<H-30)){
-   const a=Math.atan2(dy,dx),px=W/2+Math.cos(a)*(W/2-34),py=H/2+Math.sin(a)*(H/2-34),k=(1-d/760)*(.55+.45*Math.sin(fxClock*7));
-   ctx.save();ctx.translate(px,py);ctx.rotate(a);ctx.fillStyle=`rgba(230,50,40,${.25+.6*k})`;ctx.beginPath();ctx.moveTo(12,0);ctx.lineTo(-7,-8);ctx.lineTo(-3,0);ctx.lineTo(-7,8);ctx.closePath();ctx.fill();ctx.restore();
-  }
+  const range=N('i11')?1100:760,d=Math.hypot(monster.x-player.x,monster.y-player.y);
+  if(d<range&&d>90)edgeArrow(monster.x,monster.y,camX,camY,230,50,40,(1-d/range)*(.55+.45*Math.sin(fxClock*7)));
  }
+ if(N('i9')&&quotaMet()&&exit)edgeArrow(exit.x,exit.y,camX,camY,90,230,130,.55+.45*Math.sin(fxClock*4));
  if((player.safeT||0)>0){
   const px=player.x-camX,py=player.y-camY,k=Math.min(1,player.safeT);
   ctx.save();ctx.strokeStyle=`rgba(255,226,140,${.25+.35*Math.sin(fxClock*14)*k})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(px,py,20+4*Math.sin(fxClock*10),0,TAU);ctx.stroke();ctx.restore();
  }
 }
+// Extra minimap marks from the Mapping branch.
+function drawMiniPerks(){
+ if(!player)return;
+ if(N('m4'))for(const g of gold){if(g.taken)continue;if(dist(g,player)<500){mctx.fillStyle='#e8c050';mctx.fillRect(g.x/TILE*4-1.5,g.y/TILE*4-1.5,3,3)}}
+ if(N('m5'))for(const t of tags){if(t.done)continue;if(dist(t,player)<800){mctx.fillStyle=t.col;mctx.fillRect(t.x/TILE*4-1.5,t.y/TILE*4-1.5,3,3)}}
+ if(N('m7')&&monster&&monster.state!=='disguise'&&monster.state!=='possess'&&dist(monster,player)<420){mctx.fillStyle='#d9473a';mctx.fillRect(monster.x/TILE*4-2,monster.y/TILE*4-2,4,4)}
+}
 
 /* ----- silver from a cleared floor ----- */
 function silverFromClear(){
- const gold=player.gold|0,tags=player.tags|0;
- const eg=Math.max(0,gold-quotaGold),et=Math.max(0,tags-quotaTags);
- const perG=5+N('e1')+N('e2')+2*N('e3')+2*N('e14'),perT=6+N('e4')+2*N('e5');
+ const g=player.gold|0,tg=player.tags|0;
+ const eg=Math.max(0,g-quotaGold),et=Math.max(0,tg-quotaTags);
+ const perG=5+N('e1')+N('e2')+2*N('e3')+3*N('e17'),perT=6+N('e4')+2*N('e5');
  const alive=bots.filter(b=>b.alive).length;
- const purse=3*N('e11')+5*N('e12')+8*N('e13')+6*N('e15'),pay=N('c6')?3*alive:0;
- const interest=Math.min(N('f7')?35:N('f6')?25:0,Math.floor(silver*(N('f7')?.15:N('f6')?.1:0)));
- return{gold,tags,eg,et,perG,perT,purse,pay,interest,silver:eg*perG+et*perT+purse+pay+interest};
+ let excess=eg*perG+et*perT,lucky=false;
+ if(N('f9')&&excess>0&&Math.random()<.15){lucky=true;excess*=2}
+ const parts=[];
+ if(eg)parts.push(`${eg} excess gold × ${perG}`);
+ if(et)parts.push(`${et} excess marks × ${perT}`);
+ if(lucky)parts.push('LUCKY STRIKE doubled it');
+ let flat=0;const add=(label,v)=>{if(v>0){flat+=v;parts.push(`+${v} ${label}`)}};
+ add('vault',3*N('e11')+5*N('e12')+8*N('e13'));
+ add('fence',N('e14')*Math.min(g,quotaGold));
+ add('graffiti commission',N('e15')*Math.min(tg,quotaTags));
+ add('hazard pay',(N('c6')?3*alive:0)+(N('c7')?2*alive:0));
+ add('depth bonus',N('f8')*depth);
+ add('interest',N('f6')?Math.min(25,Math.floor(silver*.1)):0);
+ return{gold:g,tags:tg,eg,et,perG,perT,parts,lucky,flat,silver:excess+flat};
 }
 function openShopAfterClear(){
  const conv=silverFromClear();
- shopFloorBonus=conv;silver+=conv.silver;
- shopOpen=true;shopReady=false;shopReadyMap={};shopOpenedAt=performance.now();shopTick=0;shopFootT=0;
- phase='shop';paused=false;
+ shopFloorBonus=conv;shopShown=silver;silver+=conv.silver;shopLastShown=-1;
+ shopOpen=true;shopReady=false;shopReadyMap={};for(const k in shopSeen)delete shopSeen[k];shopOpenedAt=performance.now();shopTick=0;shopFootT=0;
+ phase='shop';paused=false;shopAnimIn=true;shopSel=null;shopBought=null;
  for(const id of['end','pause','spectate','puzzle'])if($(id))$(id).style.display='none';
  $('shop').style.display='flex';
  if(player)player.maxStamina=upMaxStamina();
  renderShop();renderShopFooter();
- if(conv.silver>0)Snd.clink();else Snd.unlock();
+ shopCoinRain(conv.silver);
+ if(conv.silver<=0)Snd.unlock();
  if(multiplayer)netShopPing();
 }
-function leaveShop(){shopOpen=false;shopReady=false;shopReadyMap={};$('shop').style.display='none'}
+function leaveShop(){shopOpen=false;shopReady=false;shopReadyMap={};$('shop').style.display='none';shopFx.parts=[];shopFx.links=[]}
 function buyUpgrade(id){
  const u=upDef(id);if(!u||N(id)||!upUnlocked(u))return false;
- const c=upCost(u);if(silver<c){say('Not enough silver.',1.6);Snd.buzz();return false}
- silver-=c;runUpgrades[id]=1;Snd.ding();
+ const c=upCost(u);if(silver<c){say('Not enough silver.',1.6);Snd.buzz();shopShake(id);return false}
+ silver-=c;runUpgrades[id]=1;Snd.ding();setTimeout(()=>{try{Snd.clink()}catch(e){}},120);
  if(player)player.maxStamina=upMaxStamina();
- renderShop();return true;
+ shopBought=id;shopSel=id;renderShop({bought:id});return true;
 }
-const TREE_X=214,TREE_Y=104,NODE_W=196,NODE_H=92;
+
+/* ----- the tree screen ----- */
+const TREE_X=216,TREE_Y=108,NODE_W=198,NODE_H=94,TREE_TOP=26;
+let shopSel=null,shopAnimIn=true,shopBought=null,shopShown=0,shopLastShown=-1,shopHoverId=null,shopLinkList=[],shopNodePos={};
+const shopFx={parts:[],links:[],dust:[],t:0,cv:null,cx:null,w:0,h:0,can:[],spark:0};
+const roman=t=>['','I','II','III','IV','V'][t]||String(t);
+const isKey=u=>u.t>=5||u.c>=85;
+const ICONS={
+ lung:'<path d="M12 3v8M12 11c-2 0-6 1-6 6 0 2 1 3 3 3s3-2 3-4M12 11c2 0 6 1 6 6 0 2-1 3-3 3s-3-2-3-4"/>',
+ wind:'<path d="M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h8"/>',
+ bolt:'<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>',
+ boot:'<path d="M8 3v9l-4 3v4h14v-3l-5-2V3z"/>',
+ wave:'<path d="M2 9c3-3 5 3 8 0s5 3 8 0M2 15c3-3 5 3 8 0s5 3 8 0"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+ lens:'<circle cx="10" cy="10" r="6"/><path d="M15 15l6 6"/>',
+ cone:'<path d="M4 12l16-7v14z"/>',
+ battery:'<rect x="3" y="8" width="16" height="9" rx="1"/><path d="M21 11v3M7 11v3M11 11v3"/>',
+ lamp:'<path d="M9 18h6M10 21h4M8 14a5 5 0 1 1 8 0c-1 1-1 2-1 4H9c0-2 0-3-1-4z"/>',
+ lantern:'<path d="M9 3h6M8 6h8v11H8zM9 21h6M12 6V3"/>',
+ coin:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>',
+ stack:'<ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 2 3 3 7 3s7-1 7-3V7M5 12v5c0 2 3 3 7 3s7-1 7-3v-5"/>',
+ brush:'<path d="M4 20c3 0 4-2 4-4l8-8-3-3-8 8c-2 0-4 1-4 4zM15 5l4 4"/>',
+ spray:'<rect x="8" y="9" width="8" height="12" rx="1"/><path d="M10 9V6h4v3M18 4h2M18 7h3M18 10h2"/>',
+ nugget:'<path d="M4 15l3-8 6-3 6 5-2 8-8 2z"/>',
+ eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+ crew:'<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20c0-4 3-6 6-6s6 2 6 6M15 14c3 0 6 1 6 5"/>',
+ helmet:'<path d="M4 16a8 8 0 0 1 16 0zM2 16h20M12 4v4"/>',
+ heart:'<path d="M12 20S3 14 3 8.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 9 1.5C21 14 12 20 12 20z"/>',
+ pulse:'<path d="M2 12h5l2-6 4 12 2-6h7"/>',
+ radar:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 12l6-6"/>',
+ shield:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>',
+ shake:'<path d="M3 9l3 3-3 3M21 9l-3 3 3 3M9 5l-2 14M15 5l2 14"/>',
+ clover:'<circle cx="9" cy="9" r="3.5"/><circle cx="15" cy="9" r="3.5"/><circle cx="9" cy="15" r="3.5"/><circle cx="15" cy="15" r="3.5"/>',
+ ghost:'<path d="M5 21V11a7 7 0 0 1 14 0v10l-3-2-2 2-2-2-2 2-2-2z"/><circle cx="9.5" cy="11" r="1"/><circle cx="14.5" cy="11" r="1"/>',
+ foot:'<path d="M8 3c2 0 3 2 3 5s-1 5-3 5-3-2-3-5 1-5 3-5zM16 10c2 0 3 2 3 4s-1 4-3 4-3-2-3-4 1-4 3-4z"/>',
+ mask:'<path d="M3 7c5 2 13 2 18 0v6c0 4-4 7-9 7s-9-3-9-7z"/><circle cx="8.5" cy="12" r="1.5"/><circle cx="15.5" cy="12" r="1.5"/>',
+ brain:'<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 3 3 3 0 0 0 2 3 3 3 0 0 0 3 4h2V4zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 3 3 3 0 0 1-2 3 3 3 0 0 1-3 4h-2V4z"/>',
+ tag:'<path d="M4 4h8l8 8-8 8-8-8z"/><circle cx="8.5" cy="8.5" r="1.3"/>',
+ scale:'<path d="M12 3v18M5 7h14M5 7l-3 7h6zM19 7l-3 7h6z"/>',
+ percent:'<path d="M5 19L19 5"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>',
+ key:'<circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v4M21 12v3"/>',
+ arrow:'<path d="M12 3v18M5 10l7-7 7 7"/>',
+ compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5L13 13l-4.5 2.5L11 11z"/>',
+ map:'<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/>',
+ charm:'<path d="M12 3l2.5 5.5 6 .8-4.4 4.1 1.1 6-5.2-3-5.2 3 1.1-6-4.4-4.1 6-.8z"/>',
+ lock:'<rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'
+};
+function icon(name){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||ICONS.coin}</svg>`}
 function coinsHtml(n,big){let s='';for(let i=0;i<Math.min(24,n);i++)s+=`<i class="coin${big?' big':''}"></i>`;return s}
 function escTxt(s){return String(s==null?'':s).replace(/[<>&"]/g,'')}
-function renderShop(){
- setText('shopSilver',String(silver|0));
- $('shopCoins').innerHTML=coinsHtml(Math.min(12,Math.ceil(silver/8)),true);
- const f=shopFloorBonus,nextHaz=gimmickNames(depth+1);
- let t=`Cleared with <b>${f.gold} / ${quotaGold}</b> gold and <b>${f.tags} / ${quotaTags}</b> marks. `;
- if(f.eg||f.et||f.purse||f.pay||f.interest){
-  const parts=[];if(f.eg)parts.push(`${f.eg} excess gold × ${f.perG}`);if(f.et)parts.push(`${f.et} excess marks × ${f.perT}`);if(f.purse)parts.push(`${f.purse} from your vault upgrades`);if(f.pay)parts.push(`${f.pay} hazard pay`);if(f.interest)parts.push(`${f.interest} interest`);
-  t+=`That turned into <b>+${f.silver} silver</b> (${parts.join(' + ')}). ${coinsHtml(f.silver)}`;
- }else t+=`Nothing was left over to convert. Bring back more than the quota (extra gold and extra marks) to earn silver.`;
- t+=`<br>NEXT: DEPTH ${String(depth+1).padStart(2,'0')}${nextHaz?' · HAZARD: '+nextHaz:''}`;
- $('shopConvert').innerHTML=t;
- const tabs=$('shopTabs');tabs.innerHTML='';
- for(const b of BRANCHES){
-  const all=UPS.filter(u=>u.b===b.id),have=all.filter(u=>N(u.id)).length,el=document.createElement('button');
-  el.className='shopTab'+(shopBranch===b.id?' on':'');el.style.setProperty('--bc',b.col);el.textContent=`${b.name} ${have}/${all.length}`;
-  el.onclick=()=>{shopBranch=b.id;renderShop()};tabs.appendChild(el);
+const pctF=v=>Math.round(v*100)+'%';
+// what each upgrade changes, shown as "now -> after" in the detail panel
+const STATS={
+ stam:['MAX STAMINA',()=>upMaxStamina(),v=>String(Math.round(v))],
+ regen:['STAMINA RECOVERY',()=>upgradeRegenMult(),pctF],
+ drain:['SPRINT STAMINA COST',()=>upgradeStaminaDrainMult(),pctF],
+ sprint:['SPRINT SPEED',()=>upgradeSprintMult(),pctF],
+ crouch:['CROUCH SPEED',()=>upgradeCrouchMult(),pctF],
+ water:['SPEED IN WATER',()=>upgradeWaterMult(),pctF],
+ tired:['EXHAUSTION ENDS AT',()=>upgradeTiredExit(),v=>v+' STAMINA'],
+ noise:['FOOTSTEP NOISE',()=>upgradeNoiseMult(false,false),pctF],
+ snoise:['SPRINT NOISE',()=>upgradeNoiseMult(true,false),pctF],
+ cnoise:['CROUCH NOISE',()=>upgradeNoiseMult(false,true),pctF],
+ beam:['BEAM REACH',()=>430+upgradeBeamBonus(),v=>v+' PX'],
+ glow:['PERSONAL GLOW',()=>140+upgradePersonalLightBonus(),v=>v+' PX'],
+ bdrain:['BATTERY DRAIN',()=>upgradeBatDrain(),pctF],
+ bchg:['BATTERY RECHARGE',()=>upgradeBatCharge(),pctF],
+ trickle:['BATTERY TRICKLE',()=>upgradeBatTrickle(),v=>v.toFixed(1)+' / S'],
+ dglow:['DEAD LANTERN GLOW',()=>upgradeDeadGlow(),pctF],
+ lant:['LANTERN REACH',()=>upgradeLanternMult(),pctF],
+ puz:['TAGGING TIME',()=>upgradePuzzleTime(),v=>v.toFixed(2)+' S'],
+ spray:['SPRAY NOISE',()=>upgradeSprayMult(),pctF],
+ gsense:['GOLD GLINT RANGE',()=>upgradeGoldSense(),v=>v?v+' PX':'NONE'],
+ heart:['HEARTBEAT RANGE',()=>420+upgradeHeartRange(),v=>v+' PX'],
+ shake:['SCREEN SHAKE',()=>upgradeShakeMult(),pctF],
+ stun:['CAVE-IN STAGGER',()=>upgradeStunMult(),pctF],
+ warn:['CAVE-IN WARNING',()=>1.7+upgradeWarnBonus(),v=>v.toFixed(1)+' S'],
+ spore:['SPORE DRAIN',()=>upgradeSporeMult(),pctF],
+ lampS:['LAMP SENSED FROM',()=>upgradeSenseMult(),pctF],
+ learn:['CREATURE LEARNS AT',()=>upgradeMMSlow(),pctF],
+ forget:['FORGETS EACH FLOOR',()=>upgradeForget(),pctF],
+ hear:['HEARING (LAMP OFF)',()=>upgradeHearLocal(),pctF],
+ cspeed:['CREW SPEED',()=>crewSpeedLocal(),pctF],
+ cpanic:['CREW PANIC TIME',()=>crewPanicLocal(),pctF],
+ cwork:['CREW GOLD TIME',()=>crewWorkLocal(),pctF],
+ sg:['SILVER PER EXCESS GOLD',()=>5+N('e1')+N('e2')+2*N('e3')+3*N('e17'),v=>String(v)],
+ st:['SILVER PER EXCESS MARK',()=>6+N('e4')+2*N('e5'),v=>String(v)],
+ flat:['FLAT SILVER PER CLEAR',()=>3*N('e11')+5*N('e12')+8*N('e13'),v=>String(v)],
+ cutg:['GOLD QUOTA CUT',()=>N('f1')+N('f2')+N('f10'),v=>'-'+v],
+ cutt:['MARK QUOTA CUT',()=>N('f3'),v=>'-'+v],
+ disc:['UPGRADE DISCOUNT',()=>upDiscount(),pctF],
+ map:['MAP RADIUS',()=>280+upgradeMapRadius(),v=>v+' PX'],
+ sixth:['SIXTH SENSE RANGE',()=>N('i4')?(N('i11')?1100:760):0,v=>v?v+' PX':'NONE']
+};
+function statPreview(u){
+ const rows=[];
+ for(const k of u.s||[]){
+  const S=STATS[k];if(!S)continue;
+  const had=!!runUpgrades[u.id],cur=S[2](S[1]());let after=cur;
+  if(!had){runUpgrades[u.id]=1;after=S[2](S[1]());delete runUpgrades[u.id]}
+  rows.push({n:S[0],cur,after,changed:cur!==after});
  }
- const br=BRANCHES.find(b=>b.id===shopBranch)||BRANCHES[0],nodes=UPS.filter(u=>u.b===br.id);
- const maxT=Math.max(...nodes.map(n=>n.t)),maxR=Math.max(...nodes.map(n=>n.r)),tree=$('shopTree');
- tree.style.width=(maxT*TREE_X)+'px';tree.style.height=((maxR+1)*TREE_Y)+'px';tree.style.setProperty('--bc',br.col);
- const pos=n=>({x:6+(n.t-1)*TREE_X,y:4+n.r*TREE_Y});
- let svg=`<svg width="${maxT*TREE_X}" height="${(maxR+1)*TREE_Y}">`;
- for(const n of nodes)for(const qid of n.q){
-  const q=upDef(qid);if(!q||q.b!==n.b)continue;
-  const a=pos(q),b=pos(n),x1=a.x+NODE_W,y1=a.y+NODE_H/2,x2=b.x,y2=b.y+NODE_H/2,mx=(x1+x2)/2;
-  svg+=`<path d="M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}" fill="none" stroke="${N(qid)?br.col:'#3b453f'}" stroke-width="${N(qid)?2.6:1.4}" opacity="${N(qid)?.95:.55}" stroke-dasharray="${N(qid)?'8 5':'3 7'}"/>`;
- }
- tree.innerHTML=svg+'</svg>';
- for(const n of nodes){
-  const owned=!!N(n.id),open=upUnlocked(n),cost=upCost(n),can=open&&!owned&&silver>=cost,p=pos(n),el=document.createElement('div');
-  el.className='upNode'+(owned?' owned':'')+(!open&&!owned?' locked':'')+(open&&!owned&&!can?' poor':'');
-  el.style.left=p.x+'px';el.style.top=p.y+'px';el.style.setProperty('--bc',br.col);el.style.setProperty('--node-i',String(nodes.indexOf(n)));
-  const need=n.q.filter(q=>!N(q)).map(q=>{const d=upDef(q);return d?d.n:q}).join(', ');
-  el.innerHTML=`<div><h4>${escTxt(n.n)}</h4><div class="desc">${escTxt(n.d)}</div></div><div class="foot"><span>${owned?'OWNED':(!open?'NEEDS '+escTxt(need.split(',')[0]):cost+' SILVER')}</span></div>`;
-  if(!owned&&open){const btn=document.createElement('button');btn.textContent=can?'BUY':'NEED '+(cost-silver);btn.disabled=!can;btn.onclick=()=>buyUpgrade(n.id);el.querySelector('.foot').appendChild(btn)}
-  tree.appendChild(el);
+ return rows;
+}
+function branchOf(u){return BRANCHES.find(b=>b.id===u.b)||BRANCHES[0]}
+function pickDefault(nodes){
+ const can=nodes.find(n=>!N(n.id)&&upUnlocked(n)&&silver>=upCost(n));if(can)return can.id;
+ const open=nodes.find(n=>!N(n.id)&&upUnlocked(n));if(open)return open.id;
+ return nodes[0].id;
+}
+function selectNode(id){shopSel=id;renderShopDetail();for(const k in shopNodePos){const e=document.getElementById('nd_'+k);if(e){if(k===id)e.classList.add('sel');else e.classList.remove('sel')}}}
+function hoverNode(id,on){
+ // light up everything the node depends on and everything it unlocks
+ const mark=(el,cls,v)=>{if(el)v?el.classList.add(cls):el.classList.remove(cls)};
+ const seen=new Set(),up=[id];
+ while(up.length){const x=up.pop();if(seen.has(x))continue;seen.add(x);const d=upDef(x);if(d)for(const q of d.q)up.push(q)}
+ for(const x of seen)mark(document.getElementById('nd_'+x),'hl',on);
+ for(const L of shopLinkList){
+  if(seen.has(L.b)&&seen.has(L.a))mark(document.getElementById('lk_'+L.a+'_'+L.b),'hl',on);
+  if(L.a===id){mark(document.getElementById('nd_'+L.b),'nx',on);mark(document.getElementById('lk_'+L.a+'_'+L.b),'hl',on)}
  }
 }
+function renderShopDetail(){
+ const el=$('shopDetail');if(!el)return;
+ const u=upDef(shopSel);
+ if(!u){el.innerHTML='<div class="dEmpty">SELECT AN UPGRADE</div>';return}
+ const br=branchOf(u),owned=!!N(u.id),open=upUnlocked(u),cost=upCost(u),can=open&&!owned&&silver>=cost;
+ const rows=statPreview(u).map(r=>`<div class="dRow"><span>${r.n}</span><b>${owned||!r.changed?r.cur:`${r.cur} <i>→</i> <em>${r.after}</em>`}</b></div>`).join('');
+ const reqs=u.q.length?u.q.map(q=>{const d=upDef(q);return `<div class="dReq ${N(q)?'ok':'no'}">${N(q)?'✓':'✗'} ${escTxt(d?d.n:q)}</div>`}).join(''):'<div class="dReq ok">✓ NO PREREQUISITES</div>';
+ const disc=cost<u.c?`<s>${u.c}</s> `:'';
+ el.style.setProperty('--bc',br.col);
+ el.className=owned?'owned':can?'can':'';
+ el.innerHTML=`<div class="dTop"><div class="dIcon">${icon(u.ic||br.ic)}</div><div><div class="dName">${escTxt(u.n)}</div><div class="dTag">${br.name} · TIER ${roman(u.t)}${isKey(u)?' · <em>KEYSTONE</em>':''}</div></div></div>
+ <div class="dDesc">${escTxt(u.d)}</div>${rows?`<div class="dStats">${rows}</div>`:''}<div class="dReqs">${reqs}</div>
+ <div class="dBuy"><div class="dCost">${owned?'<b>OWNED</b>':`${disc}<b>${cost}</b> SILVER`}</div><button id="dBuyBtn" ${can?'':'disabled'}>${owned?'PURCHASED':!open?'LOCKED':can?'BUY':'NEED '+(cost-silver)}</button></div>`;
+ const bb=document.getElementById('dBuyBtn');if(bb)bb.onclick=()=>buyUpgrade(u.id);
+}
+function shopShake(id){const e=document.getElementById('nd_'+id);if(e){e.classList.remove('nope');void e.offsetWidth;e.classList.add('nope')}}
+function shopCoinRain(n){
+ const box=$('shopRain');if(!box)return;
+ const cnt=Math.min(14,Math.ceil(n/4));let h='';
+ for(let i=0;i<cnt;i++)h+=`<i class="coin big fall" style="left:${10+Math.random()*80}%;animation-delay:${i*85}ms"></i>`;
+ box.innerHTML=h;
+ for(let i=0;i<Math.min(7,cnt);i++)setTimeout(()=>{try{Snd.clink()}catch(e){}},300+i*110);
+ setTimeout(()=>{box.innerHTML=''},2200);
+}
+function renderShop(opt){
+ opt=opt||{};
+ $('shopCoins').innerHTML=coinsHtml(Math.min(12,Math.ceil(silver/8)),true);
+ if(shopLastShown<0){shopLastShown=Math.round(shopShown);setText('shopSilver',String(shopLastShown))}
+ const f=shopFloorBonus,nextHaz=gimmickNames(depth+1);
+ let t=`Cleared with <b>${f.gold} / ${quotaGold}</b> gold and <b>${f.tags} / ${quotaTags}</b> marks. `;
+ if(f.silver>0){
+  t+=`That turned into <b>+${f.silver} silver</b>.<div class="chips">`+f.parts.map((p,i)=>`<span class="chip" style="--d:${i*110}ms">${escTxt(p)}</span>`).join('')+`</div>`;
+ }else t+=`Nothing was left over to convert. Bring back more than the quota (extra gold and extra marks) to earn silver.`;
+ t+=`<div class="nextLine">NEXT: DEPTH ${String(depth+1).padStart(2,'0')}${nextHaz?' · HAZARD: '+nextHaz:''}</div>`;
+ if(!opt.bought)$('shopConvert').innerHTML=t;
+ // tabs
+ const tabs=$('shopTabs');tabs.innerHTML='';
+ for(const b of BRANCHES){
+  const all=UPS.filter(u=>u.b===b.id),have=all.filter(u=>N(u.id)).length,done=have===all.length,el=document.createElement('button');
+  el.className='shopTab'+(shopBranch===b.id?' on':'')+(done?' done':'');el.style.setProperty('--bc',b.col);
+  el.innerHTML=`<span class="tIc">${icon(b.ic)}</span><span class="tNm">${b.name}</span><span class="tCt">${have}/${all.length}${done?' ★':''}</span><span class="tBar"><i style="width:${Math.round(have/all.length*100)}%"></i></span>`;
+  el.onclick=()=>{if(shopBranch===b.id)return;shopBranch=b.id;shopAnimIn=true;shopSel=null;renderShop()};
+  tabs.appendChild(el);
+ }
+ const total=UPS.length,owned=UPS.filter(u=>N(u.id)).length;
+ setText('shopTotal',`${owned} / ${total} UPGRADES`);
+ // tree
+ const br=BRANCHES.find(b=>b.id===shopBranch)||BRANCHES[0],nodes=UPS.filter(u=>u.b===br.id);
+ if(!shopSel||!nodes.some(n=>n.id===shopSel))shopSel=pickDefault(nodes);
+ const maxT=Math.max(...nodes.map(n=>n.t)),maxR=Math.max(...nodes.map(n=>n.r)),tree=$('shopTree');
+ const W2=maxT*TREE_X+12,H2=TREE_TOP+(maxR+1)*TREE_Y+8;
+ tree.style.width=W2+'px';tree.style.height=H2+'px';tree.style.setProperty('--bc',br.col);
+ const pos=n=>({x:6+(n.t-1)*TREE_X,y:TREE_TOP+n.r*TREE_Y});
+ shopNodePos={};for(const n of nodes)shopNodePos[n.id]=pos(n);
+ let svg=`<svg width="${W2}" height="${H2}">`;
+ for(let k=1;k<=maxT;k++){const x=6+(k-1)*TREE_X;svg+=`<text class="tierLbl" x="${x+2}" y="15">TIER ${roman(k)}</text>`;if(k>1)svg+=`<line class="tierLine" x1="${x-9}" y1="4" x2="${x-9}" y2="${H2-4}"/>`}
+ shopLinkList=[];shopFx.links=[];
+ for(const n of nodes)for(const qid of n.q){
+  const q=upDef(qid);if(!q||q.b!==n.b)continue;
+  const a=shopNodePos[qid],b=shopNodePos[n.id],x1=a.x+NODE_W,y1=a.y+NODE_H/2,x2=b.x,y2=b.y+NODE_H/2,mx=(x1+x2)/2;
+  const d=`M${x1} ${y1} C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`,own=!!N(qid),both=own&&!!N(n.id);
+  const cls=both?'lk on':own?'lk nx':'lk off';
+  svg+=`<path id="lk_${qid}_${n.id}" class="${cls}${opt.bought===n.id?' ign':''}" d="${d}" pathLength="1" stroke="${both?br.col:own?br.col:'#3b453f'}"/>`;
+  if(both)svg+=`<path class="lkFlow" d="${d}" stroke="${br.col}"/>`;
+  shopLinkList.push({a:qid,b:n.id});
+  shopFx.links.push({p:[x1,y1,mx,y1,mx,y2,x2,y2],on:both,nx:own&&!both,sp:[{p:Math.random()},{p:Math.random()}]});
+ }
+ tree.innerHTML=svg+'</svg><canvas id="shopFx"></canvas>';
+ const cv=document.getElementById('shopFx');if(cv){cv.width=W2;cv.height=H2;shopFx.cv=cv;shopFx.cx=cv.getContext('2d');shopFx.w=W2;shopFx.h=H2}
+ shopFx.can=[];shopFx.col=br.col;
+ for(const n of nodes){
+  const own=!!N(n.id),open=upUnlocked(n),cost=upCost(n),can=open&&!own&&silver>=cost,p=shopNodePos[n.id],key=isKey(n),el=document.createElement('div');
+  el.id='nd_'+n.id;
+  el.className='upNode'+(own?' owned':'')+(!open&&!own?' locked':'')+(open&&!own&&!can?' poor':'')+(can?' can':'')+(key?' key':'')+(shopSel===n.id?' sel':'')+(shopAnimIn?' enter':'')+(opt.bought===n.id?' bought':'');
+  el.style.left=p.x+'px';el.style.top=p.y+'px';el.style.setProperty('--bc',br.col);el.style.setProperty('--d',(n.t*80+n.r*45)+'ms');
+  const need=n.q.filter(q=>!N(q)).map(q=>{const d=upDef(q);return d?d.n:q})[0]||'';
+  el.innerHTML=`<div class="nTop"><div class="nIcon">${icon(!open&&!own?'lock':(n.ic||br.ic))}</div><div class="nBody"><h4>${escTxt(n.n)}</h4><div class="desc">${escTxt(n.d)}</div></div></div><div class="foot"><span>${own?'OWNED':(!open?'NEEDS '+escTxt(need):`<i class="coin"></i>${cost}`)}</span></div>${key?'<div class="keyTag">KEYSTONE</div>':''}`;
+  el.onclick=()=>selectNode(n.id);
+  el.onmouseenter=()=>hoverNode(n.id,true);
+  el.onmouseleave=()=>hoverNode(n.id,false);
+  if(!own&&open){const btn=document.createElement('button');btn.textContent=can?'BUY':'NEED '+(cost-silver);btn.disabled=!can;btn.onclick=ev=>{if(ev&&ev.stopPropagation)ev.stopPropagation();buyUpgrade(n.id)};el.querySelector('.foot').appendChild(btn)}
+  tree.appendChild(el);
+  if(can)shopFx.can.push({x:p.x,y:p.y});
+ }
+ if(opt.bought){const p=shopNodePos[opt.bought];if(p){fxBurst(p.x+NODE_W/2,p.y+NODE_H/2,br.col,34);const u=upDef(opt.bought);if(u&&isKey(u))fxBurst(p.x+NODE_W/2,p.y+NODE_H/2,'#fff4c2',30)}}
+ shopAnimIn=false;
+ renderShopDetail();
+ const wrap=$('shopTreeWrap');
+ if(wrap&&!wrap._pan){
+  wrap._pan=true;let drag=null;
+  wrap.onmousedown=e=>{if(e.target===wrap||e.target===$('shopTree')||e.target.tagName==='svg'||e.target.tagName==='canvas'){drag={x:e.clientX,y:e.clientY,sl:wrap.scrollLeft,st:wrap.scrollTop}}};
+  window.addEventListener('mousemove',e=>{if(drag){wrap.scrollLeft=drag.sl-(e.clientX-drag.x);wrap.scrollTop=drag.st-(e.clientY-drag.y)}});
+  window.addEventListener('mouseup',()=>{drag=null});
+ }
+}
+/* ----- particle layer behind the nodes: dust, sparks flowing along bought links, purchase bursts ----- */
+function bezAt(p,t){const u=1-t;return[u*u*u*p[0]+3*u*u*t*p[2]+3*u*t*t*p[4]+t*t*t*p[6],u*u*u*p[1]+3*u*u*t*p[3]+3*u*t*t*p[5]+t*t*t*p[7]]}
+function fxBurst(x,y,col,n){
+ for(let i=0;i<n;i++){const a=Math.random()*TAU,s=40+Math.random()*170;shopFx.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-40,life:.7+Math.random()*.7,max:1.4,sz:1+Math.random()*2.6,col})}
+ shopFx.parts.push({ring:1,x,y,r:8,life:.7,max:.7,col});
+ shopFx.parts.push({ring:1,x,y,r:4,life:.45,max:.45,col:'#ffffff'});
+}
+function shopFxFrame(dt){
+ const F=shopFx,c=F.cx;if(!c||!F.w)return;
+ c.clearRect(0,0,F.w,F.h);F.t+=dt;
+ while(F.dust.length<28)F.dust.push({x:Math.random()*F.w,y:Math.random()*F.h,vx:(Math.random()-.5)*8,vy:-4-Math.random()*9,ph:Math.random()*6,sz:.6+Math.random()*1.5});
+ c.fillStyle=F.col||'#fff';
+ for(const d of F.dust){d.x+=d.vx*dt;d.y+=d.vy*dt;if(d.y<-4){d.y=F.h+4;d.x=Math.random()*F.w}if(d.x<-4)d.x=F.w+4;if(d.x>F.w+4)d.x=-4;c.globalAlpha=Math.max(0,.1+.1*Math.sin(F.t*1.3+d.ph));c.beginPath();c.arc(d.x,d.y,d.sz,0,TAU);c.fill()}
+ c.globalAlpha=1;c.globalCompositeOperation='lighter';
+ for(const L of F.links){
+  if(!L.on&&!L.nx)continue;
+  for(const s of L.sp){
+   s.p+=dt*(L.on?.4:.15);if(s.p>1)s.p-=1;
+   const q=bezAt(L.p,s.p),a=L.on?.9:.35;
+   c.fillStyle=L.on?(F.col||'#fff'):'#8a948c';
+   c.globalAlpha=a*.25;c.beginPath();c.arc(q[0],q[1],6,0,TAU);c.fill();
+   c.globalAlpha=a;c.beginPath();c.arc(q[0],q[1],2.2,0,TAU);c.fill();
+  }
+ }
+ F.spark-=dt;
+ if(F.spark<=0&&F.can.length){
+  F.spark=.18;const n=F.can[(Math.random()*F.can.length)|0],e=(Math.random()*4)|0;
+  const px=e<2?n.x+Math.random()*NODE_W:(e===2?n.x:n.x+NODE_W),py=e<2?(e===0?n.y:n.y+NODE_H):n.y+Math.random()*NODE_H;
+  F.parts.push({x:px,y:py,vx:(Math.random()-.5)*24,vy:-18-Math.random()*22,life:.8,max:.8,sz:1.4,col:'#fff2b0'});
+ }
+ for(let i=F.parts.length-1;i>=0;i--){
+  const p=F.parts[i];p.life-=dt;if(p.life<=0){F.parts.splice(i,1);continue}
+  const k=p.life/p.max;
+  if(p.ring){p.r+=dt*(150-80*(1-k));c.globalAlpha=k*.8;c.strokeStyle=p.col;c.lineWidth=2;c.beginPath();c.arc(p.x,p.y,p.r,0,TAU);c.stroke();continue}
+  p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.vy!==undefined&&p.max>1)p.vy+=220*dt;p.vx*=.985;
+  c.globalAlpha=Math.min(1,k*1.6);c.fillStyle=p.col;c.beginPath();c.arc(p.x,p.y,p.sz*(.5+k*.7),0,TAU);c.fill();
+ }
+ c.globalAlpha=1;c.globalCompositeOperation='source-over';
+}
+
 /* ----- ready-up (online) -----
    The game server only forwards the player fields it knows about, so a custom "shopReady" flag can be dropped on the way
    to the other players. Every ping therefore carries the ready state three ways, and anyone reading it accepts any of them:
    1) plain fields (shopReady / shopFor / ups), 2) inside the monsterInput object, 3) packed into the aim number
    (aim is a normal field that the server already relays; nothing reads it during the shop). */
-const SHOP_AIM=1000,SHOP_FORCE_MS=12000;
+const SHOP_AIM=1000,SHOP_FORCE_MS=10000;
+// Fourth channel: the position fields. Servers always relay x/y (that is how you see other miners), and nobody reads positions
+// during the shop, so the ready state is also written into them as an integer pair with a checksum relation that survives rounding and clamping.
+const shopSeen={};
+function shopXY(){const rid=shopRid()&63,x=300+rid*20+(shopReady?10:0);return{x,y:((x*7+13)%700)+400}}
+function shopDecodeXY(p){
+ const x=Math.round(Number(p.x)),y=Math.round(Number(p.y));
+ if(!Number.isFinite(x)||!Number.isFinite(y)||x<300||x>1570||(x-300)%10!==0)return null;
+ if(y!==((x*7+13)%700)+400)return null;
+ const v=x-300,ready=v%20===10;return{rid:((v-(ready?10:0))/20)&63,ready};
+}
 function shopRid(){return netDescendPending?netDescendPending.roundId:0}
 function shopPack(){return SHOP_AIM+shopRid()*4+(shopReady?2:0)+1}
 function shopDecode(p){
- if(!p)return[];
- // Do not trust one representation alone: some server versions relay the plain fields
- // but leave them stale while the packed fallback has the current ready state.
- const out=[];
- if(p.shopFor!==undefined&&p.shopReady!==undefined){
-  const rid=Number(p.shopFor);if(Number.isFinite(rid))out.push({rid,ready:!!p.shopReady,source:'plain'});
- }
+ if(!p)return null;
+ const xy=shopDecodeXY(p);if(xy&&xy.rid===(shopRid()&63))return Object.assign({rid:shopRid()},{ready:xy.ready});
+ if(p.shopFor!==undefined&&p.shopReady!==undefined)return{rid:Number(p.shopFor)||0,ready:!!p.shopReady};
  const mi=p.monsterInput;
- if(mi&&typeof mi==='object'&&mi.shop!==null&&mi.shop!==undefined&&Number.isFinite(Number(mi.shop))){
-  const v=Math.round(Number(mi.shop))-SHOP_AIM;if(v>=0&&(v&1))out.push({rid:v>>2,ready:(v&2)>0,source:'packed-input'});
- }
+ if(mi&&typeof mi==='object'&&mi.shop!==null&&mi.shop!==undefined&&Number.isFinite(Number(mi.shop))){const v=Math.round(Number(mi.shop))-SHOP_AIM;if(v>=0&&(v&1))return{rid:v>>2,ready:(v&2)>0}}
  const a=Number(p.aim);
- if(Number.isFinite(a)&&a>=SHOP_AIM-.5&&a<SHOP_AIM+4e6){
-  const v=Math.round(a)-SHOP_AIM;if(v>=0&&(v&1))out.push({rid:v>>2,ready:(v&2)>0,source:'packed-aim'});
- }
- return out;
+ if(Number.isFinite(a)&&a>=SHOP_AIM-.5&&a<SHOP_AIM+4e6){const v=Math.round(a)-SHOP_AIM;if(v&1)return{rid:v>>2,ready:(v&2)>0}}
+ return null;
 }
 function shopIsReady(p){
- if(!p||!p.id)return false;
- if(p.id===netMyId)return !!shopReady;
- const rid=shopRid(),signals=shopDecode(p).filter(d=>d.rid===rid);
- // A current-round READY from any relayed representation wins over stale fields.
- return signals.some(d=>d.ready);
+ if(p.id===netMyId)return shopReady;
+ const d=shopDecode(p);if(d)shopSeen[p.id]=performance.now();
+ return !!(d&&d.rid===shopRid()&&d.ready);
 }
 function shopRoster(){const r=(netPlayers||[]).filter(p=>p&&p.id);if(!r.some(p=>p.id===netMyId))r.push({id:netMyId,name:netName});return r}
 // Remember every player's perk numbers (sent along with the ready ping) for the host-side simulation.
@@ -1111,10 +1453,10 @@ function renderShopFooter(){
   list.textContent='Spend your silver, then take the lift down when you are ready.';return;
  }
  const roster=shopRoster(),ready=roster.filter(shopIsReady).length,all=ready===roster.length;
- const force=isNetHost&&performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
+ const force=performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
  rb.style.display='inline-block';rb.textContent=shopReady?'NOT READY':'READY UP';
  list.innerHTML=`<b>${ready} / ${roster.length} READY</b> · the next depth starts when the whole crew is ready.<br>`+
-  roster.map(p=>`${escTxt(p.name||'MINER')}${p.id===netMyId?' (you)':''}: ${shopIsReady(p)?'<span style="color:#9bc8a4">READY</span>':'<span style="color:#b9857b">shopping…</span>'}`).join(' · ');
+  roster.map(p=>`${escTxt(p.name||'MINER')}${p.id===netMyId?' (you)':''}: ${shopIsReady(p)?'<span style="color:#9bc8a4">READY</span>':(p.id!==netMyId&&performance.now()-shopOpenedAt>4000&&!(shopSeen[p.id]&&performance.now()-shopSeen[p.id]<4000)?'<span style="color:#8a8f88">no signal yet</span>':'<span style="color:#b9857b">shopping…</span>')}`).join(' · ');
  db.style.display='inline-block';
  if(isNetHost){db.disabled=!(all||force);db.textContent=all?'START DEPTH '+String(depth+1).padStart(2,'0'):force?`START ANYWAY (${roster.length-ready} NOT READY)`:'WAITING FOR READY'}
  else{db.disabled=true;db.textContent=all?'WAITING FOR HOST':'WAITING FOR READY'}
@@ -1122,12 +1464,16 @@ function renderShopFooter(){
 function netShopPing(){
  if(!multiplayer||!netSocket||!netSocket.connected||!player)return;
  const ups=upsPacket(),packed=shopPack();
- netSocket.emit('player-state',{x:player.x,y:player.y,aim:packed,mv:0,foot:0,alive:!!netAlive&&!isMonsterController,flashlightOn:false,noise:0,moving:false,name:netName,
+ const sxy=shopXY();
+ netSocket.emit('player-state',{x:sxy.x,y:sxy.y,aim:packed,mv:0,foot:0,alive:!!netAlive&&!isMonsterController,flashlightOn:false,noise:0,moving:false,name:netName,
   role:isMonsterController?'monster':undefined,shopReady,shopFor:shopRid(),ups,monsterInput:{dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0,shop:packed,ups}});
 }
 function shopFrame(dt){
  shopTick-=dt;if(shopTick<=0){shopTick=.4;netShopPing()}
  shopFootT-=dt;if(shopFootT<=0){shopFootT=1;netCacheUps();renderShopFooter()}
+ try{shopFxFrame(dt)}catch(e){}
+ if(shopShown!==silver){const d=silver-shopShown;shopShown+=Math.sign(d)*Math.max(.6,Math.abs(d)*Math.min(1,dt*5));if(Math.abs(silver-shopShown)<1)shopShown=silver}
+ const r=Math.round(shopShown);if(r!==shopLastShown){shopLastShown=r;setText('shopSilver',String(r))}
 }
 function toggleShopReady(){
  if(!multiplayer)return;
@@ -1139,7 +1485,7 @@ function closeShopAndDescend(){
  if(!multiplayer){leaveShop();endWin=true;phase='over';start();return}
  if(!isNetHost)return;
  netCacheUps();
- const roster=shopRoster(),all=roster.every(shopIsReady),force=isNetHost&&performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
+ const roster=shopRoster(),all=roster.every(shopIsReady),force=performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
  if(!all&&!force){say('Not everyone is ready.',2);return}
  const rr=netDescendPending;
  if(!rr){say('The lift is not ready.',2);return}
@@ -1368,9 +1714,6 @@ function updateMonster(dt){
   if(m.pause>0){m.pause-=dt;m.mv=0;}
   else{
    const mi=monsterInput||{};
-   // Drop stale movement when the controller's network packets stop arriving.
-   if(!monsterInputReceivedAt)monsterInputReceivedAt=performance.now();
-   if(performance.now()-monsterInputReceivedAt>650){mi.dx=0;mi.dy=0;mi.sprint=false;mi.possess=false;mi.reveal=false;}
    // Optional: force-reveal while disguised
    if((monsterRevealQueued||mi.reveal)&&m.state==='disguise'){reveal(netMonsterTarget(m));}
    monsterRevealQueued=false;mi.reveal=false;
@@ -1443,7 +1786,7 @@ function updateMonster(dt){
   // Very close encounters remain dangerous, even with the lamp switched off.
   const chaseSightRange=targetLamp?sightRange:Math.max(62,92-(depth-1)*2)*(1+1.3*MM.dark);
   const hearRange=(90+targetNoise*5.5+(depth-1)*9)*(1+.4*MM.loud);
-  const hear=pd<(targetLamp?hearRange:hearRange*.72);
+  const hear=pd<(targetLamp?hearRange:hearRange*.72*hearOf(targetPlayer));
   const seen=los&&pd<(m.state==='hunt'&&m.huntT==='player'?chaseSightRange:sightRange);
   // A lit flashlight can be sensed through solid rock at close range, so the creature homes in on it without line of sight.
   const sensed=targetLamp&&pd<(300+(depth-1)*12)*senseOf(targetPlayer);
@@ -1486,7 +1829,7 @@ function monsterKillContacts(m){
  const reach=34; // slightly generous so fast movement / lag still drops a body
  for(const b of bots)if(b.alive&&dist(b,m)<reach)killBot(b);
  // Local miner
- if((!multiplayer||(isNetHost&&netAlive&&performance.now()>=(netSpawnGraceUntil[netMyId]||0)))&&player&&phase==='play'&&!isMonsterController&&dist(player,m)<reach){
+ if((!multiplayer||netAlive)&&player&&phase==='play'&&!isMonsterController&&(!multiplayer||performance.now()>=netKillGraceUntil)&&dist(player,m)<reach){
   die();
   if(multiplayer&&isNetHost){forceNetBodySync();checkMonsterWipe();}
   return;
@@ -1495,10 +1838,11 @@ function monsterKillContacts(m){
   // Host always resolves player kills. Controller host path is the same.
   if(isNetHost){
    for(const p of netPlayers){
-    if(!p||!p.alive||p.id===netMyId||p.id===netMonsterControllerId||isPossessedPlayerBodyId(p.id))continue;
-    if(performance.now()<(netSpawnGraceUntil[p.id]||0))continue;
+    if(!p||p.alive!==true||p.id===netMyId||p.id===netMonsterControllerId||p.role==='monster')continue;
     if(!Number.isFinite(p.x)||!Number.isFinite(p.y))continue;
-    if(dist(p,m)<reach)netKillRemote(p.id,p.x,p.y);
+    const nowK=performance.now();if(nowK<netKillGraceUntil)continue;
+    if(netKilledAt[p.id]&&nowK-netKilledAt[p.id]<3000)continue;
+    if(dist(p,m)<reach){netKilledAt[p.id]=nowK;netKillRemote(p.id,p.x,p.y)}
    }
    checkMonsterWipe();
   }
@@ -1568,9 +1912,7 @@ function netHostStartNextRound(){
 function applyRoundRestart(rr){
  if(!rr||rr.type!=='round-restart')return;
  netMonsterWinPending=false;netPendingRoundRestart=null;netLocalWorld=true;netMyActs=[];netDescendPending=null;
- netIgnoreDeathUntil=performance.now()+NET_SPAWN_GRACE_MS;
- for(const p of (netPlayers||[]))if(p&&p.id)netSpawnGraceUntil[p.id]=performance.now()+NET_SPAWN_GRACE_MS;
- netSpawnGraceUntil[netMyId]=performance.now()+NET_SPAWN_GRACE_MS;
+ netIgnoreDeathUntil=performance.now()+4000;netKillGraceUntil=performance.now()+3000;netDeadSince=0;netKilledAt={};
  netRoundId=rr.roundId||netRoundId;
  netPrevMonsterIds=rr.prevMonsterIds||netPrevMonsterIds;
  netMonsterControllerId=rr.controllerId;netMonsterControllerName=rr.controllerName||'MINER';
@@ -1679,7 +2021,7 @@ function rockImpact(h){
  Snd.crash(clamp(1-d/700,.15,1),pan);if(d<400)shake=Math.max(shake,clamp(9-d/60,3,9));
  for(let i=0;i<22;i++)P(h.x,h.y,rnd(-110,110),rnd(-110,110),rnd(.5,1.2),rnd(1.2,3),i%3?'#8a8a78':'#5b5a4e',{drag:.92});
  for(let i=0;i<9;i++){dctx.fillStyle=i%2?'#2f322d':'#454a42';dctx.beginPath();dctx.ellipse(h.x+rnd(-h.r*.7,h.r*.7),h.y+rnd(-h.r*.7,h.r*.7),rnd(2.5,6),rnd(2,4.5),rnd(0,3),0,TAU);dctx.fill()}
- if(d<h.r+8&&!isMonsterController){player.stun=1.3*upgradeStunMult();player.stamina=Math.max(0,player.stamina-30*upgradeStunMult());noise=Math.min(100,noise+30);say('A slab clips you. You stagger.',2)}
+ if(d<h.r+8&&!isMonsterController){player.stun=1.3*upgradeStunMult();player.stamina=Math.max(0,player.stamina-(N('i10')?0:30*upgradeStunMult()));noise=Math.min(100,noise+30);say('A slab clips you. You stagger.',2)}
  if((!multiplayer||isNetHost)&&monster&&!isMonsterController&&(monster.state==='stalk'||monster.state==='search')&&Math.hypot(monster.x-h.x,monster.y-h.y)<720){monster.state='investigate';monster.lastSeen={x:h.x,y:h.y};monster.search=4;monster.path=null}
 }
 function ringBell(ctl){
@@ -1700,7 +2042,7 @@ function updateGimmicks(dt,ctl){
  if(gim('bell')){const n=Math.floor((elapsed+14)/34);if(n>bellN){bellN=n;ringBell(ctl)}}
  if(ctl){rocks.length=0;sporeAmt=0;return}
  if(gim('battery')){
-  if(flashlightOn){battery-=dt*1.3*upgradeBatDrain();if(battery<=0){battery=0;flashlightOn=false;say('The lamp died. It recharges slowly in the dark.',2.5);Snd.lamp()}}
+  if(flashlightOn){battery=Math.min(100,battery-dt*(1.3*upgradeBatDrain()-upgradeBatTrickle()));if(battery<=0){battery=0;flashlightOn=false;say('The lamp died. It recharges slowly in the dark.',2.5);Snd.lamp()}}
   else battery=Math.min(100,battery+dt*3.5*upgradeBatCharge());
  }
  if(gim('rockfall')){
@@ -1753,7 +2095,7 @@ function updateFx(dt){
 function markExplored(){
  const px=player.x,py=player.y;
  for(let i=0;i<64;i++){const a=i/64*TAU,dx=Math.cos(a),dy=Math.sin(a);
-  for(let d=0;d<280;d+=12){const tx=Math.floor((px+dx*d)/TILE),ty=Math.floor((py+dy*d)/TILE);if(tx<0||ty<0||tx>=COLS||ty>=ROWS)break;explored[ty*COLS+tx]=1;if(map[ty][tx])break}}
+  for(let d=0,mr=280+upgradeMapRadius();d<mr;d+=12){const tx=Math.floor((px+dx*d)/TILE),ty=Math.floor((py+dy*d)/TILE);if(tx<0||ty<0||tx>=COLS||ty>=ROWS)break;explored[ty*COLS+tx]=1;if(map[ty][tx])break}}
 }
 
 /* ---------- main update ---------- */
@@ -1769,16 +2111,6 @@ function updateGame(dt){
   if(monster){player.x=monster.x;player.y=monster.y;}
   player.mv=0;noise=Math.max(0,noise-dt*20);updateGimmicks(dt,true);
   if(!multiplayer||isNetHost){updateBots(dt);updateMonster(dt);}
-  else if(multiplayer&&monster&&monster.state!=='possess'){
-   // Client-side prediction keeps the monster responsive even if the server omits
-   // nested input fields; the host remains authoritative and corrects position via monster-state.
-   const base={stalk:64,investigate:98,search:84,hunt:monster.revealed?158:138,disguise:70}[monster.state]||90;
-   const spd=(base+(keys.shift?40:0))*depthScale();
-   if(len>0){monster.fx=dx;monster.fy=dy;moveEntity(monster,dx*spd*dt,dy*spd*dt,monster.r);monster.mv=lerp(monster.mv,keys.shift?1.4:1,Math.min(1,dt*8));}
-   else monster.mv=lerp(monster.mv,0,Math.min(1,dt*6));
-   if(Number.isFinite(aim))monster.ang=angLerp(monster.ang,aim,Math.min(1,dt*10));
-   monster.gait+=dt*(4+monster.mv*7);
-  }
   // If host is also the controller, feed inputs directly
   if(isNetHost){
    monsterInput={dx,dy,aim:player.aim,sprint:!!keys.shift,possess:false,reveal:false,seq:(monsterInput.seq||0)+1};
@@ -1795,7 +2127,7 @@ function updateGame(dt){
  if(puzzle){dx=0;dy=0}
  const len=Math.hypot(dx,dy),moving=len>0;if(moving){dx/=len;dy/=len}
  const crouch=!!(keys.c||keys.control);
- if(player.tired&&player.stamina>28)player.tired=false;
+ if(player.tired&&player.stamina>upgradeTiredExit())player.tired=false;
  const sprint=keys.shift&&moving&&!crouch&&!player.tired&&player.stamina>0;
  noise=Math.max(0,noise-dt*(moving?3.5:puzzle?3.2:38));
  if(player.tired||player.stamina<30){breathT-=dt;if(breathT<=0){breathT=player.tired?.7:1.2;Snd.breath()}}
@@ -1817,7 +2149,7 @@ function updateGame(dt){
   const si=Math.floor(player.foot/Math.PI);
   if(si!==player.stepI){
    player.stepI=si;
-   const footfallNoise=Math.round(((crouch?2:sprint?12:(player.moveTime<.9?4:7))+(inWater?(crouch?7:sprint?23:18):0))*upgradeNoiseMult(sprint));
+   const footfallNoise=Math.round(((crouch?2:sprint?12:(player.moveTime<.9?4:7))+(inWater?(crouch?7:sprint?23:18):0))*upgradeNoiseMult(sprint,crouch));
    noise=Math.min(100,noise+footfallNoise);
    if(inWater){Snd.splash(crouch?.65:sprint?1.5:1,clamp((player.x-monster.x)/400,-1,1));wSplash(player.x,player.y,crouch?.5:sprint?1.3:.9)}
    else{Snd.step(sprint,crouch?.28:1);
@@ -2115,7 +2447,7 @@ function draw(){
  }
  }
  // Remote crew members are replicated from the authoritative lobby server.
- if(multiplayer){for(const rp of netPlayers){if(rp.id===netMyId||isMonsterPlayerId(rp.id)||rp.role==='monster'||!rp.alive||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;
+ if(multiplayer){for(const rp of netPlayers){if(rp.id===netMyId||isMonsterPlayerId(rp.id)||rp.role==='monster'||rp.alive===false||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;
   drawMiner(rp.x,rp.y,rp.aim||0,fxClock*5,rp.moving?1:0,PAL.player);
   ctx.save();ctx.font='10px Consolas,monospace';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(rp.x-42,rp.y-32,84,13);ctx.fillStyle='#d7d8bd';ctx.fillText(String(rp.name||'MINER').slice(0,18),rp.x,rp.y-22);ctx.restore();
  }}
@@ -2139,7 +2471,16 @@ function draw(){
   const mx=monster.x-camX,my=monster.y-camY;
   lights.push({x:mx,y:my,r:lightReach,poly:visPoly(monster.x,monster.y,lightReach,120,camX,camY),kind:'player',k:.7,aim:player.aim});
  }
- if(multiplayer){for(const rp of netPlayers){if(rp.id===netMyId||isMonsterPlayerId(rp.id)||!rp.alive||!rp.flashlightOn||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;const sx=rp.x-camX,sy=rp.y-camY;if(sx<-lightReach||sx>W+lightReach||sy<-lightReach||sy>H+lightReach)continue;lights.push({x:sx,y:sy,r:lightReach,poly:visPoly(rp.x,rp.y,lightReach,120,camX,camY),kind:'player',k:.72,aim:rp.aim||0})}}
+ if(multiplayer){for(const rp of netPlayers){if(rp.id===netMyId||isMonsterPlayerId(rp.id)||rp.alive===false||!rp.flashlightOn||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;const sx=rp.x-camX,sy=rp.y-camY;if(sx<-lightReach||sx>W+lightReach||sy<-lightReach||sy>H+lightReach)continue;lights.push({x:sx,y:sy,r:lightReach,poly:visPoly(rp.x,rp.y,lightReach,120,camX,camY),kind:'player',k:.72,aim:rp.aim||0})}}
+ if(multiplayer&&phase==='spectate'){
+  const fo=cameraFocus;
+  for(const rp of netPlayers){
+   if(!rp||rp.id===netMyId||isMonsterPlayerId(rp.id)||rp.role==='monster'||rp.alive===false||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;
+   const sx=rp.x-camX,sy=rp.y-camY;if(sx<-200||sx>W+200||sy<-200||sy>H+200)continue;
+   const followed=fo&&fo.id===rp.id,rr=followed?170:110;
+   lights.push({x:sx,y:sy,r:rr,poly:visPoly(rp.x,rp.y,rr,40,camX,camY),kind:'bot',k:followed?.95:.8});
+  }
+ }
  for(const l of lanterns){
   if(l.dead||blackOn>0){l.cur=(l.dead?.15:.03)+upgradeDeadGlow();continue}
   let k=.82+.18*Math.sin(fxClock*8.3+l.ph)*Math.sin(fxClock*3.1+l.ph*2);if(blackWarn)k*=Math.sin(fxClock*47+l.ph*3)>0?1:.15;
@@ -2147,7 +2488,7 @@ function draw(){
   if(dm<260&&monster.state!=='disguise')k*=Math.sin(fxClock*41+l.ph)>.25?1:.2;
   l.cur=k;
   const sx=l.x-camX,sy=l.y-camY;if(sx<-l.r||sx>W+l.r||sy<-l.r||sy>H+l.r)continue;
-  lights.push({x:sx,y:sy,r:l.r,poly:visPoly(l.x,l.y,l.r,56,camX,camY),kind:'lantern',k});
+  {const lr=l.r*upgradeLanternMult();lights.push({x:sx,y:sy,r:lr,poly:visPoly(l.x,l.y,lr,56,camX,camY),kind:'lantern',k})}
  }
  {const sx=exit.x-camX,sy=exit.y-camY;if(sx>-140&&sx<W+140&&sy>-140&&sy<H+140)lights.push({x:sx,y:sy,r:120,poly:visPoly(exit.x,exit.y,120,40,camX,camY),kind:'lift',k:.8+.2*Math.sin(fxClock*5)})}
  for(const b of bots)if(b.alive){const sx=b.x-camX,sy=b.y-camY;if(sx>-130&&sx<W+130&&sy>-130&&sy<H+130)lights.push({x:sx,y:sy,r:105,poly:visPoly(b.x,b.y,105,32,camX,camY),kind:'bot',k:.85})}
@@ -2196,6 +2537,7 @@ function draw(){
   }
  }
  drawUpgradeOverlays(camX,camY);
+ drawSpectateMarkers(camX,camY,cameraFocus);
  // gimmick overlays are drawn in screen space so warnings stay readable in the dark
  for(const h of rocks){const sx=h.x-camX,sy=h.y-camY;if(sx<-90||sx>W+90||sy<-90||sy>H+90)continue;
   if(!h.hit){const k=clamp(h.t/h.warn,0,1);ctx.save();ctx.lineWidth=2;ctx.strokeStyle=`rgba(235,95,65,${.5+.3*Math.sin(fxClock*18)})`;ctx.setLineDash([6,5]);ctx.lineDashOffset=-fxClock*24;ctx.beginPath();ctx.arc(sx,sy,h.r,0,TAU);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=`rgba(200,60,40,${.05+k*.2})`;ctx.fill();ctx.strokeStyle='rgba(255,190,160,.65)';ctx.beginPath();ctx.arc(sx,sy,h.r*k,0,TAU);ctx.stroke();ctx.fillStyle='rgba(235,210,190,.5)';for(let i=0;i<4;i++){const px=sx+Math.sin(i*2.3+fxClock*3)*h.r*.6,py=sy-((fxClock*70+i*23)%50)+10;ctx.fillRect(px,py,1.6,3)}ctx.restore()}
@@ -2239,8 +2581,9 @@ function draw(){
 function drawMini(){
  mctx.clearRect(0,0,mini.width,mini.height);
  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){if(!explored[y*COLS+x])continue;mctx.fillStyle=map[y][x]?'#2b332f':'#5d6b60';mctx.fillRect(x*4,y*4,4,4)}
- if(explored[24*COLS+32]){mctx.fillStyle='#d7b66d';mctx.fillRect(32*4,24*4,4,4)}
- for(const b of bots)if(b.alive&&dist(b,player)<260){mctx.fillStyle='#8fb39a';mctx.fillRect(b.x/TILE*4-1.5,b.y/TILE*4-1.5,3,3)}
+ if(N('m9')||explored[24*COLS+32]){mctx.fillStyle='#d7b66d';mctx.fillRect(32*4,24*4,4,4)}
+ for(const b of bots)if(b.alive&&(N('m6')||dist(b,player)<260)){mctx.fillStyle='#8fb39a';mctx.fillRect(b.x/TILE*4-1.5,b.y/TILE*4-1.5,3,3)}
+ drawMiniPerks();
  mctx.fillStyle='#f0e8d0';mctx.fillRect(player.x/TILE*4-2,player.y/TILE*4-2,4,4);
 }
 function updateHud(){
@@ -2331,11 +2674,10 @@ let hostPlayerMonster=false;
 let netMonsterControllerId=null,netMonsterControllerName=null,isMonsterController=false;
 // Latest movement/actions from the assigned monster player (host applies these).
 let monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};
-let monsterInputSeqApplied=0,monsterPossessQueued=false,monsterRevealQueued=false,monsterInputReceivedAt=0;
-const netMonsterLastPos=Object.create(null);
-let netRoundId=0,netMonsterWinPending=false,netPrevMonsterIds=[],netIgnoreDeathUntil=0,netDeadSeenAt=0;
-const netSpawnGraceUntil=Object.create(null);
-const NET_SPAWN_GRACE_MS=4500;
+let monsterInputSeqApplied=0,monsterPossessQueued=false,monsterRevealQueued=false;
+let netRoundId=0,netMonsterWinPending=false,netPrevMonsterIds=[],netIgnoreDeathUntil=0;
+// Death safety: a server 'alive:false' flag must persist before it counts, the host never kills on stale positions right after a (re)start, and each victim is only killed once per moment.
+let netDeadSince=0,netKillGraceUntil=0,netKilledAt={};
 // After the first lift ride the lobby's world (gold taken / walls tagged) is tracked per level by the host instead of the server.
 let netLocalWorld=false,netMyActs=[],netDescendPending=null,netLiftUse=null,netLiftSeq=0,netLiftSeen={},netMapBad=0;
 const NET_SPAWNS=[{x:2.5*TILE,y:2.5*TILE},{x:3.5*TILE,y:2.5*TILE},{x:2.5*TILE,y:3.5*TILE},{x:3.5*TILE,y:3.5*TILE},{x:2.5*TILE,y:1.5*TILE}];
@@ -2372,8 +2714,7 @@ function ensureNet(){
  netSocket.on('lobby-update',netUpdateLobby);
  netSocket.on('game-start',d=>{netHostId=d.hostId;isNetHost=netHostId===netMyId;netPlayers=d.players||[];netStartGame(d)});
  netSocket.on('players-update',d=>{
-  const priorIds=new Set((netPlayers||[]).map(p=>p&&p.id).filter(Boolean));netPlayers=d.players||[];if(d.hostId){netHostId=d.hostId;isNetHost=netHostId===netMyId}
-  if(isNetHost)for(const p of netPlayers)if(p&&p.id&&!priorIds.has(p.id))netSpawnGraceUntil[p.id]=performance.now()+NET_SPAWN_GRACE_MS;
+  netPlayers=d.players||[];if(d.hostId){netHostId=d.hostId;isNetHost=netHostId===netMyId}
   for(const p of netPlayers){if(p&&p.shopReady!==undefined)shopReadyMap[p.id]=!!p.shopReady}
   netCacheUps();if(shopOpen)renderShopFooter();
   syncNetworkBodies();
@@ -2381,27 +2722,19 @@ function ensureNet(){
   // Host reads the assigned monster player's movement intents (relayed through player-state).
   if(isNetHost&&netMonsterControllerId){
    const ctrl=netPlayers.find(p=>p.id===netMonsterControllerId);
-   if(ctrl){
+   if(ctrl&&ctrl.monsterInput&&typeof ctrl.monsterInput==='object'){
     const mi=ctrl.monsterInput;
-    if(mi&&typeof mi==='object'&&Number(mi.seq||0)>monsterInputSeqApplied){
-     monsterInput={dx:+mi.dx||0,dy:+mi.dy||0,aim:Number.isFinite(+mi.aim)?+mi.aim:monsterInput.aim,sprint:!!mi.sprint,possess:!!mi.possess,reveal:!!mi.reveal,seq:Number(mi.seq)||0};
-     monsterInputSeqApplied=monsterInput.seq;monsterInputReceivedAt=performance.now();
+    if(Number(mi.seq||0)>monsterInputSeqApplied){
+     monsterInput={dx:+mi.dx||0,dy:+mi.dy||0,aim:+mi.aim||0,sprint:!!mi.sprint,possess:!!mi.possess,reveal:!!mi.reveal,seq:Number(mi.seq)||0};
+     monsterInputSeqApplied=monsterInput.seq;
      if(mi.possess)monsterPossessQueued=true;
      if(mi.reveal)monsterRevealQueued=true;
-    } else if(Number.isFinite(ctrl.x)&&Number.isFinite(ctrl.y)&&monster){
-     // Fallback for servers that omit nested monsterInput from player-state broadcasts:
-     // infer direction from the controller's locally predicted monster position.
-     const prev=netMonsterLastPos[ctrl.id];
-     netMonsterLastPos[ctrl.id]={x:ctrl.x,y:ctrl.y,t:performance.now()};
-     if(prev){const vx=ctrl.x-prev.x,vy=ctrl.y-prev.y,vl=Math.hypot(vx,vy);if(vl>0.25&&vl<180){monsterInput.dx=vx/vl;monsterInput.dy=vy/vl;monsterInput.aim=Number.isFinite(+ctrl.aim)?+ctrl.aim:monsterInput.aim;monsterInput.sprint=!!ctrl.sprinting;monsterInputReceivedAt=performance.now();}else if(vl>=180){monsterInput.dx=0;monsterInput.dy=0;}}
     }
    }
   }
   if(performance.now()<netIgnoreDeathUntil){netPlayers=netPlayers.map(p=>({...p,alive:true}));}
   const me=netPlayers.find(p=>p.id===netMyId);
-  // A single stale player snapshot can briefly mark a living client dead during lag/reconnect.
-  // Require the dead state to persist before acting on players-update; the explicit player-died event remains authoritative.
-  if(me&&me.alive===false&&phase==='play'&&!isMonsterController){if(!netDeadSeenAt)netDeadSeenAt=performance.now();if(performance.now()-netDeadSeenAt>1400)netEnterSpectator(me.x,me.y,true)}else if(me&&me.alive!==false){netDeadSeenAt=0;}
+  if(me&&me.alive===false&&phase==='play'&&!isMonsterController){const nw=performance.now();if(!netDeadSince)netDeadSince=nw;if(nw-netDeadSince>=1000)netEnterSpectator(me.x,me.y,true)}else netDeadSince=0;
   if(multiplayer){netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||'------'}\n${livingCrewCount()} ALIVE · ${netBotSlots} BOTS`+(netMonsterControllerId?`\nMONSTER: ${netMonsterControllerName||'PLAYER'}`:'') )}
  });
  netSocket.on('player-died',p=>{if(performance.now()<netIgnoreDeathUntil){return;}netPlayers=netPlayers.map(q=>q.id===p.id?{...q,...p,alive:false}:q);if(Number.isFinite(p.x)&&Number.isFinite(p.y))spawnCorpse({x:p.x,y:p.y,worldId:`player:${p.id}`,netId:p.id,name:p.name||'MINER',pal:PAL.MINER,fromBot:true,fx:true});syncNetworkBodies();if(p.id===netMyId&&phase==='play'&&!isMonsterController)netEnterSpectator(p.x,p.y,true);if(isNetHost)checkMonsterWipe();});
@@ -2420,12 +2753,12 @@ function netJoinAction(type){
  else {const code=$('roomCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);if(!code){netMessage('Enter the room code first.');return}netSocket.emit('join-lobby',{...payload,code})}
  netMessage('Contacting the mine server…');
 }
-function netLeave(){netDeadSeenAt=0;if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];netHostId=null;isNetHost=false;netSocket=null;netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;hostPlayerMonster=false;$('spectate').style.display='none';$('netStatus').style.display='none';$('onlinePanel').style.display='none';$('menu').style.display='flex';phase='menu';}
+function netLeave(){if(netSocket)netSocket.emit('leave-lobby');multiplayer=false;netAlive=true;netLobby=null;netPlayers=[];netHostId=null;isNetHost=false;netSocket=null;netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;hostPlayerMonster=false;$('spectate').style.display='none';$('netStatus').style.display='none';$('onlinePanel').style.display='none';$('menu').style.display='flex';phase='menu';}
 function netSeededSetup(seed){const old=Math.random,oldWorldSeed=worldSeedForVisuals,s=(Number(seed)>>>0)||1;worldSeedForVisuals=s;Math.random=mulberry(s);try{setup()}finally{Math.random=old;worldSeedForVisuals=oldWorldSeed}}
 function netStartGame(d){
- multiplayer=true;netSeed=d.seed;netBotSlots=Math.max(0,Math.min(4,Number(d.botSlots)||0));netAlive=true;netDeadSeenAt=0;netIgnoreDeathUntil=performance.now()+NET_SPAWN_GRACE_MS;for(const p of (d.players||netPlayers||[]))if(p&&p.id)netSpawnGraceUntil[p.id]=performance.now()+NET_SPAWN_GRACE_MS;netSpawnGraceUntil[netMyId]=performance.now()+NET_SPAWN_GRACE_MS;netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
+ multiplayer=true;netSeed=d.seed;netBotSlots=Math.max(0,Math.min(4,Number(d.botSlots)||0));netAlive=true;netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
  netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;
- monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};monsterInputSeqApplied=0;monsterInputReceivedAt=performance.now();monsterPossessQueued=false;monsterRevealQueued=false;
+ monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};monsterInputSeqApplied=0;monsterPossessQueued=false;monsterRevealQueued=false;
  // Host assigns a random human as the monster when the lobby option is enabled.
  if(isNetHost&&hostPlayerMonster){
   const pool=(d.players||netPlayers||[]).filter(p=>p&&p.id);
@@ -2434,7 +2767,7 @@ function netStartGame(d){
    netMonsterControllerId=pick.id;netMonsterControllerName=pick.name||'MINER';
   }
  }
- netLocalWorld=false;netMyActs=[];netDescendPending=null;netLiftUse=null;netRoundId=0;netMonsterWinPending=false;depth=1;MM=freshMM();silver=0;runUpgrades={};shopOpen=false;netUps={};netSeededSetup(netSeed);
+ netIgnoreDeathUntil=performance.now()+3000;netKillGraceUntil=performance.now()+3000;netDeadSince=0;netKilledAt={};netLocalWorld=false;netMyActs=[];netDescendPending=null;netLiftUse=null;netRoundId=0;netMonsterWinPending=false;depth=1;MM=freshMM();silver=0;runUpgrades={};shopOpen=false;netUps={};netSeededSetup(netSeed);
  // Reuse the game's existing crew AI as the bot-filled player slots. Add/remove bots deterministically to exactly match the lobby.
  bots=bots.slice(0,netBotSlots);
  while(bots.length<netBotSlots){const slot=bots.length,c=floorList[(47+slot*71)%floorList.length],p={x:(c.x+.5)*TILE,y:(c.y+.5)*TILE};const names=['BOT-01','BOT-02','BOT-03','BOT-04'];bots.push({...p,r:9,alive:true,name:names[slot]||'BOT',pal:PAL.MINER,path:null,pi:0,think:0,ph:slot, gold:0,tags:0,panic:0,goal:null,paint:0,work:0,fx:0,fy:1,ang:Math.PI/2,moving:false,repath:0})}
@@ -2622,6 +2955,7 @@ function netApplyMonster(msg){
  if(msg.roundEvent&&msg.roundEvent.type==='monster-win'&&!isNetHost){
   showMonsterWin(msg.roundEvent.winnerName||msg.controllerName||'THE MONSTER',false);
  }
+ if(!isNetHost&&phase==='shop'&&netDescendPending&&Number(msg.roundId)===netDescendPending.roundId&&Number(msg.depth)===netDescendPending.depth&&(!msg.seed||msg.seed===netDescendPending.seed)){const p=netDescendPending;leaveShop();applyRoundRestart(p);return}
  if(msg.roundEvent&&msg.roundEvent.type==='round-restart'&&!isNetHost){
   {const rr=msg.roundEvent;if(!rr.roundId||rr.roundId>netRoundId){if(rr.descend)netBeginDescend(rr);else applyRoundRestart(rr)}}
  }
@@ -2643,7 +2977,7 @@ function netApplyMonster(msg){
  if(msg.world&&!(isNetHost&&netLocalWorld))netApplyWorld(msg.world);
  if(msg.worldObjects)netApplyWorldObjects(msg.worldObjects);
  if(msg.bots&&Array.isArray(bots)&&!isNetHost){msg.bots.forEach((b,i)=>{if(!bots[i])return;Object.assign(bots[i],b);bots[i].goal=null;bots[i].paint=0})}
- if(!isNetHost&&monster&&msg.monster){const m=msg.monster;const oldX=monster.x,oldY=monster.y;Object.assign(monster,{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen||null,search:m.search||0,huntT:m.huntT||'player',dT:m.dT||0,mv:m.mv||0,gait:m.gait||0,revealed:!!m.revealed,pause:m.pause||0,disguise:m.disguise||null,stuck:m.stuck||0,wCool:m.wCool||0,eye:m.eye||0});if(Math.hypot((m.x||0)-oldX,(m.y||0)-oldY)>42)monster.path=null;monster.host=m.hostBodyId?(bodies.find(b=>b.worldId===m.hostBodyId)||null):(m.hostId?bodies.find(b=>b.netId===m.hostId)||null:null);
+ if(!isNetHost&&monster&&msg.monster){const m=msg.monster;Object.assign(monster,{x:m.x,y:m.y,ang:m.ang,state:m.state,t:m.t,lastSeen:m.lastSeen||null,search:m.search||0,huntT:m.huntT||'player',dT:m.dT||0,mv:m.mv||0,gait:m.gait||0,revealed:!!m.revealed,pause:m.pause||0,disguise:m.disguise||null,stuck:m.stuck||0,wCool:m.wCool||0,eye:m.eye||0});monster.path=null;monster.host=m.hostBodyId?(bodies.find(b=>b.worldId===m.hostBodyId)||null):(m.hostId?bodies.find(b=>b.netId===m.hostId)||null:null);
   // If the host body is fully possessed on the authority side, force local body hidden.
   if(m.state==='disguise'||m.state==='hunt'||m.state==='stalk'){
    if(m.hostBodyId){const hb=bodies.find(b=>b.worldId===m.hostBodyId);if(hb){hb.possessed=true;hb.used=true;hb.possessing=0}}
@@ -2682,9 +3016,9 @@ function netTick(){
    let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
    const len=Math.hypot(dx,dy);if(len>0){dx/=len;dy/=len;}
    const lampOk=monster&&monster.state==='disguise'&&flashlightOn;
-   const payload={x:monster?monster.x:player.x,y:monster?monster.y:player.y,aim:player.aim,mv:0,foot:0,alive:false,flashlightOn:!!lampOk,noise:0,moving:len>0,sprinting:!!keys.shift,name:netName,role:'monster',
+   const payload={x:monster?monster.x:player.x,y:monster?monster.y:player.y,aim:player.aim,mv:0,foot:0,alive:false,flashlightOn:!!lampOk,noise:0,moving:len>0,name:netName,role:'monster',
     monsterInput:{dx,dy,aim:player.aim,sprint:!!keys.shift,possess:!!monsterPossessQueued,reveal:!!monsterRevealQueued,seq:(monsterInput.seq||0)+1,flashlightOn:!!lampOk}};
-   monsterInput.seq=payload.monsterInput.seq;monsterInputReceivedAt=now;
+   monsterInput.seq=payload.monsterInput.seq;
    // Consume one-shot actions after queueing
    monsterPossessQueued=false;monsterRevealQueued=false;
    netSocket.emit('player-state',payload);
