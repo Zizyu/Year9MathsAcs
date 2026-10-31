@@ -184,6 +184,40 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
 #shopReadyBtn,#shopDescendBtn{min-width:170px}
 @media(max-width:860px){.shopMain{flex-direction:column}#shopDetail{flex:none;max-height:none}#shopTreeWrap{max-height:46vh}}
 @media(prefers-reduced-motion:reduce){#shop *{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
+#abilityHud{right:14px;bottom:54px;width:min(310px,32vw);font-size:10px;line-height:1.6;letter-spacing:.04em;color:#aeb8ad}
+#abilityHud b{color:#d7b66d;font-weight:600}
+#abilityHud .abilityRow{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #45504755;padding-top:2px;margin-top:2px}
+#abilityHud .abilityReady{color:#9bc8a4}
+#abilityHud .abilityCooling{color:#c98a80}
+@media(max-width:700px){#abilityHud{right:8px;bottom:43px;width:160px;font-size:9px;padding:6px 8px}}
+
+/* ===== v24: animated menu ===== */
+#menuFx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#menu:after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,#0000 0 2px,#0000002a 2px 3px);animation:scanDrift 8s linear infinite}
+@keyframes scanDrift{from{background-position:0 0}to{background-position:0 60px}}
+#menu .card{backdrop-filter:blur(1.5px)}
+#menu .card>*{animation:menuRise .9s cubic-bezier(.2,.8,.2,1) both}
+#menu .card>*:nth-child(1){animation-delay:.05s}#menu .card>*:nth-child(2){animation-delay:.18s}#menu .card>*:nth-child(3){animation-delay:.34s}
+#menu .card>*:nth-child(4){animation-delay:.44s}#menu .card>*:nth-child(5){animation-delay:.54s}#menu .card>*:nth-child(6){animation-delay:.64s}
+#menu .card>*:nth-child(7){animation-delay:.74s}#menu .card>*:nth-child(8){animation-delay:.84s}#menu .card>*:nth-child(9){animation-delay:.94s}
+@keyframes menuRise{from{opacity:0;transform:translateY(22px);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}
+#menu .card>.kicker{animation:menuRise .9s both,kickBlink 2.8s ease-in-out 1s infinite}
+@keyframes kickBlink{0%,100%{opacity:1}45%{opacity:.45}50%{opacity:.9}55%{opacity:.35}}
+#menu .card>.menuTitle{animation:menuRise .9s both,titleFlick 6.5s steps(1) 1.4s infinite}
+@keyframes titleFlick{0%,92%,100%{opacity:1;text-shadow:none;transform:none}93%{opacity:.7;transform:translateX(-4px) skewX(-5deg);text-shadow:4px 0 #b8453a,-4px 0 #3a9aa8}94%{opacity:1;transform:translateX(3px);text-shadow:-3px 0 #b8453a,3px 0 #3a9aa8}95%{opacity:.35;transform:none;text-shadow:none}96%{opacity:1}97%{opacity:.6;transform:translateY(1px)}98%{opacity:1}}
+.menuTitle span{display:inline-block;animation:veinPulse 3.6s ease-in-out infinite}
+@keyframes veinPulse{0%,100%{color:#8c9a91;text-shadow:0 0 0 #0000}50%{color:#c9a352;text-shadow:0 0 26px #c9a35277}}
+#menu .card>#start{animation:menuRise .9s .94s both,startPulse 2.4s ease-in-out 2s infinite}
+@keyframes startPulse{0%,100%{box-shadow:0 0 0 #a86c5500}50%{box-shadow:0 0 24px #a86c558c}}
+#menu button{transition:transform .15s,background .2s,box-shadow .2s}
+#menu button:hover{transform:translateY(-2px);box-shadow:0 4px 22px #a86c5566}
+#menu button:active{transform:translateY(1px)}
+
+/* ===== v24: lift descent cutscene ===== */
+#descent{position:fixed;inset:0;z-index:30;display:none;background:#000;cursor:pointer}
+#descentCv{display:block;width:100%;height:100%}
+#descentCv,#menuFx{image-rendering:crisp-edges;image-rendering:pixelated}
 </style>
 </head>
 <body>
@@ -192,19 +226,20 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
  <div id="stats" class="panel">DEPTH <b id="depth">01</b> · <span id="layerName">UPPER SEAMS</span><br>SHIFT <b id="shift">01</b> · <span id="clock">00:00</span><br>GOLD <b id="gold">0 / 6</b><br>GRAFFITI <b id="tags">0 / 3</b><br>CREW <b id="crew">2 ALIVE</b><br>NOISE <b id="noise">LOW</b><div class="bar"><i id="noiseBar"></i></div>STAMINA<div class="bar"><i id="stamBar"></i></div><span id="batRow" style="display:none">LAMP<div class="bar"><i id="batBar"></i></div></span><div id="gimLine" style="color:#d7b66d;font-size:10px;line-height:1.4;margin-top:3px"></div><div id="memLine" style="color:#b9857b;font-size:10px;line-height:1.4;margin-top:2px"></div><div id="silverLine" style="color:#c9ced1;font-size:10px;line-height:1.4;margin-top:2px"></div></div>
  <div id="objective" class="panel"><b style="color:#d7b66d">CONTRACT</b><br>Take 6 gold chunks and tag 3 marked walls. Stand on a floor marker beside a marked wall and press E to start tagging it. Repeat the arrow sequence while the mine listens. Once the quota is met, bring every living crew member within a 500 × 500 pixel area around the lift to extract.<br>Your two crew members gather gold and tag walls too. They can die, and the monster can wear their faces.<br><span style="color:#9aa39a">The mine is not empty.</span></div>
  <canvas id="mini"></canvas>
+  <div id="abilityHud" class="panel" style="display:none"></div>
  <div id="puzzle" class="panel"><div class="t">TAGGING · REPEAT THE SEQUENCE</div><div class="seq" id="puzzleSeq"></div><div class="bar"><i id="puzzleBar"></i></div><div class="s">WASD / arrow keys · wrong keys are loud · E to step away</div></div>
  <div id="alert"></div>
- <div id="hint" class="panel">WASD move · HOLD C / CTRL to crouch · SHIFT sprint · Mouse aims the lamp · E interact</div>
+ <div id="hint" class="panel">WASD move · HOLD C / CTRL to crouch · SHIFT sprint · Mouse aims the lamp · E interact · 1/2 abilities</div>
 </div>
-<div id="menu" class="overlay"><div class="card">
+<div id="menu" class="overlay"><canvas id="menuFx"></canvas><div class="card">
  <div class="kicker">UNAUTHORIZED EXTRACTION / SHIFT 01</div>
- <div class="title">DEEP<br><span>VEIN</span></div>
+ <div class="title menuTitle">DEEP<br><span>VEIN</span></div>
  <p>You came down for stolen gold and a few ugly tags. Something tall has been wandering these tunnels for years. It doesn't make corpses. It <em>uses</em> them.</p>
  <div class="rule"></div>
  <p><b>YOUR JOB</b><br>Meet the changing gold and graffiti quota, then bring all living crew members into the 500 × 500 pixel area around the lift. Your crew helps, but bodies are not always dead for long.</p>
- <p><b>CONTROLS</b><br><kbd>WASD</kbd> / arrows move · hold <kbd>C</kbd> or <kbd>CTRL</kbd> to crouch quietly · <kbd>SHIFT</kbd> sprint (uses stamina) · <b>mouse</b> aims your lamp · stand on a <b>floor marker</b> next to a marked wall and press <kbd>E</kbd> to tag it (repeat the arrow sequence, <kbd>E</kbd> again to step away) · <kbd>E</kbd> also collects gold / uses the lift · <kbd>TAB</kbd> survey map · <kbd>M</kbd> mute · <kbd>B</kbd> brightness · <kbd>P</kbd> pause</p>
+ <p><b>CONTROLS</b><br><kbd>WASD</kbd> / arrows move · hold <kbd>C</kbd> or <kbd>CTRL</kbd> to crouch quietly · <kbd>SHIFT</kbd> sprint (uses stamina) · <b>mouse</b> aims your lamp · stand on a <b>floor marker</b> next to a marked wall and press <kbd>E</kbd> to tag it (repeat the arrow sequence, <kbd>E</kbd> again to step away) · <kbd>E</kbd> also collects gold / uses the lift · <kbd>TAB</kbd> survey map · <kbd>1</kbd>/<kbd>2</kbd> use your purchased abilities · <kbd>M</kbd> mute · <kbd>B</kbd> brightness · <kbd>P</kbd> pause</p>
  <button id="start">DESCEND SOLO</button> <button id="onlineOpen" style="margin-left:8px">ONLINE MULTIPLAYER</button>
- <div class="rule"></div><div class="small">A multi-depth browser horror run. Every shift is a freshly generated mine, and every lift descent is darker, with fewer working lamps, more obstacles, a faster, more attentive monster and a new hazard (cave-ins, flooding, blackouts, spore clouds, a dying lamp, a tolling bell). In online co-op, when every living crew member is inside the 500 × 500 px lift zone and anyone uses the lift, the whole crew descends together. Headphones recommended.</div>
+ <div class="rule"></div><div class="small">A multi-depth browser horror run. Every shift is a freshly generated mine, and every lift descent is darker, with fewer working lamps, more obstacles, a faster, more attentive monster and changing hazards (cave-ins, flooding, blackouts, spore clouds, a dying lamp, a tolling bell and open floor shafts). In online co-op, when every living crew member is inside the 500 × 500 px lift zone and anyone uses the lift, the whole crew descends together. Headphones recommended.</div>
 </div></div>
 <div id="end" class="overlay"><div class="card"><div class="kicker">SHIFT REPORT</div><div class="title" id="endTitle">ESCAPED</div><p id="endText"></p><button id="again">TRY AGAIN</button></div></div>
 <div id="pause" class="overlay"><div class="card"><div class="kicker">SHIFT PAUSED</div><div class="title" style="font-size:44px">HOLD</div><p>The mine waits. It is very good at waiting.</p><button id="resume">RESUME</button></div></div>
@@ -241,6 +276,7 @@ kbd{border:1px solid #59635a;padding:0 5px;color:#d7b66d}
  </div>
 </div></div>
 <div id="netStatus"></div>
+<div id="descent"><canvas id="descentCv"></canvas></div>
 <div id="spectate"><div style="color:#d7b66d;letter-spacing:.18em;font-size:12px">YOUR SHIFT IS OVER</div><div id="spectateText" style="font-size:11px;line-height:1.5;margin:7px 0">You are dead. The mine keeps moving.</div><button id="nextSpectate">NEXT VIEW · E</button><button id="backToMenu">LEAVE MATCH</button></div>
 
 <script>
@@ -295,7 +331,7 @@ addEventListener('resize',resize);resize();
 
 /* ---------- audio (all synthesised, no files) ---------- */
 const Snd=(()=>{
- let ac=null,master=null,nb=null,muted=false,spr=null,amb=null;
+ let ac=null,master=null,nb=null,muted=false,spr=null,amb=null,ls=null;
  function out(g,pan){if(pan&&ac.createStereoPanner){const p=ac.createStereoPanner();p.pan.value=clamp(pan,-1,1);g.connect(p);p.connect(master)}else g.connect(master);return g}
  function tone(f,type,dur,vol,to,delay,pan){if(!ac)return;const t=ac.currentTime+(delay||0),o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(to)o.frequency.exponentialRampToValueAtTime(Math.max(1,to),t+dur);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+Math.min(.02,dur/4));g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(out(g,pan));o.start(t);o.stop(t+dur+.05)}
  function noise(dur,vol,type,freq,q,delay,pan,to){if(!ac)return;const t=ac.currentTime+(delay||0),s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();s.buffer=nb;s.loop=true;f.type=type;f.frequency.setValueAtTime(freq,t);if(to)f.frequency.exponentialRampToValueAtTime(Math.max(20,to),t+dur);f.Q.value=q||1;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(vol,t+Math.min(.03,dur/3));g.gain.exponentialRampToValueAtTime(.0001,t+dur);s.connect(f);f.connect(g);out(g,pan);s.start(t,Math.random()*1.5);s.stop(t+dur+.05)}
@@ -345,7 +381,27 @@ const Snd=(()=>{
   unlock(){tone(660,'sine',.5,.1);tone(990,'sine',.6,.08,0,.15);noise(.7,.1,'lowpass',500,1,.1,0,150)},
   crash(vol,pan){noise(.6,.32*vol,'lowpass',700,1,0,pan,90);tone(55,'sine',.5,.4*vol,28,0,pan);noise(.25,.12*vol,'highpass',2200,1,.03,pan,900)},
   cough(){noise(.16,.12,'bandpass',520,2,0,0,260);noise(.12,.1,'bandpass',480,2,.18,0,240)},
-  bell(){tone(174,'sine',3,.22);tone(349,'sine',2.4,.1);tone(523,'triangle',1.6,.06,0,.02);tone(87,'sine',3.2,.18)}
+  bell(){tone(174,'sine',3,.22);tone(349,'sine',2.4,.1);tone(523,'triangle',1.6,.06,0,.02);tone(87,'sine',3.2,.18)},
+  liftScreech(on,p){
+   if(!ac)return;
+   if(on&&!ls){
+    const g=ac.createGain();g.gain.value=.0001;g.connect(master);
+    const o1=ac.createOscillator(),o2=ac.createOscillator(),o3=ac.createOscillator(),lfo=ac.createOscillator(),lg=ac.createGain(),bp=ac.createBiquadFilter();
+    o1.type='sawtooth';o2.type='square';o3.type='sawtooth';lfo.frequency.value=11;lg.gain.value=60;lfo.connect(lg);lg.connect(o1.frequency);lg.connect(o2.frequency);
+    bp.type='bandpass';bp.frequency.value=2400;bp.Q.value=3;o1.connect(bp);o2.connect(bp);o3.connect(bp);bp.connect(g);
+    const n=ac.createBufferSource(),hf=ac.createBiquadFilter(),ng=ac.createGain();n.buffer=nb;n.loop=true;hf.type='highpass';hf.frequency.value=3000;ng.gain.value=.5;n.connect(hf);hf.connect(ng);ng.connect(g);
+    [o1,o2,o3,lfo,n].forEach(s=>s.start());ls={g,o1,o2,o3,bp,lfo,n};
+   }
+   if(!ls)return;
+   const t=ac.currentTime;
+   if(on){const v=clamp(p||0,0,1.2);
+    ls.o1.frequency.setTargetAtTime(520+v*820,t,.06);ls.o2.frequency.setTargetAtTime(787+v*1250,t,.06);ls.o3.frequency.setTargetAtTime(1310+v*1500,t,.06);
+    ls.bp.frequency.setTargetAtTime(1500+v*2600,t,.08);ls.g.gain.setTargetAtTime(.0001+Math.min(.16,v*.16),t,.08)}
+   else{const h=ls;ls=null;h.g.gain.setTargetAtTime(.0001,t,.05);setTimeout(()=>{[h.o1,h.o2,h.o3,h.lfo,h.n].forEach(s=>{try{s.stop()}catch(e){}})},400)}
+  },
+  liftSlam(){noise(1.2,.5,'lowpass',900,1,0,0,60);tone(48,'sine',.9,.7,26);tone(180,'square',.12,.25,70);noise(.25,.3,'highpass',1800,1,.02,0,600);tone(95,'sawtooth',.5,.15,40,.05)},
+  liftClank(){tone(420,'square',.08,.14,210);tone(620,'triangle',.4,.1,0,.03);noise(.15,.1,'bandpass',1800,3)},
+  pitFall(){tone(420,'sine',.85,.16,45);noise(.7,.12,'lowpass',900,1,0,0,120);tone(60,'sine',.5,.4,30,.8);noise(.3,.22,'lowpass',400,1,.8,0,70)}
  };
 })();
 
@@ -384,6 +440,7 @@ const PAL={
 };
 let map,reach,floorList,wallFaces,mapC,overC,decC,dctx;
 let player,monster,bodies,gold,tags,exit,bots,lanterns,rats,puddles,ores,particles,explored,floodedTiles=[];
+let pitTiles=[],pitSet=new Set(),mineVeins=[];
 
 /* ---------- flooded zones: organic pools, animated surface, reflections, ripples ---------- */
 let waterC=null,waterKey='',wavePatA=null,wavePatB=null,wRipples=[],wRipT=0;
@@ -464,7 +521,8 @@ function drawWater(camX,camY){
 let worldSeedForVisuals=0;
 let brightBoost=0; // 0 off, 1 mild, 2 strong — accessibility for dim screens
 let silver=0,runUpgrades={},shopOpen=false,shopReady=false,shopReadyMap={},shopFloorBonus={eg:0,et:0,silver:0},shopBranch='BODY',shopOpenedAt=0,shopTick=0,shopFootT=0,charmReady=false;
-let phase='menu',paused=false,last=0,elapsed=0,noise=0,flashlightOn=true,shake=0,hintT=0,alertT=0,hbT=0,heartPulse=0,rumbleT=40,knockT=25,growlT=12,liftOpen=0,endT=0,miniT=0,exploreT=0,showMini=true,endWin=false,painting=null,prevPainting=false,fxClock=0,whT=8,breathT=0,puzzle=null,lastQuota=false,depth=1,quotaGold=6,quotaTags=3;
+let deathKind='monster',phase='menu',paused=false,last=0,elapsed=0,noise=0,flashlightOn=true,shake=0,hintT=0,alertT=0,hbT=0,heartPulse=0,rumbleT=40,knockT=25,growlT=12,liftOpen=0,endT=0,miniT=0,exploreT=0,showMini=true,endWin=false,painting=null,prevPainting=false,fxClock=0,whT=8,breathT=0,puzzle=null,lastQuota=false,depth=1,quotaGold=6,quotaTags=3;
+let abilityFx=[],abilityCooldowns={},abilityScanT=0,abilityScanRange=0,abilitySpeedT=0,abilitySpeedMult=1,abilityAlarmT=0,abilityHudCache='';
 let rocks=[],spores=[],battery=100,sporeAmt=0,coughT=1,rockT=3.5,bellN=0,bellFlash=0,bellPing=0,blackOn=0,blackWarn=false;
 const DEPTH_NAMES=['UPPER SEAMS','THE OLD WORKINGS','THE FLOODED VEIN','THE BLACK SHAFT','THE ROOT CHAMBER','THE UNLIT DEEP','THE BURIED CHOIR','THE LAST STRATUM'];
 function depthName(){return depth<=DEPTH_NAMES.length?DEPTH_NAMES[depth-1]:`${DEPTH_NAMES[DEPTH_NAMES.length-1]} ${String(depth-DEPTH_NAMES.length+1).padStart(2,'0')}`}
@@ -477,28 +535,32 @@ const GIMMICKS={
  spores:{name:'SPORE CLOUDS',desc:'Drifting spore clouds drain your stamina and make you cough. Walk around them.'},
  battery:{name:'DYING LAMP',desc:'Your flashlight battery drains while it is on and slowly recharges while it is off.'},
  dark:{name:'NO LANTERNS',desc:'Almost every lantern is dead. Your lamp and the gold glints are all you have.'},
- bell:{name:'THE TOLLING',desc:'A buried bell tolls every so often. Each toll tells the creature roughly where the crew is.'}
+ bell:{name:'THE TOLLING',desc:'A buried bell tolls every so often. Each toll tells the creature roughly where the crew is.'},
+ pits:{name:'OPEN SHAFTS',desc:'The floor has collapsed in places. Detailed dark pits are deadly to step into; find another route around them.'}
 };
 const DEPTH_GIMMICKS=[[],['rockfall'],['flood'],['blackout'],['spores'],['dark','battery'],['bell'],['rockfall','flood','bell']];
-function activeGimmicks(d){d=d||depth;if(d<=DEPTH_GIMMICKS.length)return DEPTH_GIMMICKS[d-1];const all=Object.keys(GIMMICKS),n=Math.min(all.length,3+Math.floor((d-9)/3)),s=((d-9)*2)%all.length;return Array.from({length:n},(_,i)=>all[(s+i)%all.length])}
+function activeGimmicks(d){d=d||depth;let base=d<=DEPTH_GIMMICKS.length?DEPTH_GIMMICKS[d-1].slice():(()=>{const all=Object.keys(GIMMICKS),n=Math.min(all.length,3+Math.floor((d-9)/3)),s=((d-9)*2)%all.length;return Array.from({length:n},(_,i)=>all[(s+i)%all.length])})();let roll=((Math.imul(d,1664525)+1013904223)>>>0);roll=(roll^(roll>>>16))>>>0;if(d>=3&&roll%100<36&&!base.includes('pits'))base.push('pits');return base}
 function gim(k){return activeGimmicks().includes(k)}
 function gimmickNames(d){return activeGimmicks(d).map(k=>GIMMICKS[k].name).join(' + ')}
 function gimmickHtml(){const g=activeGimmicks();return g.length?'<br><span style="color:#e0b4a0">DEPTH HAZARD</span><br>'+g.map(k=>`<b style="color:#d7b66d">${GIMMICKS[k].name}</b> \u2014 ${GIMMICKS[k].desc}`).join('<br>'):''}
 function appendGimmickObjective(){const h=gimmickHtml();if(h)$('objective').insertAdjacentHTML('beforeend',h)}
 const keys={},mouse={x:0,y:0,down:false,moved:false};
 const hudCache={};
-const DEFAULT_HINT='WASD move · HOLD C crouch · SHIFT sprint · F flashlight · B brightness · Mouse aims the lamp · E interact / lift';
+const DEFAULT_HINT='WASD move · HOLD C crouch · SHIFT sprint · F flashlight · 1/2 abilities · E interact / lift';
 function setText(id,v){if(hudCache[id]!==v){hudCache[id]=v;$(id).textContent=v}}
 function say(t,d){hintT=d||2;setText('hint',t)}
 function showAlert(t){$('alert').textContent=t;alertT=1.5}
 
 /* ---------- map ---------- */
-const walk=(x,y)=>{const tx=Math.floor(x/TILE),ty=Math.floor(y/TILE);return tx>=0&&ty>=0&&tx<COLS&&ty<ROWS&&map[ty][tx]===0};
-const blocked=(x,y,r)=>!walk(x-r,y-r)||!walk(x+r,y-r)||!walk(x-r,y+r)||!walk(x+r,y+r);
+const walk=(x,y,allowPits=false)=>{const tx=Math.floor(x/TILE),ty=Math.floor(y/TILE);return tx>=0&&ty>=0&&tx<COLS&&ty<ROWS&&map[ty][tx]===0&&(allowPits||!pitSet.has(ty*COLS+tx))};
+const blocked=(x,y,r,allowPits=false)=>!walk(x-r,y-r,allowPits)||!walk(x+r,y-r,allowPits)||!walk(x-r,y+r,allowPits)||!walk(x+r,y+r,allowPits);
 function inFlood(x,y){return !!floodedTiles&&floodedTiles.some(c=>c.x===Math.floor(x/TILE)&&c.y===Math.floor(y/TILE))}
-function moveEntity(e,dx,dy,r){if(!blocked(e.x+dx,e.y,r))e.x+=dx;if(!blocked(e.x,e.y+dy,r))e.y+=dy}
+function moveEntity(e,dx,dy,r){const allowPits=e===player;if(!blocked(e.x+dx,e.y,r,allowPits))e.x+=dx;if(!blocked(e.x,e.y+dy,r,allowPits))e.y+=dy}
+const inPitXY=(x,y)=>pitSet.has(Math.floor(y/TILE)*COLS+Math.floor(x/TILE));
+/* light travels over holes but not through rock: used for the monster noticing a lit flashlight */
+function lampLOS(x1,y1,x2,y2){const d=Math.hypot(x2-x1,y2-y1),n=Math.ceil(d/14);for(let i=1;i<n;i++){const t=i/n;if(!walk(x1+(x2-x1)*t,y1+(y2-y1)*t,true))return false}return true}
 function lineOfSight(x1,y1,x2,y2){const d=Math.hypot(x2-x1,y2-y1),n=Math.ceil(d/14);for(let i=1;i<n;i++){const t=i/n;if(!walk(x1+(x2-x1)*t,y1+(y2-y1)*t))return false}return true}
-function flood(sx,sy){const r=new Uint8Array(COLS*ROWS),q=[sy*COLS+sx];r[q[0]]=1;for(let i=0;i<q.length;i++){const c=q[i],x=c%COLS,y=(c/COLS)|0;for(const[dx,dy]of D4){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=COLS||ny>=ROWS||map[ny][nx]||r[ny*COLS+nx])continue;r[ny*COLS+nx]=1;q.push(ny*COLS+nx)}}return r}
+function flood(sx,sy){const r=new Uint8Array(COLS*ROWS),q=[sy*COLS+sx];r[q[0]]=1;for(let i=0;i<q.length;i++){const c=q[i],x=c%COLS,y=(c/COLS)|0;for(const[dx,dy]of D4){const nx=x+dx,ny=y+dy,ni=ny*COLS+nx;if(nx<0||ny<0||nx>=COLS||ny>=ROWS||map[ny][nx]||pitSet.has(ni)||r[ni])continue;r[ni]=1;q.push(ni)}}return r}
 /* Every shift gets a freshly generated mine. The start (top-left) and the lift (bottom-right) are always carved open. */
 function layoutProcedural(kind){
  const keepStart=(x,y)=>x<=6&&y<=6,keepLift=(x,y)=>x>=28&&y>=21,R=Math.random;
@@ -544,6 +606,21 @@ function makeMap(){
   if(n>=300&&n<=720)break;
  }
 }
+function buildPitHazards(){
+ pitTiles=[];pitSet=new Set();if(!gim('pits')||!floorList.length)return;
+ const candidates=shuffle(floorList.slice()),target=Math.min(5,2+Math.floor(Math.max(0,depth-3)/5)),sx=2.5*TILE,sy=2.5*TILE,ex=32.5*TILE,ey=24.5*TILE;
+ for(const c of candidates){
+  if(pitTiles.length>=target)break;const x=(c.x+.5)*TILE,y=(c.y+.5)*TILE;
+  if(Math.hypot(x-sx,y-sy)<255||Math.hypot(x-ex,y-ey)<185)continue;
+  if(pitTiles.some(p=>Math.hypot(x-(p.x+.5)*TILE,y-(p.y+.5)*TILE)<94))continue;
+  const neighbours=D4.reduce((n,[dx,dy])=>n+(!map[c.y+dy]?.[c.x+dx]&&!pitSet.has((c.y+dy)*COLS+c.x+dx)?1:0),0);if(neighbours<3)continue;
+  const idx=c.y*COLS+c.x;pitSet.add(idx);const reachTest=flood(2,2);let connected=!!reachTest[24*COLS+32];
+  if(connected)for(const tile of floorList){const ti=tile.y*COLS+tile.x;if(!pitSet.has(ti)&&!reachTest[ti]){connected=false;break}}
+  if(!connected){pitSet.delete(idx);continue}
+  pitTiles.push({x:c.x,y:c.y,ph:Math.random()*TAU,seed:(Math.random()*4294967295)>>>0});
+ }
+ floorList=floorList.filter(c=>!pitSet.has(c.y*COLS+c.x));reach=flood(2,2);
+}
 function makeMapBase(kind){
  map=Array.from({length:ROWS},(_,y)=>Array.from({length:COLS},(_,x)=>(x===0||y===0||x===COLS-1||y===ROWS-1)?1:0));
  if(kind!=='classic')layoutProcedural(kind);
@@ -588,7 +665,7 @@ function findPath(sx,sy,gx,gy){
  if(s===g)return[];
  PV.fill(-2);PV[s]=-1;let h=0,t=0,found=false;PQ[t++]=s;
  while(h<t){const c=PQ[h++];if(c===g){found=true;break}const x=c%COLS,y=(c/COLS)|0;
-  for(const[dx,dy]of D4){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=COLS||ny>=ROWS||map[ny][nx])continue;const n=ny*COLS+nx;if(PV[n]!==-2)continue;PV[n]=c;PQ[t++]=n}}
+  for(const[dx,dy]of D4){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=COLS||ny>=ROWS||map[ny][nx])continue;const n=ny*COLS+nx;if(pitSet.has(n)||PV[n]!==-2)continue;PV[n]=c;PQ[t++]=n}}
  if(!found)return[];
  const out=[];for(let c=g;c!==s;c=PV[c])out.push({x:(c%COLS+.5)*TILE,y:(((c/COLS)|0)+.5)*TILE});
  return out.reverse();
@@ -605,6 +682,28 @@ function followPath(e,dt,spd){
 }
 
 /* ---------- pre-rendered world (floor, rock, rails, props, overhead timber) ---------- */
+function drawPitTexture(g,p){
+ const r=mulberry(p.seed||((p.x+1)*92821+(p.y+1)*68917));g.save();g.translate((p.x+.5)*TILE,(p.y+.5)*TILE);
+ // A broad, soft shadow makes the opening feel sunk below the surrounding floor.
+ g.fillStyle='rgba(0,0,0,.78)';g.beginPath();g.ellipse(1,6,23,20,0,0,TAU);g.fill();
+ // Broken slate rim with an uneven silhouette rather than a flat black tile.
+ const rim=[];for(let i=0;i<26;i++){const a=i/26*TAU,rr=20.5+r()*3.2;rim.push([Math.cos(a)*rr,Math.sin(a)*rr*.82])}
+ g.beginPath();rim.forEach((v,i)=>i?g.lineTo(v[0],v[1]):g.moveTo(v[0],v[1]));g.closePath();
+ const rg=g.createLinearGradient(-15,-20,17,19);rg.addColorStop(0,'#677067');rg.addColorStop(.28,'#333b35');rg.addColorStop(.7,'#202722');rg.addColorStop(1,'#111714');g.fillStyle=rg;g.fill();g.strokeStyle='rgba(151,161,143,.42)';g.lineWidth=1.1;g.stroke();
+ // The inner bevel catches a thin, cold highlight on its upper edge.
+ g.fillStyle='#080d0c';g.beginPath();g.ellipse(0,1,18.4,14.9,-.08,0,TAU);g.fill();
+ const inner=g.createRadialGradient(-5,-8,1,1,2,20);inner.addColorStop(0,'#010202');inner.addColorStop(.48,'#030605');inner.addColorStop(.76,'#0b100f');inner.addColorStop(.91,'#202a26');inner.addColorStop(1,'#080c0b');
+ g.fillStyle=inner;g.beginPath();g.ellipse(0,1,17.1,13.8,-.08,0,TAU);g.fill();
+ // Receding rock strata and narrow cracks create visible depth inside the hole.
+ for(let i=0;i<4;i++){g.strokeStyle=`rgba(${i%2?88:125},${i%2?103:116},${i%2?96:101},${.20-i*.035})`;g.lineWidth=.7;g.beginPath();g.ellipse(-1+i*.4,2+i*.5,15-i*2.7,11.7-i*2.05,-.08,Math.PI*1.04,Math.PI*1.93);g.stroke()}
+ for(let i=0;i<7;i++){const a=.45+i*.39,ra=15+r()*2,rb=9+r()*2;g.strokeStyle=`rgba(104,119,108,${.12+r()*.14})`;g.lineWidth=.65;g.beginPath();g.moveTo(Math.cos(a)*ra,1+Math.sin(a)*ra*.75);g.lineTo(Math.cos(a+.08)*rb,1+Math.sin(a+.08)*rb*.72);g.stroke()}
+ g.strokeStyle='rgba(189,195,172,.48)';g.lineWidth=1.05;g.beginPath();g.ellipse(-1,-1,18.5,14.2,-.08,Math.PI*1.08,Math.PI*1.92);g.stroke();
+ // Jagged chips, loose rubble and a snapped timber fragment around the lip.
+ for(let i=0;i<10;i++){const a=r()*TAU,rr=18+r()*5,x=Math.cos(a)*rr,y=Math.sin(a)*rr*.8,s=2+r()*2.5;g.fillStyle=['#4a5148','#73786a','#252d28','#3a3026'][i%4];g.beginPath();g.moveTo(x-s,y-s*.4);g.lineTo(x+s*.7,y-s);g.lineTo(x+s,y+s*.55);g.lineTo(x-s*.55,y+s);g.closePath();g.fill();g.strokeStyle='rgba(0,0,0,.45)';g.lineWidth=.7;g.stroke()}
+ g.save();g.translate(12,15);g.rotate(-.55);g.fillStyle='#34271d';g.fillRect(-7,-1,14,3);g.fillStyle='#765339';g.fillRect(-5,-1,5,.8);g.strokeStyle='#1c1712';g.beginPath();g.moveTo(4,-1);g.lineTo(8,-4);g.stroke();g.restore();
+ for(let i=0;i<8;i++){const a=r()*TAU,rr=21+r()*3;g.fillStyle=i%2?'#777d70':'#343b34';g.beginPath();g.ellipse(Math.cos(a)*rr,Math.sin(a)*rr*.8,.8+r()*1.5,.65+r(),r()*3,0,TAU);g.fill()}
+ g.restore();
+}
 function prerender(){
  const visualSeed=worldSeedForVisuals?((worldSeedForVisuals^0x4f1bbcdc)>>>0):((Math.random()*1e9)|0);
  const pr=mulberry(visualSeed||1);
@@ -701,6 +800,8 @@ function prerender(){
   for(const[cx,cy,dx,dy]of[[0,0,-1,-1],[1,0,1,-1],[0,1,-1,1],[1,1,1,1]]){
    if(isW(x+dx,y+dy)&&!isW(x+dx,y)&&!isW(x,y+dy)){const gx=px+cx*TILE,gy=py+cy*TILE,gr=g.createRadialGradient(gx,gy,0,gx,gy,22);gr.addColorStop(0,'rgba(0,0,0,.6)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(px,py,TILE,TILE)}}
  }
+ // Detailed collapsed-floor openings are painted into the floor layer, not as black squares.
+ for(const pit of pitTiles)drawPitTexture(g,pit);
  // 6. props tucked into corners, bones, puddles
  const wallSide=[];
  for(const c of floorList)for(const[dx,dy]of D4)if(isW(c.x+dx,c.y+dy)){wallSide.push({x:c.x,y:c.y,dx,dy});break}
@@ -739,8 +840,9 @@ function prerender(){
 
 /* ---------- world setup ---------- */
 function setup(){
- makeMap();prerender();buildWater(true);wRipples=[];
- player={x:2.5*TILE,y:2.5*TILE,r:10,gold:0,tags:0,aim:Math.PI/4,foot:0,stamina:100,tired:false,mv:0,stepI:0,moveTime:0,noiseMode:''};
+ pitTiles=[];pitSet=new Set();mineVeins=[];abilityFx=[];abilityCooldowns={};abilityScanT=0;abilityScanRange=0;abilitySpeedT=0;abilitySpeedMult=1;abilityAlarmT=0;abilityHudCache='';
+ makeMap();buildPitHazards();prerender();buildWater(true);wRipples=[];
+ player={x:2.5*TILE,y:2.5*TILE,r:10,gold:0,tags:0,aim:Math.PI/4,foot:0,stamina:100,tired:false,mv:0,stepI:0,moveTime:0,noiseMode:'',minedSilver:0,pitFallT:0,pitTarget:null};
  exit={x:32.5*TILE,y:24.5*TILE};
  mouse.moved=false;
  // graffiti marks sit on rock faces next to a reachable tunnel
@@ -767,6 +869,7 @@ function setup(){
  gold=[];
  for(let i=0;i<quotaGold+2+Math.min(3,Math.floor(depth/2));i++){let p=null;for(let t=0;t<800&&!p;t++){const c=randomFloor(180,player.x,player.y);if(Math.hypot(c.x-exit.x,c.y-exit.y)<105)continue;if(tags.some(q=>Math.hypot(c.x-q.ax,c.y-q.ay)<60))continue;if(bodies.some(b=>Math.hypot(c.x-b.x,c.y-b.y)<72))continue;if(gold.some(q=>Math.hypot(c.x-q.x,c.y-q.y)<95))continue;p=c}
   if(!p)p=randomFloor(100,player.x,player.y);gold.push({...p,taken:false,claimed:null,ph:rnd(0,6),kind:(gold.length+depth)%3})}
+ mineVeins=[];if(N('a1')){for(let i=0;i<4;i++){let p=null;for(let tr=0;tr<180&&!p;tr++){const q=randomFloor(190,player.x,player.y);if(Math.hypot(q.x-exit.x,q.y-exit.y)<145||gold.some(g=>Math.hypot(g.x-q.x,g.y-q.y)<76)||bodies.some(b=>Math.hypot(b.x-q.x,b.y-q.y)<58)||bots.some(b=>Math.hypot(b.x-q.x,b.y-q.y)<58)||mineVeins.some(v=>Math.hypot(v.x-q.x,v.y-q.y)<100))continue;if(!D4.some(([dx,dy])=>map[Math.floor(q.y/TILE)+dy]?.[Math.floor(q.x/TILE)+dx]===1))continue;p=q}if(p)mineVeins.push({x:p.x,y:p.y,hp:N('a1p')?2:3,max:N('a1p')?2:3,ph:rnd(0,TAU),hitT:0,mined:false})}}
  lanterns=[];
  const cand=shuffle(floorList.filter(c=>D4.some(([dx,dy])=>map[c.y+dy]&&map[c.y+dy][c.x+dx]===1)).slice());
  const addLantern=(c,force)=>{const d=D4.find(([dx,dy])=>map[c.y+dy][c.x+dx]===1)||[0,-1];const x=(c.x+.5)*TILE+d[0]*15,y=(c.y+.5)*TILE+d[1]*15;
@@ -878,7 +981,8 @@ function interact(){
 const BRANCHES=[
  {id:'BODY',name:'BODY',col:'#9bc8a4',ic:'lung'},{id:'LIGHT',name:'LIGHT',col:'#e8d684',ic:'sun'},{id:'LOOT',name:'EXTRACTION',col:'#d7b66d',ic:'coin'},
  {id:'CREW',name:'CREW',col:'#8fb7d9',ic:'crew'},{id:'SENSE',name:'INSTINCT',col:'#d98b8b',ic:'eye'},{id:'GHOST',name:'GHOST',col:'#b49ad9',ic:'ghost'},
- {id:'FORT',name:'FORTUNE',col:'#e0a66a',ic:'clover'},{id:'MAP',name:'MAPPING',col:'#7fc7c0',ic:'map'}
+ {id:'FORT',name:'FORTUNE',col:'#e0a66a',ic:'clover'},{id:'MAP',name:'MAPPING',col:'#7fc7c0',ic:'map'},
+ {id:'ABILITIES',name:'ABILITIES',col:'#d4a16f',ic:'pickaxe'}
 ];
 // id, branch, tier column, row, prerequisites (all needed), silver cost, name, description, icon, stats shown in the detail panel
 const U=(id,b,t,r,q,c,n,d,ic,s)=>({id,b,t,r,q,c,n,d,ic,s:s||[]});
@@ -982,11 +1086,46 @@ const UPS=[
  U('m6','MAP',2,2,['m1'],22,'CREW RADIO','Crew miners always show on the minimap.','crew',[]),
  U('m7','MAP',3,2,['m6'],42,'DEAD RECKONING','The creature shows on the minimap when it is within 420 px.','radar',[]),
  U('m8','MAP',4,1,['m3','m5','m7'],110,'SEISMIC SURVEY','The whole mine is mapped as soon as a floor begins.','compass',[]),
- U('m9','MAP',2,3,['m1'],20,'LIFT PING','The lift is always marked on the minimap.','arrow',[])
+ U('m9','MAP',2,3,['m1'],20,'LIFT PING','The lift is always marked on the minimap.','arrow',[]),
+
+ // Choose at most two of these eight active field abilities. Their upgrades remain independent.
+ U('a1','ABILITIES',1,0,[],14,'PICKAXE','Mine exposed mineral seams for bonus silver. Every strike is loud.','pickaxe',[]),
+ U('a1p','ABILITIES',2,0,['a1'],18,'TUNGSTEN HEAD','Mineral seams take one fewer strike to break.','pickaxe',[]),
+ U('a1q','ABILITIES',3,0,['a1'],22,'MUFFLED GRIP','Pickaxe strikes make 35% less noise.','foot',[]),
+ U('a2','ABILITIES',1,1,[],14,'FLARE','Throw a burning flare that lights a patch of tunnel for a short time.','flare',[]),
+ U('a2p','ABILITIES',2,1,['a2'],18,'LONG BURN','Flare burns for 4 seconds longer.','flare',[]),
+ U('a2q','ABILITIES',3,1,['a2'],22,'MAGNESIUM CORE','Flare light reaches much farther.','sun',[]),
+ U('a3','ABILITIES',1,2,[],15,'NOISE DECOY','Throw a clattering lure to pull the creature toward another spot.','decoy',[]),
+ U('a3p','ABILITIES',2,2,['a3'],19,'RATTLE CASING','The decoy keeps making noise for longer.','decoy',[]),
+ U('a3q','ABILITIES',3,2,['a3'],23,'DEEP ECHO','The decoy can attract the creature from farther away.','radar',[]),
+ U('a4','ABILITIES',1,3,[],16,'SEISMIC SCANNER','Send a pulse that reveals nearby gold, marks, seams and the creature.','scan',[]),
+ U('a4p','ABILITIES',2,3,['a4'],20,'WIDE PULSE','Scanner reaches 220 px farther.','scan',[]),
+ U('a4q','ABILITIES',3,3,['a4'],24,'AFTERIMAGE','Scanner reveals targets for 3 seconds longer.','eye',[]),
+ U('a5','ABILITIES',1,4,[],16,'EMERGENCY WRAP','Use a field dressing for a brief window of protection.','medkit',[]),
+ U('a5p','ABILITIES',2,4,['a5'],20,'STERILE DRESSING','Protection lasts 1.5 seconds longer.','shield',[]),
+ U('a5q','ABILITIES',3,4,['a5'],24,'STIM PACK','The wrap restores extra stamina as well.','heart',[]),
+ U('a6','ABILITIES',1,5,[],16,'SMOKE BOMB','Drop smoke to break the creature\'s line of sight and escape.','smoke',[]),
+ U('a6p','ABILITIES',2,5,['a6'],20,'DENSE MIX','Smoke hangs around for 3 seconds longer and spreads wider.','smoke',[]),
+ U('a6q','ABILITIES',3,5,['a6'],24,'COLD ASH','The creature has a harder time seeing through your smoke.','ghost',[]),
+ U('a7','ABILITIES',1,6,[],17,'TRIPWIRE','Set a proximity alarm that warns you when the creature gets close.','tripwire',[]),
+ U('a7p','ABILITIES',2,6,['a7'],21,'FINE FILAMENT','The tripwire senses the creature from farther away.','tripwire',[]),
+ U('a7q','ABILITIES',3,6,['a7'],25,'RESONANT BELL','The alarm reveal lasts longer when triggered.','bell',[]),
+ U('a8','ABILITIES',1,7,[],17,'STIMULANT','Inject a stimulant for a short burst of movement speed.','syringe',[]),
+ U('a8p','ABILITIES',2,7,['a8'],21,'DOUBLE DOSE','The speed burst lasts 2 seconds longer.','bolt',[]),
+ U('a8q','ABILITIES',3,7,['a8'],25,'CONTROLLED RELEASE','Recover stamina while the stimulant is active.','pulse',[])
 ];
+const ABILITY_DEFS=[
+ {id:'pickaxe',node:'a1',name:'PICKAXE',cooldown:.55},{id:'flare',node:'a2',name:'FLARE',cooldown:17},{id:'decoy',node:'a3',name:'NOISE DECOY',cooldown:22},{id:'scanner',node:'a4',name:'SEISMIC SCANNER',cooldown:20},
+ {id:'medkit',node:'a5',name:'EMERGENCY WRAP',cooldown:26},{id:'smoke',node:'a6',name:'SMOKE BOMB',cooldown:22},{id:'tripwire',node:'a7',name:'TRIPWIRE',cooldown:24},{id:'stimulant',node:'a8',name:'STIMULANT',cooldown:22}
+];
+const ABILITY_BASE_IDS=new Set(ABILITY_DEFS.map(a=>a.node));
 const N=id=>runUpgrades[id]?1:0;
+function abilityCount(){return ABILITY_DEFS.reduce((n,a)=>n+N(a.node),0)}
+function isAbilityBase(u){return !!u&&ABILITY_BASE_IDS.has(u.id)}
+function abilityCapBlocked(u){return isAbilityBase(u)&&abilityCount()>=2&&!N(u.id)}
+function ownedAbilities(){return ABILITY_DEFS.filter(a=>N(a.node))}
 function upDef(id){return UPS.find(u=>u.id===id)}
-function upUnlocked(u){return u.q.every(q=>N(q))}
+function upUnlocked(u){return u.q.every(q=>N(q))&&!abilityCapBlocked(u)}
 function upDiscount(){return Math.min(.5,.1*N('f4')+.12*N('f5')+.2*N('f7'))}
 function upCost(u){return Math.max(1,Math.round(u.c*(1-upDiscount())))}
 function upMaxStamina(){return 100+20*N('b1')+25*N('b2')+30*N('b3')+40*N('b12')}
@@ -1019,6 +1158,80 @@ function upgradeMMSlow(){return 1-.3*N('g7')-.3*N('g8')}
 function upgradeForget(){return .25*N('g9')+.25*N('g10')}
 function upgradeHearLocal(){return N('g11')?.8:1}
 function upgradeMapRadius(){return 60*N('m1')+60*N('m2')+80*N('m3')}
+
+function abilityPointAhead(distance){
+ const a=player.aim||0;for(let d=distance;d>=0;d-=14){const x=player.x+Math.cos(a)*d,y=player.y+Math.sin(a)*d;if(walk(x,y))return{x,y}}return{x:player.x,y:player.y};
+}
+function abilitySmokeCovers(e){return !!e&&abilityFx.some(f=>f.type==='smoke'&&f.t>0&&Math.hypot(e.x-f.x,e.y-f.y)<f.r)}
+function callMonsterToDecoy(f){
+ if(multiplayer&&!isNetHost)return;if(!monster||monster.state==='hunt'||monster.state==='possess'||monster.state==='disguise')return;
+ if(Math.hypot(monster.x-f.x,monster.y-f.y)>f.lureRange)return;
+ monster.state='investigate';monster.lastSeen={x:f.x,y:f.y};monster.search=Math.max(monster.search||0,4);monster.path=null;monster.repath=0;
+}
+function useAbility(slot){
+ if(!player||phase!=='play'||paused||isMonsterController||puzzle)return;
+ const a=ownedAbilities()[slot-1];if(!a){say(`No ability in slot ${slot}. Buy up to two in the ABILITIES tree.`,2);return}
+ const cd=abilityCooldowns[a.id]||0;if(cd>0){say(`${a.name} recharges in ${cd.toFixed(1)}s.`,1.1);return}
+ let cooldown=a.cooldown,point;
+ if(a.id==='pickaxe'){
+  const vein=mineVeins.filter(v=>!v.mined&&Math.hypot(v.x-player.x,v.y-player.y)<54).sort((x,y)=>Math.hypot(x.x-player.x,x.y-player.y)-Math.hypot(y.x-player.x,y.y))[0];
+  if(!vein){say('No exposed mineral seam close enough. Look for the amber-veined rock piles.',2);return}
+  vein.hp--;vein.hitT=.28;noise=Math.min(100,noise+(N('a1q')?16:25));cooldown=.62;Snd.crash(.45,clamp((vein.x-player.x)/400,-1,1));
+  for(let i=0;i<6;i++)P(vein.x,vein.y,rnd(-35,35),rnd(-35,35),.35,1.7,i%2?'#c7a35a':'#8b8170',{drag:.88});
+  if(vein.hp<=0){vein.mined=true;const reward=4+(N('a1p')?2:0);player.minedSilver=(player.minedSilver||0)+reward;showAlert('ORE VEIN BROKEN');say(`The seam gives way. +${reward} bonus silver when this floor clears.`,2.5);Snd.clink();for(let i=0;i<12;i++)P(vein.x,vein.y,rnd(-55,55),rnd(-55,55),.7,2,'#e6c36a',{drag:.9})}
+  else say(`PICKAXE · ${vein.hp} strikes left. The ringing carries through the mine.`,1.6);
+ }else if(a.id==='flare'){
+  point=abilityPointAhead(125);const duration=10+N('a2p')*4,radius=190+N('a2q')*85;abilityFx.push({type:'flare',x:point.x,y:point.y,t:duration,max:duration,radius,ph:rnd(0,TAU)});cooldown=17;Snd.lamp();say('FLARE OUT · A little light in the dark.',2);
+ }else if(a.id==='decoy'){
+  point=abilityPointAhead(205);const duration=8+N('a3p')*5;const f={type:'decoy',x:point.x,y:point.y,t:duration,max:duration,ping:.15,lureRange:900+N('a3q')*600,ph:rnd(0,TAU)};abilityFx.push(f);callMonsterToDecoy(f);cooldown=22;Snd.knock(0);say('DECOY DEPLOYED · Let it follow the noise.',2.2);
+ }else if(a.id==='scanner'){
+  abilityScanT=5+N('a4q')*3;abilityScanRange=430+N('a4p')*220;cooldown=20;showAlert('SEISMIC PULSE');Snd.bell();say('SCANNER PULSE · Gold, marks, seams and movement revealed.',2.4);
+ }else if(a.id==='medkit'){
+  const protection=2.4+N('a5p')*1.5;player.safeT=Math.max(player.safeT||0,protection);if(N('a5q'))player.stamina=Math.min(player.maxStamina||100,player.stamina+40);cooldown=26;Snd.unlock();showAlert('FIELD DRESSING');say('FIELD DRESSING · Brief protection while you get clear.',2.2);
+ }else if(a.id==='smoke'){
+  const duration=5+N('a6p')*3,radius=112+N('a6p')*32;abilityFx.push({type:'smoke',x:player.x,y:player.y,t:duration,max:duration,r:radius});cooldown=22;Snd.sprayBurst();say('SMOKE RELEASED · Break its line of sight and move.',2.2);
+ }else if(a.id==='tripwire'){
+  const radius=160+N('a7p')*65;abilityFx.push({type:'tripwire',x:player.x,y:player.y,t:19,max:19,r:radius,triggered:false});cooldown=24;Snd.lamp();say('TRIPWIRE SET · It will warn you when the creature closes in.',2.2);
+ }else if(a.id==='stimulant'){
+  abilitySpeedT=5+N('a8p')*2;abilitySpeedMult=1.32;cooldown=22;Snd.unlock();showAlert('STIMULANT');say('STIMULANT ACTIVE · Move now, before it wears off.',2);
+ }
+ abilityCooldowns[a.id]=cooldown;renderAbilityHud();
+}
+function updateAbilityWorld(dt){
+ for(const id in abilityCooldowns)abilityCooldowns[id]=Math.max(0,(abilityCooldowns[id]||0)-dt);
+ abilityScanT=Math.max(0,abilityScanT-dt);abilityAlarmT=Math.max(0,abilityAlarmT-dt);
+ if(abilitySpeedT>0){abilitySpeedT=Math.max(0,abilitySpeedT-dt);if(N('a8q')&&player)player.stamina=Math.min(player.maxStamina||100,player.stamina+9*dt);if(abilitySpeedT<=0)abilitySpeedMult=1}
+ for(const v of mineVeins)v.hitT=Math.max(0,(v.hitT||0)-dt);
+ for(const f of abilityFx){f.t-=dt;
+  if(f.type==='decoy'){f.ping-=dt;if(f.ping<=0){f.ping=1.65;callMonsterToDecoy(f);if(Math.random()<.35)Snd.knock(clamp((f.x-player.x)/500,-1,1))}}
+  else if(f.type==='tripwire'&&!f.triggered&&monster&&(!multiplayer||isNetHost)&&monster.state!=='possess'&&monster.state!=='disguise'&&Math.hypot(monster.x-f.x,monster.y-f.y)<f.r){f.triggered=true;abilityAlarmT=6+N('a7q')*4;abilityScanT=Math.max(abilityScanT,abilityAlarmT);abilityScanRange=Math.max(abilityScanRange,900);showAlert('TRIPWIRE TRIGGERED');say('The wire snapped. It is close — move!',2.8);Snd.bell();shake=Math.max(shake,4)}
+ }
+ abilityFx=abilityFx.filter(f=>f.t>0);
+}
+function renderAbilityHud(){
+ const el=$('abilityHud');if(!el)return;const slots=ownedAbilities();if(!slots.length){el.style.display='none';abilityHudCache='';return}
+ let html='<b>FIELD ABILITIES</b> · '+slots.length+'/2';for(let i=0;i<slots.length;i++){const a=slots[i],cd=abilityCooldowns[a.id]||0;html+=`<div class="abilityRow"><span><b>[${i+1}]</b> ${a.name}</span><span class="${cd>0?'abilityCooling':'abilityReady'}">${cd>0?cd.toFixed(1)+'s':'READY'}</span></div>`}
+ if(html!==abilityHudCache){el.innerHTML=html;abilityHudCache=html}el.style.display='block';
+}
+function drawMineVeins(){
+ for(const v of mineVeins){if(v.mined)continue;ctx.save();ctx.translate(v.x,v.y);ctx.fillStyle='rgba(0,0,0,.5)';ctx.beginPath();ctx.ellipse(2,6,17,10,.1,0,TAU);ctx.fill();
+  const rg=ctx.createRadialGradient(-5,-7,1,0,0,19);rg.addColorStop(0,'#73796e');rg.addColorStop(.5,'#414840');rg.addColorStop(1,'#191f1b');ctx.fillStyle=rg;ctx.beginPath();ctx.moveTo(-16,4);ctx.lineTo(-12,-9);ctx.lineTo(-3,-14);ctx.lineTo(8,-10);ctx.lineTo(16,-2);ctx.lineTo(11,10);ctx.lineTo(-4,13);ctx.closePath();ctx.fill();ctx.strokeStyle='#121714';ctx.lineWidth=1.5;ctx.stroke();
+  for(let i=0;i<4;i++){ctx.strokeStyle=i%2?'rgba(255,207,93,.8)':'rgba(150,107,40,.8)';ctx.lineWidth=i%2?1.1:2.1;ctx.beginPath();ctx.moveTo(-11+i*3,-7+i);ctx.lineTo(-3+i*4,-3+i*2);ctx.lineTo(1+i*3,5-i);ctx.stroke()}
+  for(let i=0;i<5;i++){const a=i*2.4+v.ph;ctx.fillStyle=i%2?'#b88f43':'#e4c16d';ctx.fillRect(Math.cos(a)*8-1,Math.sin(a)*6-1,2,2)}
+  if(v.hitT>0){ctx.strokeStyle=`rgba(255,224,150,${v.hitT*2})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,18+v.hitT*10,0,TAU);ctx.stroke()}
+  if(v.hp<v.max){ctx.fillStyle='rgba(0,0,0,.8)';ctx.fillRect(-12,-19,24,3);ctx.fillStyle='#d6ad4a';ctx.fillRect(-12,-19,24*(v.hp/v.max),3)}ctx.restore();
+ }
+}
+function drawAbilityObjects(){
+ for(const f of abilityFx){ctx.save();
+  if(f.type==='flare'){const k=clamp(f.t/1.1,0,1),pulse=.85+.15*Math.sin(fxClock*13+f.ph),g=ctx.createRadialGradient(f.x,f.y,1,f.x,f.y,f.radius*.52);g.addColorStop(0,`rgba(255,145,58,${.22*k})`);g.addColorStop(1,'rgba(255,105,35,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(f.x,f.y,f.radius*.52,0,TAU);ctx.fill();ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,188,95,${.8*pulse})`;ctx.beginPath();ctx.ellipse(f.x,f.y,4,7+Math.sin(fxClock*12)*1.5,0,0,TAU);ctx.fill();ctx.fillStyle='#fff0b2';ctx.beginPath();ctx.arc(f.x,f.y-2,2,0,TAU);ctx.fill();if(Math.random()<.22)P(f.x+rnd(-4,4),f.y-5,rnd(-9,9),rnd(-24,-9),.35,1.7,'#ffb35f',{drag:.88})}
+  else if(f.type==='decoy'){const k=.5+.5*Math.sin(fxClock*7+f.ph);ctx.globalCompositeOperation='lighter';ctx.strokeStyle=`rgba(218,174,95,${.25+.45*k})`;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(f.x,f.y,9+k*7,0,TAU);ctx.stroke();ctx.globalCompositeOperation='source-over';ctx.fillStyle='#262c28';rr(ctx,f.x-7,f.y-5,14,10,2);ctx.fill();ctx.strokeStyle='#a18a59';ctx.stroke();ctx.fillStyle='#e5b85f';ctx.fillRect(f.x-2,f.y-2,4,4)}
+  else if(f.type==='smoke'){const a=clamp(f.t/1.2,0,1);for(let i=0;i<9;i++){const ang=i*2.399+fxClock*.18,rr0=f.r*(.2+.55*((i*.37)%1)),x=f.x+Math.cos(ang+fxClock*.08)*rr0,y=f.y+Math.sin(ang+fxClock*.08)*rr0*.68;ctx.fillStyle=`rgba(79,91,85,${.12*a})`;ctx.beginPath();ctx.ellipse(x,y,f.r*.3,f.r*.22,ang,0,TAU);ctx.fill()}}
+  else if(f.type==='tripwire'){const a=clamp(f.t/1.2,0,1);ctx.strokeStyle=`rgba(${f.triggered?'255,65,45':'201,171,112'},${.25+.35*a})`;ctx.lineWidth=1.1;ctx.setLineDash([5,7]);ctx.lineDashOffset=-fxClock*9;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,TAU);ctx.stroke();ctx.setLineDash([]);for(let i=0;i<4;i++){const ang=i*Math.PI/2;ctx.fillStyle=f.triggered?'#e45e4d':'#cbb77e';ctx.beginPath();ctx.arc(f.x+Math.cos(ang)*f.r,f.y+Math.sin(ang)*f.r,3,0,TAU);ctx.fill()}}
+  ctx.restore();
+ }
+}
+
 let netUps={};
 // Other players' numbers arrive during the shop (see netShopPing) and are cached here by player id.
 
@@ -1090,6 +1303,14 @@ function drawUpgradeOverlays(camX,camY){
   if(d<range&&d>90)edgeArrow(monster.x,monster.y,camX,camY,230,50,40,(1-d/range)*(.55+.45*Math.sin(fxClock*7)));
  }
  if(N('i9')&&quotaMet()&&exit)edgeArrow(exit.x,exit.y,camX,camY,90,230,130,.55+.45*Math.sin(fxClock*4));
+ if(abilityScanT>0){
+  const range=abilityScanRange,k=clamp(abilityScanT/1.2,0,1);ctx.save();ctx.globalCompositeOperation='lighter';ctx.strokeStyle=`rgba(113,205,194,${.35+.45*Math.sin(fxClock*7)})`;ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(player.x-camX,player.y-camY,range*(.94+.06*Math.sin(fxClock*5)),0,TAU);ctx.stroke();
+  for(const g of gold)if(!g.taken&&dist(g,player)<range){const x=g.x-camX,y=g.y-camY;ctx.strokeStyle=`rgba(255,220,110,${.35+.45*k})`;ctx.beginPath();ctx.arc(x,y,9+3*Math.sin(fxClock*8+g.ph),0,TAU);ctx.stroke()}
+  for(const t of tags)if(!t.done&&Math.hypot(t.ax-player.x,t.ay-player.y)<range){ctx.strokeStyle=`rgba(120,210,225,${.45+.4*k})`;ctx.beginPath();ctx.arc(t.ax-camX,t.ay-camY,10,0,TAU);ctx.stroke()}
+  for(const v of mineVeins)if(!v.mined&&dist(v,player)<range){ctx.strokeStyle=`rgba(215,170,82,${.55+.35*k})`;ctx.beginPath();ctx.arc(v.x-camX,v.y-camY,19,0,TAU);ctx.stroke()}
+  if(monster&&monster.state!=='possess'&&dist(monster,player)<range){ctx.strokeStyle=`rgba(235,65,55,${.45+.45*k})`;ctx.beginPath();ctx.arc(monster.x-camX,monster.y-camY,monster.r+9+Math.sin(fxClock*9)*3,0,TAU);ctx.stroke()}ctx.restore();
+ }
+ if(abilityAlarmT>0){ctx.save();ctx.strokeStyle=`rgba(235,85,65,${.35+.5*Math.sin(fxClock*14)})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(player.x-camX,player.y-camY,25+Math.sin(fxClock*9)*4,0,TAU);ctx.stroke();ctx.restore()}
  if((player.safeT||0)>0){
   const px=player.x-camX,py=player.y-camY,k=Math.min(1,player.safeT);
   ctx.save();ctx.strokeStyle=`rgba(255,226,140,${.25+.35*Math.sin(fxClock*14)*k})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(px,py,20+4*Math.sin(fxClock*10),0,TAU);ctx.stroke();ctx.restore();
@@ -1122,6 +1343,7 @@ function silverFromClear(){
  add('hazard pay',(N('c6')?3*alive:0)+(N('c7')?2*alive:0));
  add('depth bonus',N('f8')*depth);
  add('interest',N('f6')?Math.min(25,Math.floor(silver*.1)):0);
+ add('mined ore',player.minedSilver||0);
  return{gold:g,tags:tg,eg,et,perG,perT,parts,lucky,flat,silver:excess+flat};
 }
 function openShopAfterClear(){
@@ -1139,11 +1361,11 @@ function openShopAfterClear(){
 }
 function leaveShop(){shopOpen=false;shopReady=false;shopReadyMap={};$('shop').style.display='none';shopFx.parts=[];shopFx.links=[]}
 function buyUpgrade(id){
- const u=upDef(id);if(!u||N(id)||!upUnlocked(u))return false;
+ const u=upDef(id);if(!u||N(id))return false;if(abilityCapBlocked(u)){say('You can only choose two abilities. Upgrade those two in the same tree.',2.4);Snd.buzz();shopShake(id);return false}if(!upUnlocked(u))return false;
  const c=upCost(u);if(silver<c){say('Not enough silver.',1.6);Snd.buzz();shopShake(id);return false}
  silver-=c;runUpgrades[id]=1;Snd.ding();setTimeout(()=>{try{Snd.clink()}catch(e){}},120);
  if(player)player.maxStamina=upMaxStamina();
- shopBought=id;shopSel=id;renderShop({bought:id});return true;
+ renderAbilityHud();shopBought=id;shopSel=id;renderShop({bought:id});return true;
 }
 
 /* ----- the tree screen ----- */
@@ -1190,6 +1412,15 @@ const ICONS={
  compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5L13 13l-4.5 2.5L11 11z"/>',
  map:'<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/>',
  charm:'<path d="M12 3l2.5 5.5 6 .8-4.4 4.1 1.1 6-5.2-3-5.2 3 1.1-6-4.4-4.1 6-.8z"/>',
+ pickaxe:'<path d="M3 7c4-4 11-4 16 1l-3 3c-3-3-7-3-10 0zM12 10l-5 11"/>',
+ flare:'<path d="M12 2c3 4 5 7 3 11-1 2-3 3-5 2-4-2-3-7 2-13zM8 20h8M12 15v5"/>',
+ decoy:'<rect x="5" y="8" width="14" height="10" rx="2"/><path d="M9 8V5h6v3M2 12h2M20 12h2M12 11v4"/>',
+ scan:'<circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>',
+ medkit:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4h6v3M12 10v7M8.5 13.5h7"/>',
+ smoke:'<path d="M5 19c-3-2-2-5 1-6-2-3 1-6 4-5 1-4 7-4 8 0 4 0 5 6 1 8 1 3-2 4-5 3z"/>',
+ tripwire:'<path d="M3 18h18M5 18l3-10 4 8 4-11 3 13"/>',
+ syringe:'<path d="M14 4l6 6M12 6l6 6M4 20l8-8M6 18l-2-2M15 3l6 6M10 8l6 6"/>',
+ bell:'<path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5zM10 20h4"/>',
  lock:'<rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'
 };
 function icon(name){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||ICONS.coin}</svg>`}
@@ -1273,11 +1504,11 @@ function renderShopDetail(){
  if(!u){el.innerHTML='<div class="dEmpty">SELECT AN UPGRADE</div>';return}
  const br=branchOf(u),owned=!!N(u.id),open=upUnlocked(u),cost=upCost(u),can=open&&!owned&&silver>=cost;
  const rows=statPreview(u).map(r=>`<div class="dRow"><span>${r.n}</span><b>${owned||!r.changed?r.cur:`${r.cur} <i>→</i> <em>${r.after}</em>`}</b></div>`).join('');
- const reqs=u.q.length?u.q.map(q=>{const d=upDef(q);return `<div class="dReq ${N(q)?'ok':'no'}">${N(q)?'✓':'✗'} ${escTxt(d?d.n:q)}</div>`}).join(''):'<div class="dReq ok">✓ NO PREREQUISITES</div>';
+ const capBlocked=abilityCapBlocked(u);const reqs=capBlocked?'<div class="dReq no">✗ TWO-ABILITY LIMIT REACHED · 2 / 2 SELECTED</div>':u.q.length?u.q.map(q=>{const d=upDef(q);return `<div class="dReq ${N(q)?'ok':'no'}">${N(q)?'✓':'✗'} ${escTxt(d?d.n:q)}</div>`}).join(''):'<div class="dReq ok">✓ NO PREREQUISITES</div>';
  const disc=cost<u.c?`<s>${u.c}</s> `:'';
  el.style.setProperty('--bc',br.col);
  el.className=owned?'owned':can?'can':'';
- el.innerHTML=`<div class="dTop"><div class="dIcon">${icon(u.ic||br.ic)}</div><div><div class="dName">${escTxt(u.n)}</div><div class="dTag">${br.name} · TIER ${roman(u.t)}${isKey(u)?' · <em>KEYSTONE</em>':''}</div></div></div>
+ el.innerHTML=`<div class="dTop"><div class="dIcon">${icon(u.ic||br.ic)}</div><div><div class="dName">${escTxt(u.n)}</div><div class="dTag">${br.name} · TIER ${roman(u.t)}${br.id==='ABILITIES'?' · '+abilityCount()+'/2 SELECTED':''}${isKey(u)?' · <em>KEYSTONE</em>':''}</div></div></div>
  <div class="dDesc">${escTxt(u.d)}</div>${rows?`<div class="dStats">${rows}</div>`:''}<div class="dReqs">${reqs}</div>
  <div class="dBuy"><div class="dCost">${owned?'<b>OWNED</b>':`${disc}<b>${cost}</b> SILVER`}</div><button id="dBuyBtn" ${can?'':'disabled'}>${owned?'PURCHASED':!open?'LOCKED':can?'BUY':'NEED '+(cost-silver)}</button></div>`;
  const bb=document.getElementById('dBuyBtn');if(bb)bb.onclick=()=>buyUpgrade(u.id);
@@ -1312,7 +1543,7 @@ function renderShop(opt){
   tabs.appendChild(el);
  }
  const total=UPS.length,owned=UPS.filter(u=>N(u.id)).length;
- setText('shopTotal',`${owned} / ${total} UPGRADES`);
+ setText('shopTotal',`${owned} / ${total} UPGRADES · ${abilityCount()} / 2 ABILITIES`);
  // tree
  const br=BRANCHES.find(b=>b.id===shopBranch)||BRANCHES[0],nodes=UPS.filter(u=>u.b===br.id);
  if(!shopSel||!nodes.some(n=>n.id===shopSel))shopSel=pickDefault(nodes);
@@ -1342,8 +1573,8 @@ function renderShop(opt){
   el.id='nd_'+n.id;
   el.className='upNode'+(own?' owned':'')+(!open&&!own?' locked':'')+(open&&!own&&!can?' poor':'')+(can?' can':'')+(key?' key':'')+(shopSel===n.id?' sel':'')+(shopAnimIn?' enter':'')+(opt.bought===n.id?' bought':'');
   el.style.left=p.x+'px';el.style.top=p.y+'px';el.style.setProperty('--bc',br.col);el.style.setProperty('--d',(n.t*80+n.r*45)+'ms');
-  const need=n.q.filter(q=>!N(q)).map(q=>{const d=upDef(q);return d?d.n:q})[0]||'';
-  el.innerHTML=`<div class="nTop"><div class="nIcon">${icon(!open&&!own?'lock':(n.ic||br.ic))}</div><div class="nBody"><h4>${escTxt(n.n)}</h4><div class="desc">${escTxt(n.d)}</div></div></div><div class="foot"><span>${own?'OWNED':(!open?'NEEDS '+escTxt(need):`<i class="coin"></i>${cost}`)}</span></div>${key?'<div class="keyTag">KEYSTONE</div>':''}`;
+  const need=abilityCapBlocked(n)?'2 ABILITIES ALREADY SELECTED':n.q.filter(q=>!N(q)).map(q=>{const d=upDef(q);return d?d.n:q})[0]||'';
+  el.innerHTML=`<div class="nTop"><div class="nIcon">${icon(!open&&!own?'lock':(n.ic||br.ic))}</div><div class="nBody"><h4>${escTxt(n.n)}</h4><div class="desc">${escTxt(n.d)}</div></div></div><div class="foot"><span>${own?'OWNED':(!open?'LOCKED · '+escTxt(need):`<i class="coin"></i>${cost}`)}</span></div>${key?'<div class="keyTag">KEYSTONE</div>':''}`;
   el.onclick=()=>selectNode(n.id);
   el.onmouseenter=()=>hoverNode(n.id,true);
   el.onmouseleave=()=>hoverNode(n.id,false);
@@ -1450,7 +1681,7 @@ function renderShopFooter(){
  if(!multiplayer){
   rb.style.display='none';db.style.display='inline-block';db.disabled=false;
   db.textContent='DESCEND TO DEPTH '+String(depth+1).padStart(2,'0');
-  list.textContent='Spend your silver, then take the lift down when you are ready.';return;
+  list.textContent=`Spend your silver, then descend. ${abilityCount()} / 2 field abilities selected.`;return;
  }
  const roster=shopRoster(),ready=roster.filter(shopIsReady).length,all=ready===roster.length;
  const force=performance.now()-shopOpenedAt>=SHOP_FORCE_MS;
@@ -1503,8 +1734,9 @@ function showEnd(win){
  }
  phase='over';
  const alive=bots.filter(b=>b.alive).length,t=Math.floor(elapsed),ts=`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
- $('endTitle').textContent='CLAIMED';
- $('endText').textContent=`The thing in ${depthName()} found you after ${ts}. The lift keeps going without you. You can retry this depth.`;
+ const fell=deathKind==='pit';
+ $('endTitle').textContent=fell?'FELL':'CLAIMED';
+ $('endText').textContent=fell?`The floor gave way in ${depthName()} after ${ts} and you dropped down an open shaft. You can retry this depth.`:`The thing in ${depthName()} found you after ${ts}. The lift keeps going without you. You can retry this depth.`;
  $('again').textContent=`RETRY DEPTH ${String(depth).padStart(2,'0')}`;
  $('again').onclick=start;
  $('end').style.display='flex';
@@ -1546,10 +1778,17 @@ function forceNetBodySync(){
  if(!multiplayer||!isNetHost||!netSocket||!netSocket.connected||!monster)return;
  try{syncNetworkBodies();netSocket.emit('monster-state',netPackMonster());}catch(e){}
 }
-function die(){
+function die(force=false,kind){
  if(phase!=='play')return;
- if((player.safeT||0)>0)return;
- if(!multiplayer&&tryCharm())return;
+ if(!force&&(player.safeT||0)>0)return;
+ if(!force&&!multiplayer&&tryCharm())return;
+ if(kind==='pit'){
+  // Fell down an open shaft: the floor took you, not the monster. No face, no growl, no body left behind.
+  deathKind='pit';player.pitGone=true;Snd.pitFall();Snd.spray(false);stopPuzzle();
+  if(multiplayer){netEnterSpectator(player.x,player.y);return}
+  phase='dying';endT=0;shake=5;return;
+ }
+ deathKind='monster';
  if(multiplayer){
   spawnCorpse({x:player.x,y:player.y,worldId:`player:${netMyId||'local'}`,netId:netMyId||null,name:netName||'MINER',pal:PAL.player,fromBot:true,fx:true});
   if(isNetHost)forceNetBodySync();
@@ -1682,6 +1921,13 @@ function updateMonster(dt){
  const targetPlayer=netMonsterTarget(m);
  const pd=dist(targetPlayer,m),revealNear=Math.max(85,150-(depth-1)*5),revealTimeout=Math.max(13,28-(depth-1)*1.4);
  if(m.state==='possess'){
+  // The monster player can back out of a body they are still crawling into by pressing E again.
+  if(multiplayer&&netMonsterControllerId&&(monsterPossessQueued||(monsterInput&&monsterInput.possess))){
+   monsterPossessQueued=false;if(monsterInput)monsterInput.possess=false;
+   if(m.host)m.host.possessing=0;
+   m.state='hunt';m.huntT='player';m.search=7;m.revealed=true;m.host=null;m.path=null;m.pause=.25;
+   showAlert('YOU TEAR YOURSELF FREE');Snd.growl(.8,0);return;
+  }
   // Re-resolve host every frame — multiplayer body list rebuilds can orphan the old reference.
   let b=m.host;
   if(b&&Array.isArray(bodies)){
@@ -1720,10 +1966,15 @@ function updateMonster(dt){
    // Possess nearest unused body on E
    if(monsterPossessQueued||mi.possess){
     monsterPossessQueued=false;mi.possess=false;
-    const b=bodies.find(b=>!b.used&&!b.possessed&&Math.hypot(b.x-m.x,b.y-m.y)<48);
-    if(b){m.state='possess';m.host=b;b.possessing=0;b.used=false;b.possessed=false;m.path=null;Snd.possess();}
+    if(m.state==='disguise'){reveal(netMonsterTarget(m))}   // E again while wearing a body: become the monster again
+    else{
+     const b=bodies.find(b=>!b.used&&!b.possessed&&Math.hypot(b.x-m.x,b.y-m.y)<48);
+     if(b){m.state='possess';m.host=b;b.possessing=0;b.used=false;b.possessed=false;m.path=null;Snd.possess();}
+    }
    }
-   let dx=+mi.dx||0,dy=+mi.dy||0;const len=Math.hypot(dx,dy);
+   let dx=+mi.dx||0,dy=+mi.dy||0;
+   if(netMonsterControllerId!==netMyId&&performance.now()-monsterInputAt>800){dx=0;dy=0}
+   const len=Math.hypot(dx,dy);
    if(len>0.05){dx/=len;dy/=len;}else{dx=0;dy=0;}
    const sprint=!!mi.sprint;
    const base={stalk:64,investigate:98,search:84,hunt:m.revealed?158:138,disguise:70}[m.state]||90;
@@ -1752,7 +2003,7 @@ function updateMonster(dt){
    if(Math.random()<dt*45)P(m.x+rnd(-8,8),m.y+rnd(-8,8),rnd(-40,40),rnd(-40,40),.3,1.4,'#5a1510',{drag:.9});
    if(m.twT>=1){m.twT=0;explodeBody(m);reveal(targetPlayer)}
   }
-  else if((pd<revealNear&&lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y))||pd<Math.max(55,75-(depth-1)*2)||closeBot||m.dT>revealTimeout||((targetPlayer.flashlightOn===undefined?flashlightOn:targetPlayer.flashlightOn)&&pd<(300+(depth-1)*12)*senseOf(targetPlayer))){reveal(targetPlayer)}
+  else if((pd<revealNear&&lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y))||pd<Math.max(55,75-(depth-1)*2)||closeBot||m.dT>revealTimeout||((targetPlayer.flashlightOn===undefined?flashlightOn:targetPlayer.flashlightOn)&&pd<(300+(depth-1)*12)*senseOf(targetPlayer)&&lampLOS(targetPlayer.x,targetPlayer.y,m.x,m.y))){reveal(targetPlayer)}
   else{
    let mv=false;
    // A quarter of all disguises stalk the player: they walk straight at them like a normal miner would,
@@ -1776,12 +2027,13 @@ function updateMonster(dt){
   if(m.state!=='hunt'){const now=performance.now();const b=bodies.find(b=>!b.used&&!b.possessed&&!(b.freshUntil&&b.freshUntil>now)&&Math.hypot(b.x-m.x,b.y-m.y)<40);if(b){m.state='possess';m.host=b;b.possessing=0;b.used=false;b.possessed=false;m.path=null;Snd.possess();return}}
   let botT=null;
   for(const b of bots)if(b.alive){const d=dist(b,m);if(d<350+(depth-1)*12&&lineOfSight(b.x,b.y,m.x,m.y)&&(!botT||d<botT.d))botT={b,d}}
-  const los=lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y);
+  const smokeCover=abilitySmokeCovers(targetPlayer)||abilitySmokeCovers(m);
+  const los=lineOfSight(targetPlayer.x,targetPlayer.y,m.x,m.y)&&!smokeCover;
   // The lamp makes you easy to spot. In darkness, visual detection is much
   // shorter, including during a chase, so breaking line of sight can buy time.
   const targetLamp=targetPlayer.flashlightOn===undefined?flashlightOn:targetPlayer.flashlightOn;
   const targetNoise=targetPlayer.noise===undefined?noise:targetPlayer.noise;
-  const sightRange=targetLamp?440+(depth-1)*19:Math.max(72,104-(depth-1)*3)*(1+1.1*MM.dark);
+  const sightRange=(targetLamp?440+(depth-1)*19:Math.max(72,104-(depth-1)*3)*(1+1.1*MM.dark))*(smokeCover?(N('a6q')?.18:.32):1);
   // During an active chase, darkness makes reacquiring the player much harder.
   // Very close encounters remain dangerous, even with the lamp switched off.
   const chaseSightRange=targetLamp?sightRange:Math.max(62,92-(depth-1)*2)*(1+1.3*MM.dark);
@@ -1789,9 +2041,9 @@ function updateMonster(dt){
   const hear=pd<(targetLamp?hearRange:hearRange*.72*hearOf(targetPlayer));
   const seen=los&&pd<(m.state==='hunt'&&m.huntT==='player'?chaseSightRange:sightRange);
   // A lit flashlight can be sensed through solid rock at close range, so the creature homes in on it without line of sight.
-  const sensed=targetLamp&&pd<(300+(depth-1)*12)*senseOf(targetPlayer);
+  const sensed=targetLamp&&pd<(300+(depth-1)*12)*senseOf(targetPlayer)&&lampLOS(targetPlayer.x,targetPlayer.y,m.x,m.y);
   if(botT&&botT.d<pd+60){m.state='hunt';m.huntT='bot';m.lastSeen={x:botT.b.x,y:botT.b.y};m.search=3.5}
-  else if(seen||sensed){if(m.state==='search')MM.hide=Math.max(0,MM.hide-.05);if(m.state!=='hunt'){Snd.growl(.55,clamp((m.x-targetPlayer.x)/500,-1,1));Snd.screech(.5,clamp((m.x-targetPlayer.x)/500,-1,1));say(seen?'Something has noticed you.':'It sensed your light through the rock.',1.8)}m.state='hunt';m.huntT='player';m.lastSeen={x:targetPlayer.x,y:targetPlayer.y};m.search=4.5}
+  else if(seen||sensed){if(m.state==='search')MM.hide=Math.max(0,MM.hide-.05);if(m.state!=='hunt'){Snd.growl(.55,clamp((m.x-targetPlayer.x)/500,-1,1));Snd.screech(.5,clamp((m.x-targetPlayer.x)/500,-1,1));say(seen?'Something has noticed you.':'It spotted your light.',1.8)}m.state='hunt';m.huntT='player';m.lastSeen={x:targetPlayer.x,y:targetPlayer.y};m.search=4.5}
   else if(hear&&m.state!=='hunt'){m.state='investigate';m.lastSeen={x:targetPlayer.x+rnd(-40,40),y:targetPlayer.y+rnd(-40,40)};m.search=Math.max(m.search,3.5)}
   else if(m.state==='hunt'){
    // When the lamp is off, the creature loses your trail faster after you
@@ -1945,6 +2197,7 @@ function applyRoundRestart(rr){
  appendGimmickObjective();
  if(rr.resync){showAlert('MAP RESYNCED');say('Your mine did not match the host. It was rebuilt so the whole crew shares one map.',4)}
  if(rr.descend){showAlert('DEPTH '+String(depth).padStart(2,'0')+': '+depthName());{const g=activeGimmicks();say(g.length?g.map(k=>GIMMICKS[k].name).join(' + ')+': '+GIMMICKS[g[0]].desc:'The lift seals overhead. You are deeper now.',6)}}
+ if(!rr.resync)playDescent();
  netStatus(`ONLINE · ROUND ${netRoundId}\nMONSTER: ${netMonsterControllerName||'PLAYER'}`);
 }
 
@@ -2095,7 +2348,7 @@ function updateFx(dt){
 function markExplored(){
  const px=player.x,py=player.y;
  for(let i=0;i<64;i++){const a=i/64*TAU,dx=Math.cos(a),dy=Math.sin(a);
-  for(let d=0,mr=280+upgradeMapRadius();d<mr;d+=12){const tx=Math.floor((px+dx*d)/TILE),ty=Math.floor((py+dy*d)/TILE);if(tx<0||ty<0||tx>=COLS||ty>=ROWS)break;explored[ty*COLS+tx]=1;if(map[ty][tx])break}}
+  for(let d=0,mr=280+upgradeMapRadius();d<mr;d+=12){const tx=Math.floor((px+dx*d)/TILE),ty=Math.floor((py+dy*d)/TILE);if(tx<0||ty<0||tx>=COLS||ty>=ROWS)break;explored[ty*COLS+tx]=1;if(map[ty][tx]||pitSet.has(ty*COLS+tx))break}}
 }
 
 /* ---------- main update ---------- */
@@ -2121,6 +2374,7 @@ function updateGame(dt){
   exploreT-=dt;if(exploreT<=0){exploreT=.2;markExplored()}
   return;
  }
+ if(player.pitFallT>0){player.pitFallT=Math.max(0,player.pitFallT-dt);if(player.pitTarget){player.x=lerp(player.x,player.pitTarget.x,Math.min(1,dt*9));player.y=lerp(player.y,player.pitTarget.y,Math.min(1,dt*9))}player.mv=0;noise=Math.max(0,noise-dt*18);if(player.pitFallT<=0)die(true,'pit');return}
  // Noise is event-driven: only footfalls add movement noise. Idle noise fades fast;
  // ordinary movement has a tiny fade between footsteps so it cannot grow from time alone.
  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
@@ -2129,14 +2383,15 @@ function updateGame(dt){
  const crouch=!!(keys.c||keys.control);
  if(player.tired&&player.stamina>upgradeTiredExit())player.tired=false;
  const sprint=keys.shift&&moving&&!crouch&&!player.tired&&player.stamina>0;
- noise=Math.max(0,noise-dt*(moving?3.5:puzzle?3.2:38));
+ noise=Math.max(0,noise-dt*(moving?18:puzzle?16:85));
  if(player.tired||player.stamina<30){breathT-=dt;if(breathT<=0){breathT=player.tired?.7:1.2;Snd.breath()}}
  if(sprint){player.stamina-=26*upgradeStaminaDrainMult()*dt;if(player.stamina<=0){player.stamina=0;player.tired=true;say('Out of breath.',1.5)}}
  else player.stamina=Math.min(player.maxStamina||100,player.stamina+(moving?10:22)*upgradeRegenMult()*dt);
  const inWater=inFlood(player.x,player.y);
  player.stun=Math.max(0,(player.stun||0)-dt);player.safeT=Math.max(0,(player.safeT||0)-dt);
- const spd=140*(sprint?1.55*upgradeSprintMult():crouch?.52*upgradeCrouchMult():1)*upgradeChaseBoost()*(player.tired&&moving?.8:1)*(inWater?upgradeWaterMult():1)*(player.stun>0?.4:1)*(sporeAmt>.3?.8:1);
+ const spd=140*(sprint?1.55*upgradeSprintMult():crouch?.52*upgradeCrouchMult():1)*upgradeChaseBoost()*(player.tired&&moving?.8:1)*(inWater?upgradeWaterMult():1)*(player.stun>0?.4:1)*(sporeAmt>.3?.8:1)*(abilitySpeedT>0?abilitySpeedMult:1);
  moveEntity(player,dx*spd*dt,dy*spd*dt,player.r);
+ const pitHit=pitTiles.find(p=>Math.floor(player.x/TILE)===p.x&&Math.floor(player.y/TILE)===p.y);if(pitHit){player.pitFallT=.42;player.safeT=0;player.pitTarget={x:(pitHit.x+.5)*TILE,y:(pitHit.y+.5)*TILE};showAlert('THE FLOOR GIVES WAY');say('You slipped into an open shaft.',1.2);Snd.rumble();return}
  player.mv=lerp(player.mv,moving?(sprint?1.5:crouch?.55:1):0,Math.min(1,dt*10));
  if(moving){
   const mode=crouch?'crouch':sprint?'run':'walk';
@@ -2177,6 +2432,7 @@ function updateGame(dt){
   if(b.used||b.possessed)b.possessing=0;
  }
  updateGimmicks(dt,false);
+ updateAbilityWorld(dt);
  // sound design: heartbeat, drone, knocks and rumbles
  const md=dist(player,monster),prox=clamp(1-(md-120)/(420+upgradeHeartRange()),0,1)*(monster.state==='disguise'?0:1)+(monster.state==='hunt'?.25:0);
  Snd.tension(prox);hbT-=dt;
@@ -2197,8 +2453,40 @@ function updateGame(dt){
 /* ---------- drawing helpers ---------- */
 function visPoly(x,y,maxD,n,cx,cy){
  const pts=[];
- for(let i=0;i<=n;i++){const a=TAU*i/n,dx=Math.cos(a),dy=Math.sin(a);let d=0;while(d<maxD){d+=6;if(!walk(x+dx*d,y+dy*d))break}d=Math.min(maxD,d+9);pts.push(x+dx*d-cx,y+dy*d-cy)}
+ for(let i=0;i<=n;i++){const a=TAU*i/n,dx=Math.cos(a),dy=Math.sin(a);let d=0;while(d<maxD){d+=6;if(!walk(x+dx*d,y+dy*d,true))break}d=Math.min(maxD,d+9);pts.push(x+dx*d-cx,y+dy*d-cy)}
  return pts;
+}
+/* ---- monster senses (only for the human who is playing the monster) ----
+   Vision is cut down to a short, line-of-sight bubble. The only way to see further is by ear: a miner whose noise is LOUD (75+)
+   is seen through rock from far away, and one whose noise is ELEVATED (35+) is seen through rock when they are close.
+   Seen miners get a red pulsing highlight. */
+let blindC=null,blindX=null;
+const MONSTER_BLIND_R=130,SENSE_LOUD=75,SENSE_LOUD_RANGE=1000,SENSE_ELEV=35,SENSE_ELEV_RANGE=300;
+function monsterSenses(rp){const nz=Number(rp.noise)||0,d=Math.hypot(rp.x-monster.x,rp.y-monster.y);return nz>=SENSE_LOUD&&d<SENSE_LOUD_RANGE?2:nz>=SENSE_ELEV&&d<SENSE_ELEV_RANGE?1:0}
+function drawMonsterSenses(camX,camY){
+ const bw=Math.ceil(W/2),bh=Math.ceil(H/2);
+ if(!blindC){blindC=document.createElement('canvas');blindX=blindC.getContext('2d')}
+ if(blindC.width!==bw||blindC.height!==bh){blindC.width=bw;blindC.height=bh}
+ const g=blindX,mx=monster.x-camX,my=monster.y-camY,R=MONSTER_BLIND_R;
+ g.setTransform(1,0,0,1,0,0);g.globalCompositeOperation='source-over';g.clearRect(0,0,bw,bh);
+ g.fillStyle='rgba(0,0,0,.95)';g.fillRect(0,0,bw,bh);
+ g.setTransform(.5,0,0,.5,0,0);g.globalCompositeOperation='destination-out';
+ g.save();polyPath(g,visPoly(monster.x,monster.y,R,48,camX,camY));g.clip();
+ const gr=g.createRadialGradient(mx,my,4,mx,my,R);gr.addColorStop(0,'rgba(0,0,0,1)');gr.addColorStop(.55,'rgba(0,0,0,.7)');gr.addColorStop(1,'rgba(0,0,0,0)');
+ g.fillStyle=gr;g.fillRect(mx-R,my-R,R*2,R*2);g.restore();
+ g.globalCompositeOperation='source-over';
+ ctx.drawImage(blindC,0,0,W,H);
+ for(const rp of netPlayers){
+  if(!rp||rp.id===netMyId||isMonsterPlayerId(rp.id)||rp.role==='monster'||rp.alive===false||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;
+  const s=monsterSenses(rp);if(!s)continue;
+  const sx=rp.x-camX,sy=rp.y-camY;if(sx<-70||sx>W+70||sy<-70||sy>H+70)continue;
+  const pulse=.65+.35*Math.sin(fxClock*8+rp.x*.01),Rg=s>1?50:36;
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const rg=ctx.createRadialGradient(sx,sy,2,sx,sy,Rg);rg.addColorStop(0,`rgba(255,40,30,${.4*pulse})`);rg.addColorStop(1,'rgba(255,0,0,0)');ctx.fillStyle=rg;ctx.beginPath();ctx.arc(sx,sy,Rg,0,TAU);ctx.fill();ctx.restore();
+  ctx.save();ctx.translate(-camX,-camY);ctx.shadowColor='#ff2418';ctx.shadowBlur=s>1?24:16;
+  drawMiner(rp.x,rp.y,rp.aim||0,fxClock*5,rp.moving?1:0,PAL.player);drawMiner(rp.x,rp.y,rp.aim||0,fxClock*5,rp.moving?1:0,PAL.player);ctx.restore();
+  ctx.save();ctx.strokeStyle=`rgba(255,60,45,${.7*pulse})`;ctx.lineWidth=s>1?2:1.4;ctx.beginPath();ctx.arc(sx,sy,16+pulse*3,0,TAU);ctx.stroke();ctx.restore();
+ }
 }
 function polyPath(g,pts){g.beginPath();g.moveTo(pts[0],pts[1]);for(let i=2;i<pts.length;i+=2)g.lineTo(pts[i],pts[i+1]);g.closePath()}
 function drawMiner(x,y,ang,ph,mv,pal,o){
@@ -2410,6 +2698,7 @@ function draw(){
   for(const r of p.rip){ctx.strokeStyle=`rgba(170,200,200,${Math.max(0,r.a*.5)})`;ctx.beginPath();ctx.ellipse(0,0,Math.min(p.rx,r.r),Math.min(p.ry,r.r*.6),0,0,TAU);ctx.stroke()}
   ctx.restore();
  }
+ drawMineVeins();
  drawLift();
  for(const g of gold)if(!g.taken){
   ctx.save();ctx.translate(g.x,g.y);
@@ -2436,7 +2725,7 @@ function draw(){
  if((!multiplayer||phase!=='spectate')&&!isMonsterController){
  {
   const mvv=player.mv;
-  drawMiner(player.x,player.y,player.aim,player.foot,mvv,PAL.player);
+  if(player.pitFallT>0){const k=clamp(player.pitFallT/.42,0,1);ctx.save();ctx.translate(player.x,player.y);ctx.scale(.28+.72*k,.28+.72*k);ctx.globalAlpha=.35+.65*k;drawMiner(0,0,player.aim,player.foot,mvv,PAL.player);ctx.restore()}else if(!player.pitGone)drawMiner(player.x,player.y,player.aim,player.foot,mvv,PAL.player);
   if(multiplayer){ctx.save();ctx.font='10px Consolas,monospace';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(player.x-42,player.y-32,84,13);ctx.fillStyle='#d7d8bd';ctx.fillText(String(netName||'MINER').slice(0,18),player.x,player.y-22);ctx.restore()}
   // flashlight in the leading hand
   ctx.save();ctx.translate(player.x+Math.cos(player.aim)*11,player.y+Math.sin(player.aim)*11);ctx.rotate(player.aim);
@@ -2456,6 +2745,7 @@ function draw(){
   drawLantern(l,l.cur===undefined?1:l.cur);
  }
  drawParticles();
+ drawAbilityObjects();
  drawSpores(camX,camY);
  for(const o of ores){if(o.x<camX-20||o.x>camX+W+20||o.y<camY-20||o.y>camY+H+20)continue;const s=Math.sin(fxClock*2.4+o.ph);if(s>.82){ctx.fillStyle=o.c?`rgba(150,240,240,${(s-.82)*5})`:`rgba(255,235,150,${(s-.82)*5})`;ctx.fillRect(o.x-1,o.y-1,2,2)}}
  ctx.drawImage(overC,0,0);
@@ -2466,6 +2756,7 @@ function draw(){
  const md=dist(player,monster),flick=1-Math.min(.76,.4+(depth-1)*.035)*Math.max(0,Math.sin(fxClock*37)*Math.sin(fxClock*23))*clamp((320-md)/220,0,1)*(monster.state==='disguise'?.3:1);
  const psx=cameraFocus.x-camX,psy=cameraFocus.y-camY,lightReach=Math.max(270,430-(depth-1)*18)+upgradeBeamBonus(),personalLight=Math.max(92,140-(depth-1)*5)+upgradePersonalLightBonus();
  if(flashlightOn&&phase!=='spectate'&&!isMonsterController)lights.push({x:psx,y:psy,r:lightReach,poly:visPoly(player.x,player.y,lightReach,150,camX,camY),kind:'player',k:flick*(gim('battery')&&battery<25?(.45+.55*Math.max(0,Math.sin(fxClock*29)*Math.sin(fxClock*13))):1),aim:player.aim});
+ for(const f of abilityFx)if(f.type==='flare'){const sx=f.x-camX,sy=f.y-camY;if(sx>-f.radius&&sx<W+f.radius&&sy>-f.radius&&sy<H+f.radius)lights.push({x:sx,y:sy,r:f.radius,poly:null,kind:'flare',k:clamp(f.t/1.2,0,1)});}
  // Monster lamp only while disguised (possessing a body).
  if(isMonsterController&&monster&&monster.state==='disguise'&&flashlightOn){
   const mx=monster.x-camX,my=monster.y-camY;
@@ -2516,11 +2807,13 @@ function draw(){
  ctx.save();ctx.globalCompositeOperation='lighter';
  for(const L of lights){
   if(L.kind==='gold')continue;ctx.save();if(L.poly){polyPath(ctx,L.poly);ctx.clip()}
-  const col=L.kind==='lantern'?'255,160,70':L.kind==='lift'?(quotaMet()?'100,230,130':'230,90,70'):L.kind==='bot'?'210,225,170':'175,200,160';
-  const a=L.kind==='lantern'?.2:L.kind==='player'?.07:.1,R=L.kind==='player'?Math.max(150,260-(depth-1)*12):L.r;
+  const col=L.kind==='lantern'?'255,160,70':L.kind==='flare'?'255,126,48':L.kind==='lift'?(quotaMet()?'100,230,130':'230,90,70'):L.kind==='bot'?'210,225,170':'175,200,160';
+  const a=L.kind==='lantern'?.2:L.kind==='flare'?.17:L.kind==='player'?.07:.1,R=L.kind==='player'?Math.max(150,260-(depth-1)*12):L.r;
   const g=ctx.createRadialGradient(L.x,L.y,0,L.x,L.y,R);g.addColorStop(0,`rgba(${col},${a*L.k})`);g.addColorStop(1,`rgba(${col},0)`);ctx.fillStyle=g;ctx.fillRect(L.x-R,L.y-R,R*2,R*2);ctx.restore();
  }
  ctx.restore();
+ // Human-controlled monster: nearly blind, but noisy miners glow red through the rock.
+ if(multiplayer&&isMonsterController&&monster&&phase==='play')drawMonsterSenses(camX,camY);
  // Eye glow is screen-space so it remains visible through the darkness mask.
  {
   const disguised=monster.state==='disguise',headForward=disguised?6.5:39;
@@ -2546,6 +2839,7 @@ function draw(){
  if(bellPing>0){ctx.save();ctx.lineWidth=2;const pr0=(2-bellPing)*60+14,pts=[];for(const b of bots)if(b.alive)pts.push(b);if(multiplayer)for(const p of netPlayers)if(p.alive&&!isMonsterPlayerId(p.id)&&Number.isFinite(p.x))pts.push(p);for(const p of pts){ctx.strokeStyle=`rgba(255,215,120,${Math.min(1,bellPing)*.7})`;ctx.beginPath();ctx.arc(p.x-camX,p.y-camY,pr0,0,TAU);ctx.stroke()}ctx.restore()}
  if(sporeAmt>.02){ctx.fillStyle=`rgba(110,150,30,${sporeAmt*.2})`;ctx.fillRect(0,0,W,H)}
  {const tint=gim('flood')?'0,40,55':gim('blackout')?'40,30,5':gim('spores')?'30,60,10':null;if(tint){ctx.fillStyle=`rgba(${tint},.06)`;ctx.fillRect(0,0,W,H)}}
+ if(abilityScanT>0){ctx.fillStyle=`rgba(76,154,148,${.025+.025*Math.sin(fxClock*8)})`;ctx.fillRect(0,0,W,H)}
  // post: vignette, grain, danger tint, heartbeat
  ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);
  if(depth>1){const veil=Math.min(.18,(depth-1)*.018);ctx.fillStyle=depth>=4?`rgba(18,2,5,${veil})`:`rgba(0,8,12,${veil})`;ctx.fillRect(0,0,W,H)}
@@ -2569,7 +2863,11 @@ function draw(){
  if(player.tired){ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(0,0,W,H)}
  if(Math.sin(fxClock*1.7)>.995){ctx.fillStyle='rgba(185,190,150,.04)';ctx.fillRect(0,0,W,H)}
  // end sequences
- if(phase==='dying'){
+ if(phase==='dying'&&deathKind==='pit'){
+  const t=endT;ctx.fillStyle=`rgba(0,0,0,${Math.min(1,t*1.25)})`;ctx.fillRect(0,0,W,H);
+  if(t>.25){ctx.save();ctx.globalAlpha=Math.min(1,(t-.25)*2.5);ctx.fillStyle='#b9b39a';ctx.textAlign='center';ctx.font='bold 26px Consolas,monospace';if('letterSpacing'in ctx)ctx.letterSpacing='8px';ctx.fillText('YOU FELL',W/2,H/2);ctx.restore()}
+ }
+ else if(phase==='dying'){
   const t=endT,s=lerp(.3,2.6,Math.min(1,t/.35));
   ctx.fillStyle=`rgba(0,0,0,${Math.min(.85,t*3)})`;ctx.fillRect(0,0,W,H);
   drawFace(W/2+(Math.random()-.5)*14,H/2+(Math.random()-.5)*14,s*Math.min(W,H)/480,fxClock);
@@ -2581,6 +2879,7 @@ function draw(){
 function drawMini(){
  mctx.clearRect(0,0,mini.width,mini.height);
  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){if(!explored[y*COLS+x])continue;mctx.fillStyle=map[y][x]?'#2b332f':'#5d6b60';mctx.fillRect(x*4,y*4,4,4)}
+ for(const p of pitTiles)if(explored[p.y*COLS+p.x]){mctx.fillStyle='#080b0a';mctx.fillRect(p.x*4+1,p.y*4+1,2,2);mctx.fillStyle='#8b7961';mctx.fillRect(p.x*4+1,p.y*4,2,1)}
  if(N('m9')||explored[24*COLS+32]){mctx.fillStyle='#d7b66d';mctx.fillRect(32*4,24*4,4,4)}
  for(const b of bots)if(b.alive&&(N('m6')||dist(b,player)<260)){mctx.fillStyle='#8fb39a';mctx.fillRect(b.x/TILE*4-1.5,b.y/TILE*4-1.5,3,3)}
  drawMiniPerks();
@@ -2595,7 +2894,7 @@ function updateHud(){
  if(puzzle)$('puzzleBar').style.width=Math.round(puzzle.timer/Math.max(0.5,upgradePuzzleTime())*100)+'%';
  $('alert').style.opacity=clamp(alertT*2,0,1);
  {const bar=v=>{const n=Math.round(v*5);return '▮'.repeat(n)+'▯'.repeat(5-n)},ml=[['LOOPS',MM.loop],['DARK-EYES',MM.dark],['LISTENING',MM.loud],['PATIENCE',MM.hide]].filter(a=>a[1]>.08).map(a=>a[0]+' '+bar(a[1]));setText('memLine',ml.length?'IT KNOWS YOU: '+ml.join(' · '):'');
- setText('silverLine',silver>0?'SILVER '+(silver|0):'');const gl=gimmickNames(depth);setText('gimLine',gl?'HAZARD: '+gl:'');const hb=gim('battery');$('batRow').style.display=hb?'block':'none';if(hb){$('batBar').style.width=Math.round(battery)+'%';$('batBar').style.background=battery<25?'#a85a4a':'#d7c97a'}}
+ setText('silverLine',silver>0?'SILVER '+(silver|0):'');renderAbilityHud();const gl=gimmickNames(depth);setText('gimLine',gl?'HAZARD: '+gl:'');const hb=gim('battery');$('batRow').style.display=hb?'block':'none';if(hb){$('batBar').style.width=Math.round(battery)+'%';$('batBar').style.background=battery<25?'#a85a4a':'#d7c97a'}}
  if(hintT<=0){
   let txt=DEFAULT_HINT;
   if(puzzle)txt='Press the arrows shown (WASD or arrow keys) \u00b7 E to step away';
@@ -2607,14 +2906,378 @@ function updateHud(){
  miniT-=1;if(miniT<=0){miniT=6;if(showMini)drawMini();mini.style.display=showMini&&innerWidth>700?'block':'none'}
 }
 
+/* ---------- LIFT DESCENT CUTSCENE (pixel-art edition) ----------
+   Rendered on a tiny canvas (about 320x180) and scaled up with nearest-neighbour filtering, so everything is chunky pixels:
+   flat palette, dithered glows, hand-drawn sprite miners, square sparks and a 3x5 bitmap font. Plays whenever a shift starts. */
+let descentActive=false,DS=null;
+const dcv=$('descentCv'),dg=dcv.getContext('2d');
+const hsh=n=>{let x=Math.imul((n|0)^0x9e3779b9,0x85ebca6b);x^=x>>>13;x=Math.imul(x,0xc2b2ae35);x^=x>>>16;return(x>>>0)/4294967296};
+const pxSize=()=>Math.max(3,Math.round(innerHeight/180));
+function sizeDescent(){const px=pxSize();dcv.width=Math.ceil(innerWidth/px);dcv.height=Math.ceil(innerHeight/px);dg.imageSmoothingEnabled=false}
+addEventListener('resize',()=>{if(DS)sizeDescent()});
+$('descent').addEventListener('pointerdown',()=>descentSkip());
+
+/* 3x5 bitmap font: each glyph = 5 rows of 3 bits */
+const PXF={};
+('A:010101111101101|B:110101110101110|C:011100100100011|D:110101101101110|E:111100110100111|F:111100110100100|G:011100101101011|H:101101111101101|I:111010010010111|J:001001001101010|K:101101110101101|L:100100100100111|M:101111111101101|N:111101101101101|O:010101101101010|P:111101111100100|Q:010101101110011|R:110101110101101|S:011100010001110|T:111010010010010|U:101101101101111|V:101101101101010|W:101101111111101|X:101101010101101|Y:101101010010010|Z:111001010100111|'+
+ '0:111101101101111|1:010110010010111|2:110001010100111|3:110001010001110|4:101101111001001|5:111100110001110|6:011100111101111|7:111001010010010|8:111101111101111|9:111101111001110|'+
+ '-:000000111000000|.:000000000000010|!:010010010000010|*:000101010101000|v:111111010000000|/:001001010100100|::000010000010000| :000000000000000').split('|').forEach(s=>{PXF[s[0]]=s.slice(2)});
+function pxTextW(str,sc){return str.length*4*sc-sc}
+function pxText(g,str,x,y,col,sc,align,shadow){
+ sc=sc||1;str=String(str).toUpperCase();x=Math.round(x);y=Math.round(y);
+ if(align==='c')x-=Math.round(pxTextW(str,sc)/2);else if(align==='r')x-=pxTextW(str,sc);
+ for(const pass of(shadow?[1,0]:[0])){
+  g.fillStyle=pass?'#000':col;
+  for(let i=0;i<str.length;i++){const gl=PXF[str[i]]||PXF['-'];
+   for(let r=0;r<5;r++)for(let c=0;c<3;c++)if(gl[r*3+c]==='1')g.fillRect(x+(i*4+c)*sc+pass*sc,y+r*sc+pass*sc,sc,sc)}
+ }
+}
+/* ordered-dither helpers */
+const PXPAT={};
+function pxPat(g,col){let p=PXPAT[col];if(!p){const c=document.createElement('canvas');c.width=c.height=2;const x=c.getContext('2d');x.fillStyle=col;x.fillRect(0,0,1,1);x.fillRect(1,1,1,1);p=PXPAT[col]=g.createPattern(c,'repeat')}return p}
+function pxDisc(g,cx,cy,r){cx=Math.round(cx);cy=Math.round(cy);r=Math.round(r);for(let dy=-r;dy<=r;dy++){const hw=Math.floor(Math.sqrt(r*r-dy*dy));g.fillRect(cx-hw,cy+dy,hw*2+1,1)}}
+/* glow = a dithered outer ring plus a flat inner core, additive */
+function pxGlow(g,cx,cy,r,col,a){
+ g.save();g.globalCompositeOperation='lighter';
+ g.globalAlpha=Math.min(1,a*.9);g.fillStyle=pxPat(g,col);pxDisc(g,cx,cy,r);
+ g.globalAlpha=Math.min(1,a*.35);g.fillStyle=col;pxDisc(g,cx,cy,r*.55);
+ g.restore();
+}
+function pxLine(g,x0,y0,x1,y1){x0=Math.round(x0);y0=Math.round(y0);x1=Math.round(x1);y1=Math.round(y1);const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx+dy;for(;;){g.fillRect(x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}}
+/* hand-drawn 12x20 miner sprite. Letters map to a per-player palette. */
+const MINER_SPR=[
+ '.....ll.....',
+ '...hhhhhh...',
+ '..hhhhhhhh..',
+ '.hhhhhhhhhh.',
+ '..ssssssss..',
+ '..sesssses..',
+ '..ssssssss..',
+ '...ssssss...',
+ '.uuuuuuuuuu.',
+ 'uuuvuuuuvuuu',
+ 'uuuvrrrrvuuu',
+ 'uuuvuuuuvuuu',
+ 'ssuvuuuuvuss',
+ '..kkkkkkkk..',
+ '..uuu..uuu..',
+ '..uuu..uuu..',
+ '..uuu..uuu..',
+ '..uuu..uuu..',
+ '..bbb..bbb..',
+ '.bbbb..bbbb.'
+];
+const MINER_OUT=(()=>{const o=[],h=MINER_SPR.length,w=12,f=(x,y)=>y>=0&&y<h&&x>=0&&x<w&&MINER_SPR[y][x]!=='.';for(let y=-1;y<=h;y++)for(let x=-1;x<=w;x++)if(!f(x,y)&&(f(x+1,y)||f(x-1,y)||f(x,y+1)||f(x,y-1)))o.push([x,y]);return o})();
+function pxMiner(g,x,y,pal,shadow,bob,lampOn){
+ x=Math.round(x)-6;y=Math.round(y)-20+bob;
+ g.fillStyle='#050607';for(const[ox,oy]of MINER_OUT)g.fillRect(x+ox,y+oy,1,1);
+ const C=shadow?{h:'#171c19',l:'#3a403b',s:'#0e1210',e:'#ff3a2a',u:'#0c0f0d',v:'#171c19',r:'#232a26',k:'#050606',b:'#050606'}
+  :{h:pal.helmet,l:lampOn?'#fff6b0':'#8a8a70',s:pal.skin,e:'#15110f',u:pal.suit,v:pal.vest,r:'#d9dcc0',k:'#1a1f1b',b:pal.boots};
+ for(let r=0;r<MINER_SPR.length;r++){const row=MINER_SPR[r];let c=0;while(c<12){const ch=row[c];if(ch==='.'){c++;continue}let e=c;while(e<12&&row[e]===ch)e++;g.fillStyle=C[ch];g.fillRect(x+c,y+r,e-c,1);c=e}}
+ // helmet highlight + vest/suit shading, the little touches that sell it as pixel art
+ if(!shadow){g.fillStyle='rgba(255,255,255,.28)';g.fillRect(x+3,y+2,2,1);g.fillStyle='rgba(0,0,0,.25)';g.fillRect(x+8,y+9,1,5);g.fillRect(x+7,y+14,1,4)}
+ else{g.save();g.globalCompositeOperation='lighter';g.fillStyle='rgba(255,40,20,.45)';g.fillRect(x+2,y+4,2,3);g.fillRect(x+8,y+4,2,3);g.restore()}
+}
+function descentCrew(){
+ const pals=[PAL.MARA,PAL.ELI,PAL.MINER,Object.assign({},PAL.MINER,{helmet:'#c9785a',vest:'#9fb0b8'})];
+ const me={name:multiplayer?(netName||'YOU'):'YOU',pal:PAL.player,me:true,shadow:!!(multiplayer&&isMonsterController)};
+ const others=[];
+ if(multiplayer){let i=0;for(const p of(netPlayers||[])){if(!p||!p.id||p.id===netMyId)continue;others.push({name:String(p.name||'MINER').slice(0,6),pal:pals[i++%pals.length],me:false,shadow:!!(isMonsterPlayerId(p.id)||p.role==='monster')})}}
+ const list=others.slice(0,4);list.splice(Math.floor((list.length+1)/2),0,me);
+ return list;
+}
+function playDescent(){
+ if(descentActive)return;
+ const el=$('descent');
+ DS={t:0,pt:0,phase:'run',speed:0,v0:1,dist:0,sc:0,crew:descentCrew(),sparks:[],dust:[],acc:0,shake:0,flash:0,bounce:0,bv:0,bounceOn:false,gate:0,textA:0,
+  stopAt:3.7,lastT:performance.now(),raf:0,LW:0,LH:0,cx:0,cabW:60,cabH:46,cabBottom:0,cabY:0,title:depthName(),haz:gimmickNames(depth),dep:depth};
+ sizeDescent();descentActive=true;
+ el.style.transition='none';el.style.opacity='1';el.style.display='block';
+ try{Snd.rumble();Snd.liftScreech(true,0)}catch(e){}
+ DS.raf=requestAnimationFrame(descentFrame);
+}
+function descentSkip(){
+ const S=DS;if(!S||S.t<1)return;
+ if(S.phase==='run')S.stopAt=Math.min(S.stopAt,S.t);
+ else if(S.phase==='hold'&&S.pt>.35)descentSetPhase('open');
+ else if(S.phase==='open'&&S.pt>.5)descentSetPhase('out');
+}
+function descSpark(burst){
+ const S=DS;if(!S||S.sparks.length>320)return;
+ const side=Math.random()<.5?-1:1,x=S.cx+side*(S.cabW/2+4),y=S.cabBottom-rnd(0,S.cabH*.4);
+ const vx=side*rnd(8,70)*(burst?1.7:1),vy=burst?rnd(-90,40):-rnd(18,100)*(.5+S.speed*.7);
+ const life=rnd(.3,.85);S.sparks.push({x,y,vx,vy,life,max:life,big:Math.random()<.25});
+}
+function descDust(){
+ const S=DS,side=Math.random()<.5?-1:1,life=rnd(.9,1.7);
+ S.dust.push({x:S.cx+side*(S.cabW/2+rnd(2,10)),y:S.cabBottom+rnd(-4,3),vx:side*rnd(5,26),vy:-rnd(1,10),r:rnd(3,6),life,max:life});
+}
+function descentSetPhase(p){
+ const S=DS;if(!S)return;S.phase=p;S.pt=0;
+ if(p==='brake'){S.v0=Math.max(.3,S.speed)}
+ else if(p==='hold'){
+  S.speed=0;S.flash=1;S.shake=1;S.bv=105;S.bounceOn=true;
+  try{Snd.liftScreech(false);Snd.liftSlam()}catch(e){}
+  for(let i=0;i<90;i++)descSpark(true);for(let i=0;i<26;i++)descDust();
+ }
+ else if(p==='open'){try{Snd.liftClank()}catch(e){}setTimeout(()=>{try{Snd.door();Snd.ding()}catch(e){}},240)}
+ else if(p==='out'){
+  descentActive=false;last=performance.now();
+  const el=$('descent');el.style.transition='opacity .9s steps(6)';el.style.opacity='0';
+  setTimeout(()=>{if(DS===S){cancelAnimationFrame(S.raf);DS=null;el.style.display='none';el.style.transition='none'}},1000);
+ }
+}
+const PXC={bg:'#06090a',rockA:'#161c1f',rockB:'#1b2226',rockC:'#222b2f',rockD:'#12171a',mortar:'#080b0c',rockHi:'#2d383d',wall:'#0b1012',beam:'#3a2a1e',beamHi:'#5d4430',beamLo:'#20160e',rail:'#7f8890',railHi:'#b4bcc2',railLo:'#3d454b',steel:'#2a3033',steelHi:'#5d666b',yel:'#e8b83a',blk:'#16140f',amber:'#ffb454'};
+function pxHazard(g,x,y,w,h,ph){for(let i=0;i<w;i+=4){g.fillStyle=((i/4+ph)&1)?PXC.blk:PXC.yel;g.fillRect(x+i,y,Math.min(4,w-i),h)}}
+function descentFrame(now){
+ const S=DS;if(!S)return;
+ S.raf=requestAnimationFrame(descentFrame);
+ let dt=(now-S.lastT)/1000;S.lastT=now;if(!(dt>0))dt=.016;dt=Math.min(dt,.05);
+ S.t+=dt;S.pt+=dt;
+ // --- timeline: accelerate, screech, brake, SLAM, gate opens, fade into the mine ---
+ if(S.phase==='run'){S.speed=Math.min(1,1-Math.exp(-S.t*2.2));if(S.t>=S.stopAt)descentSetPhase('brake')}
+ else if(S.phase==='brake'){const k=Math.min(1,S.pt/1.1);S.speed=S.v0*Math.pow(1-k,2.4);if(k>=1)descentSetPhase('hold')}
+ else if(S.phase==='hold'){if(S.pt>1.15)descentSetPhase('open')}
+ else if(S.phase==='open'){const k=Math.min(1,S.pt/1);S.gate=k*k*(3-2*k);if(S.pt>1.5)descentSetPhase('out')}
+ else if(S.phase==='out')S.gate=1;
+ if(S.phase==='hold'||S.phase==='open'||S.phase==='out')S.textA=Math.min(1,S.textA+dt*1.6);
+ const braking=S.phase==='brake'?1-Math.min(1,S.pt/1.1):0;
+ S.sc+=S.speed*430*dt;S.dist+=S.speed*dt;
+ if(S.bounceOn){S.bv+=(-170*S.bounce-9*S.bv)*dt;S.bounce+=S.bv*dt;if(Math.abs(S.bounce)<.05&&Math.abs(S.bv)<1){S.bounce=0;S.bv=0;S.bounceOn=false}}
+ S.shake=Math.max(0,S.shake-dt*1.3);S.flash=Math.max(0,S.flash-dt*2.2);
+ if(S.phase==='run'||S.phase==='brake'){try{Snd.liftScreech(true,S.phase==='brake'?Math.min(1.2,S.speed+.25*braking):S.speed)}catch(e){}}
+ // --- layout in logical pixels ---
+ const g=dg,LW=dcv.width,LH=dcv.height,n=S.crew.length;S.LW=LW;S.LH=LH;
+ g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
+ const cw=2*Math.round(clamp(30+n*26,64,Math.min(LW-100,190))/2),ch=46,cx=Math.round(LW/2);
+ const jit=S.speed>.2&&((S.t*30)|0)%2?1:0,jx=Math.round(Math.sin(S.t*61)*S.speed*.9),jy=jit&&S.speed>.5?1:0;
+ const cabX=cx-cw/2+jx,cabY=Math.round(LH*.5-ch/2+S.bounce)+jy;
+ S.cx=cx;S.cabW=cw;S.cabH=ch;S.cabBottom=cabY+ch;S.cabY=cabY;
+ const shk=S.shake*3+S.speed*.8,ox=Math.round((Math.random()-.5)*shk*2),oy=Math.round((Math.random()-.5)*shk*2);
+ g.save();g.translate(ox,oy);
+ g.fillStyle=PXC.bg;g.fillRect(-8,-8,LW+16,LH+16);
+ const shW=cw+44,shL=cx-shW/2,shR=cx+shW/2,sc=Math.floor(S.sc);
+ // rock either side of the shaft (brick courses scroll up as the lift falls)
+ const bh=8,bw=14;
+ for(let row=Math.floor(sc/bh)-1;row<=Math.floor((sc+LH)/bh)+1;row++){
+  const y=row*bh-sc,off=(row&1)?7:0;
+  for(let x=off-bw;x<LW+bw;x+=bw){
+   const hv=hsh(row*131+Math.round((x-off)/bw)*17);
+   const segs=[];if(x<shL)segs.push([x,Math.min(x+bw-1,shL)]);if(x+bw-1>shR)segs.push([Math.max(x,shR),x+bw-1]);
+   for(const[bx,ex]of segs){if(ex<=bx)continue;
+    g.fillStyle=hv<.25?PXC.rockD:hv<.55?PXC.rockA:hv<.85?PXC.rockB:PXC.rockC;g.fillRect(bx,y,ex-bx,bh-1);
+    g.fillStyle=PXC.rockHi;g.fillRect(bx,y,ex-bx,1);if(hv>.9){g.fillStyle=PXC.mortar;g.fillRect(bx+3,y+3,2,1)}}
+  }
+ }
+ // shaft back wall, timber cross-beams and wall lamps
+ g.fillStyle=PXC.wall;g.fillRect(shL,-4,shW,LH+8);
+ const BH=64;
+ for(let i=Math.floor(sc/BH)-1;i<=Math.floor((sc+LH+20)/BH)+1;i++){
+  const y=i*BH-sc,hv=hsh(i*31+5);
+  g.fillStyle=PXC.beam;g.fillRect(shL,y,shW,5);g.fillStyle=PXC.beamHi;g.fillRect(shL,y,shW,1);g.fillStyle=PXC.beamLo;g.fillRect(shL,y+4,shW,1);
+  g.fillStyle='#050808';g.fillRect(shL,y+5,shW,3);
+  for(let k=shL+5;k<shR;k+=19){g.fillStyle=PXC.beamLo;g.fillRect(k,y+1,1,3)}
+  if(hv<.4){g.fillStyle=PXC.beam;pxLine(g,shL,y+5,shR,y+BH*.6);pxLine(g,shL,y+6,shR,y+BH*.6+1)}
+  if(hv>.62){
+   const lx=hv>.81?shL+4:shR-5,ly=y+BH*.5,on=((S.t*7+i)|0)%9!==0;
+   if(on)pxGlow(g,lx,ly,26,'#ff9a3c',.2+.15*S.speed);
+   g.fillStyle='#2c2a25';g.fillRect(lx-2,ly-3,5,1);g.fillStyle=on?'#ffd37a':'#7a6a40';g.fillRect(lx-1,ly-2,3,4);
+  }
+ }
+ // speed lines
+ if(S.speed>.25){g.fillStyle='rgba(190,205,190,.2)';for(let i=0;i<14;i++){const x=shL+4+Math.floor(hsh(i*5+1)*(shW-8)),len=8+Math.floor(hsh(i)*34*S.speed),yy=(((Math.floor(hsh(i*3+2)*(LH+80))-Math.floor(sc*(1.3+hsh(i))))%(LH+80))+(LH+80))%(LH+80)-40;g.fillRect(x,yy,1,len)}}
+ // guide rails with brackets
+ const rxs=[cabX-6,cabX+cw+3];
+ for(const x of rxs){
+  g.fillStyle=PXC.railLo;g.fillRect(x,-4,3,LH+8);g.fillStyle=PXC.rail;g.fillRect(x,-4,2,LH+8);g.fillStyle=PXC.railHi;g.fillRect(x,-4,1,LH+8);
+  for(let i=Math.floor(sc/40)-1;i<=Math.floor((sc+LH)/40)+1;i++){const y=i*40-sc;g.fillStyle=PXC.steel;g.fillRect(x-2,y,7,3);g.fillStyle=PXC.steelHi;g.fillRect(x-2,y,7,1)}
+ }
+ // hoist cables
+ for(const s of[-1,1]){
+  const ax=cabX+Math.round(cw/2+s*cw*.22)+Math.round(S.bounce*.15);
+  g.fillStyle='#2a2d29';g.fillRect(ax-1,-4,3,cabY+4);g.fillStyle='#8a8b78';g.fillRect(ax-1,-4,1,cabY+4);
+  for(let y=((-sc)%6+6)%6;y<cabY;y+=6){g.fillStyle='#161815';g.fillRect(ax,y,2,1)}
+ }
+ g.fillStyle=PXC.steel;g.fillRect(cabX+cw*.25|0,cabY-8,cw*.5|0,4);g.fillStyle=PXC.steelHi;g.fillRect(cabX+cw*.25|0,cabY-8,cw*.5|0,1);
+ // ----- the cab -----
+ const roofH=6,floorH=6,inY=cabY+roofH,inH=ch-roofH-floorH;
+ g.fillStyle='#0c1113';g.fillRect(cabX,cabY,cw,ch);
+ g.fillStyle='#141b1d';g.fillRect(cabX+3,inY,cw-6,inH);
+ for(let x=cabX+3;x<cabX+cw-3;x+=8){g.fillStyle='#10171a';g.fillRect(x,inY,1,inH)}
+ // swinging bulb on the ceiling
+ const bulbX=cabX+Math.round(cw/2+Math.sin(S.t*2.6)*cw*.04*(.4+S.speed)),bulbY=inY+3;
+ const flick=(S.phase==='run'&&Math.sin(S.t*31)*Math.sin(S.t*17)>.55)||(S.phase==='hold'&&S.pt<.35);
+ const lit=!flick;
+ if(lit)pxGlow(g,bulbX,bulbY+6,Math.round(cw*.5),'#ffae52',.32);
+ g.fillStyle='#3a3d38';g.fillRect(bulbX,inY,1,2);g.fillStyle=lit?'#fff2b0':'#6b6340';g.fillRect(bulbX-1,bulbY-1,3,3);
+ // passengers
+ const floorY=cabY+ch-floorH,slot=(cw-8)/n,bobN=S.speed>.2?((S.t*14)|0)%2:0;
+ S.crew.forEach((c,i)=>{
+  const px=cabX+4+slot*(i+.5),bob=(S.phase==='brake'?1:0)+(S.speed>.2?((((S.t*14)|0)+i)%2):0)+(S.bounce>2?1:0);
+  c._x=Math.round(px);pxMiner(g,px,floorY,c.pal,c.shadow,Math.min(2,bob),true);
+  if(!c.shadow)pxGlow(g,px,floorY-17,14,'#fff0a0',.14);
+ });
+ // cage gate: two halves that slide apart once the lift has stopped
+ const half=cw/2,off=Math.round(S.gate*(half-3));
+ for(let s=0;s<2;s++){
+  const base=s?cabX+half:cabX,dx=s?off:-off;
+  for(let k=0;k<=Math.round(half/6);k++){g.fillStyle='#59625f';g.fillRect(base+k*6+dx,inY,1,inH)}
+  g.fillStyle='#6f7873';for(const yy of[inY,cabY+Math.round(ch*.5),floorY-1])g.fillRect(base+dx,yy,half,1);
+ }
+ // names + marker
+ for(const c of S.crew){
+  const nm=(c.shadow?'*':'')+c.name.slice(0,6),w=pxTextW(nm,1),ty=floorY-29;
+  if(c.me){g.fillStyle='#e7c46c';g.fillRect(c._x-1,ty-4,3,1);g.fillRect(c._x,ty-3,1,1)}
+  pxText(g,nm.toUpperCase(),c._x-Math.round(w/2),ty,c.me?'#e7c46c':'#b9c0b6',1,'l',true);
+ }
+ // cab frame: roof with hazard strip, posts, floor plate, status lamp, depth readout
+ g.fillStyle='#1e2325';g.fillRect(cabX-3,cabY-2,cw+6,roofH+2);g.fillStyle=PXC.steelHi;g.fillRect(cabX-3,cabY-2,cw+6,1);
+ pxHazard(g,cabX-3,cabY+roofH-3,cw+6,2,0);
+ g.fillStyle='#2b3134';g.fillRect(cabX-3,cabY-2,4,ch+4);g.fillRect(cabX+cw-1,cabY-2,4,ch+4);
+ g.fillStyle=PXC.steelHi;g.fillRect(cabX-3,cabY-2,1,ch+4);g.fillRect(cabX+cw-1,cabY-2,1,ch+4);
+ g.fillStyle='#1e2325';g.fillRect(cabX-3,cabY+ch-floorH,cw+6,floorH+2);g.fillStyle=PXC.steelHi;g.fillRect(cabX-3,cabY+ch-floorH,cw+6,1);
+ pxHazard(g,cabX-3,cabY+ch-floorH+2,cw+6,2,1);
+ const stopped=S.speed<.02&&S.phase!=='run',blink=((S.t*5)|0)%2===0;
+ g.fillStyle=stopped?'#7fe08a':(blink?'#e05a46':'#6a241c');g.fillRect(cabX+cw-8,cabY+1,3,2);
+ if(stopped||blink)pxGlow(g,cabX+cw-7,cabY+2,5,stopped?'#3aa04a':'#c03a28',.4);
+ {const dw=26,dx0=cx-13,dy0=cabY-20;
+  g.fillStyle='#050706';g.fillRect(dx0,dy0,dw,9);g.fillStyle='#4a4d44';g.fillRect(dx0,dy0,dw,1);g.fillRect(dx0,dy0+8,dw,1);g.fillRect(dx0,dy0,1,9);g.fillRect(dx0+dw-1,dy0,1,9);
+  pxText(g,String(Math.round((S.dep-1)*80+S.dist*26)).padStart(3,'0')+'M',cx,dy0+2,PXC.amber,1,'c')}
+ // ----- sparks off the rails: square pixels that cool white > yellow > orange > red -----
+ const em=(S.speed*120+braking*200)*dt;S.acc+=em;while(S.acc>=1){S.acc--;descSpark(false)}
+ if(S.speed>.04)for(const x of[cabX-6,cabX+cw+4]){const a=Math.min(1,S.speed*1.4+braking)*(((S.t*20)|0)%2?1:.6);pxGlow(g,x,cabY+ch*.75,Math.round(14+S.speed*10+braking*12),'#ff8a2a',.3*a)}
+ for(let i=S.sparks.length-1;i>=0;i--){
+  const p=S.sparks[i];p.life-=dt;if(p.life<=0){S.sparks.splice(i,1);continue}
+  p.vy+=130*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const k=p.life/p.max;
+  g.fillStyle=k>.75?'#ffffff':k>.5?'#ffe27a':k>.28?'#ff9b2e':'#d6471f';
+  const x=Math.round(p.x),y=Math.round(p.y);g.fillRect(x,y,p.big?2:1,1);if(p.big)g.fillRect(x,y+1,1,1);
+ }
+ // dust puffs when the lift slams to a halt: chunky dithered clouds
+ for(let i=S.dust.length-1;i>=0;i--){
+  const p=S.dust[i];p.life-=dt;if(p.life<=0){S.dust.splice(i,1);continue}
+  p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.985;p.r+=dt*5;const k=p.life/p.max;
+  g.save();g.globalAlpha=Math.min(1,k*1.3);g.fillStyle=pxPat(g,k>.5?'#8d8f80':'#5d5f55');pxDisc(g,p.x,p.y,p.r);g.restore();
+ }
+ g.restore();
+ // ----- screen-space overlays -----
+ g.fillStyle='rgba(0,0,0,.28)';for(let i=0;i<3;i++){const t=2+i*3;g.fillRect(0,0,LW,t-1+1);g.fillRect(0,LH-t,LW,t);g.fillRect(0,0,t,LH);g.fillRect(LW-t,0,t,LH)}
+ if((S.phase==='run'||S.phase==='brake')&&Math.sin(S.t*43)*Math.sin(S.t*19)>.7){g.fillStyle='rgba(0,0,0,.35)';g.fillRect(0,0,LW,LH)}
+ const bar=Math.round(LH*.07);g.fillStyle='#000';g.fillRect(0,0,LW,bar);g.fillRect(0,LH-bar,LW,bar);
+ if(S.textA<.99&&(S.phase==='brake'||((S.t*3)|0)%2===0))pxText(g,'DESCENDING',LW/2,bar+8,'#d6b36a',1,'c',true);
+ if(S.textA>0){
+  const a=Math.ceil(S.textA*4)/4;g.save();g.globalAlpha=a;
+  pxText(g,'DEPTH '+String(S.dep).padStart(2,'0'),LW/2,bar+8,'#d6d3c8',3,'c',true);
+  pxText(g,S.title,LW/2,bar+28,'#c9a352',1,'c',true);
+  if(S.haz)pxText(g,'HAZARD: '+S.haz,LW/2,bar+36,'#e0b4a0',1,'c',true);
+  g.restore();
+ }
+ if(S.phase==='run'&&S.t>1&&((S.t*2)|0)%2===0)pxText(g,'PRESS ANY KEY TO SKIP',LW/2,LH-bar-8,'#6f776f',1,'c');
+ if(S.flash>0){g.fillStyle=`rgba(255,240,205,${Math.ceil(S.flash*4)/4*.85})`;g.fillRect(0,0,LW,LH)}
+ if(S.t<.6){g.fillStyle=`rgba(0,0,0,${Math.ceil((1-S.t/.6)*4)/4})`;g.fillRect(0,0,LW,LH)}
+}
+
+/* ---------- animated main menu background (pixel-art edition) ----------
+   Same low-res trick as the descent: a ~320x180 canvas scaled up with hard pixels. Old-school mine lifts step down their
+   shafts throwing square sparks, lamps swing on chains, embers blink, red eyes open in the dark and the odd rumble shakes grit loose. */
+(function(){
+ const cv=$('menuFx'),g=cv.getContext('2d'),card=document.querySelector('#menu .card');
+ let w=320,h=180;
+ function rs(){const px=pxSize();w=Math.ceil(innerWidth/px);h=Math.ceil(innerHeight/px);cv.width=w;cv.height=h;g.imageSmoothingEnabled=false}
+ addEventListener('resize',rs);rs();
+ const mkE=init=>({x:Math.random()*w,y:init?Math.random()*h:h+3,vx:rnd(-3,3),vy:-rnd(4,14),ph:rnd(0,TAU),warm:Math.random()<.72,tw:rnd(2,5)});
+ const em=Array.from({length:46},()=>mkE(true)),grit=[],eyes=[],sp=[];
+ const lamps=[{x:.2,len:.2,ph:0},{x:.8,len:.16,ph:2.1}];
+ const cabs=[{x:.075,sp:11,off:0,n:1},{x:.925,sp:-8,off:70,n:2},{x:.17,sp:-6,off:30,n:0,far:true}];
+ let t=0,last=performance.now(),eyeT=2.5,rumT=8,acc=0;
+ const FOGC=['#34463d','#2a3a43'];
+ function cab(x,y,n,far,tt){
+  // chunky pixel mine cage: roof, hazard strip, bars, floor and a tiny miner or two inside
+  const cw=far?14:20,ch=far?18:26,cx=x-cw/2,cy=y-ch/2;
+  g.fillStyle='#0b0f10';g.fillRect(cx,cy,cw,ch);
+  g.fillStyle='#161c1e';g.fillRect(cx+2,cy+4,cw-4,ch-7);
+  g.fillStyle='#232a2c';g.fillRect(cx-1,cy-1,cw+2,4);g.fillStyle='#4b5558';g.fillRect(cx-1,cy-1,cw+2,1);
+  for(let i=0;i<cw+2;i+=3){g.fillStyle=(i/3&1)?'#16140f':'#d2a62f';g.fillRect(cx-1+i,cy+3,3,1)}
+  for(let b=cx+3;b<cx+cw-2;b+=4){g.fillStyle='#4c5552';g.fillRect(b,cy+4,1,ch-7)}
+  g.fillStyle='#232a2c';g.fillRect(cx-1,cy+ch-3,cw+2,3);g.fillStyle='#4b5558';g.fillRect(cx-1,cy+ch-3,cw+2,1);
+  for(let i=0;i<n;i++){const mx=cx+Math.round((i+.5)*cw/Math.max(1,n))-1;g.fillStyle='#cdb15a';g.fillRect(mx,cy+ch-11,3,2);g.fillStyle='#8f8670';g.fillRect(mx,cy+ch-9,3,2);g.fillStyle='#4d5f56';g.fillRect(mx-1,cy+ch-7,5,4)}
+  const on=((tt*6+x)|0)%11!==0;
+  g.fillStyle=on?'#ffd27a':'#6b6340';g.fillRect(cx+cw/2-1|0,cy+4,2,2);
+  return{cx,cy,cw,ch,on};
+ }
+ function frame(now){
+  requestAnimationFrame(frame);
+  const m=$('menu');
+  if(!m||m.style.display==='none'||descentActive){last=now;return}
+  const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;
+  g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,w,h);
+  // drifting dithered fog banks
+  for(let i=0;i<3;i++){
+   const fx=((t*(2+i)+i*w*.4)%(w*1.6))-w*.3,fy=Math.round(h*(.3+i*.25)+Math.sin(t*.3+i)*8);
+   g.save();g.globalAlpha=.55;g.fillStyle=pxPat(g,FOGC[i&1]);
+   for(let dy=-14;dy<=14;dy+=1){const hw=Math.round(Math.sqrt(Math.max(0,1-(dy/14)*(dy/14)))*(46+i*10));g.fillRect(Math.round(fx-hw),fy+dy,hw*2,1)}
+   g.restore();
+  }
+  // stepped lifts in their shafts (movement snaps to 2px like an old-school sprite)
+  for(const c of cabs){
+   const x=Math.round(c.x*w),span=h+80,y=Math.round((((t*c.sp+c.off)%span)+span)%span-40)&~1,dir=Math.sign(c.sp),a=c.far?.55:1,cwid=c.far?14:20;
+   g.save();g.globalAlpha=a;
+   for(const rx of[x-cwid/2-3|0,x+cwid/2+1|0]){g.fillStyle='#2a3135';g.fillRect(rx,0,2,h);g.fillStyle='#5b656a';g.fillRect(rx,0,1,h);for(let by=((-Math.floor(t*6)*dir)%20+20)%20;by<h;by+=20){g.fillStyle='#3a4245';g.fillRect(rx-1,by,4,2)}}
+   g.fillStyle='#4a5256';g.fillRect(x,0,1,y-14);g.fillStyle='#252a28';g.fillRect(x+1,0,1,y-14);
+   const info=cab(x,y,c.n,c.far,t);
+   g.restore();
+   if(info.on)pxGlow(g,x,y,c.far?16:24,'#ff9a3c',.2*a);
+   acc+=dt*(c.far?10:18);
+   while(acc>=1){acc--;const s=Math.random()<.5?-1:1;sp.push({x:x+s*(cwid/2+2),y:y+rnd(-6,10),vx:s*rnd(5,26),vy:-dir*rnd(8,36),life:rnd(.3,.8),max:.8})}
+  }
+  // square sparks
+  for(let i=sp.length-1;i>=0;i--){const p=sp[i];p.life-=dt;if(p.life<=0){sp.splice(i,1);continue}p.vy+=70*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const k=p.life/p.max;g.fillStyle=k>.7?'#fff4c0':k>.4?'#ffc24a':'#e0561f';g.fillRect(Math.round(p.x),Math.round(p.y),1,1)}
+  // swinging lamps on chains
+  for(const L of lamps){
+   const ang=Math.sin(t*1.05+L.ph)*.2,len=Math.round(L.len*h),ax=Math.round(L.x*w),bx=Math.round(ax+Math.sin(ang)*len),by=Math.round(Math.cos(ang)*len);
+   g.fillStyle='#6b6a5a';
+   const x0=ax,y0=0,x1=bx,y1=by;for(let k=0;k<=len;k+=2){g.fillRect(Math.round(x0+(x1-x0)*k/len),Math.round(y0+(y1-y0)*k/len),1,1)}
+   const fl=!(Math.sin(t*37+L.ph)*Math.sin(t*23)>.75);
+   if(fl)pxGlow(g,bx,by+3,Math.round(Math.min(w,h)*.2),'#ff9a3c',.22);
+   g.fillStyle='#2b2a25';g.fillRect(bx-3,by-2,7,2);g.fillRect(bx-4,by,9,1);g.fillStyle='#4a483f';g.fillRect(bx-3,by-2,7,1);
+   g.fillStyle=fl?'#ffe2a0':'#7a6a40';g.fillRect(bx-2,by+1,5,2);g.fillStyle=fl?'#fff7d8':'#7a6a40';g.fillRect(bx-1,by+1,3,1);
+  }
+  // blinking embers
+  for(let i=0;i<em.length;i++){
+   const e=em[i];e.x+=(e.vx+Math.sin(t*.9+e.ph)*3)*dt;e.y+=e.vy*dt;if(e.y<-3)em[i]=mkE(false);
+   if(((t*e.tw+e.ph)|0)%3===0)continue;
+   g.fillStyle=e.warm?(e.ph>3?'#ffb454':'#e0561f'):'#8fa08f';g.fillRect(Math.round(e.x),Math.round(e.y),1,1);
+  }
+  // eyes opening in the dark: pixel pairs that squint then close
+  eyeT-=dt;
+  if(eyeT<=0){eyeT=rnd(4,9);const left=Math.random()<.5;eyes.push({x:Math.round((left?rnd(.04,.2):rnd(.8,.96))*w),y:Math.round(rnd(.25,.8)*h),t:0,dur:rnd(2.2,3.4),gap:5+((Math.random()*3)|0)})}
+  for(let i=eyes.length-1;i>=0;i--){
+   const e=eyes[i];e.t+=dt;if(e.t>=e.dur){eyes.splice(i,1);continue}
+   const open=Math.min(e.t/.5,(e.dur-e.t)/.5),sz=open<.34?0:open<.67?1:2,blink=e.t>e.dur*.55&&e.t<e.dur*.55+.14;
+   if(sz===0)continue;
+   for(const s of[-1,1]){const ex=e.x+s*Math.round(e.gap/2);g.fillStyle='#ff3a2a';g.fillRect(ex-1,e.y-(blink?0:(sz>1?1:0)),2,blink?1:sz);g.save();g.globalAlpha=.5;g.fillStyle=pxPat(g,'#ff1a10');pxDisc(g,ex,e.y,sz*3);g.restore()}
+  }
+  // rumble: shake the card and shake grit loose from the ceiling
+  rumT-=dt;
+  if(rumT<=0){
+   rumT=rnd(10,16);for(let i=0;i<34;i++)grit.push({x:Math.random()*w,y:-2,vx:rnd(-2,2),vy:rnd(14,50),life:rnd(1.5,3)});
+   if(card&&card.animate)card.animate([{transform:'translate(0,0)'},{transform:'translate(-4px,2px)'},{transform:'translate(5px,-3px)'},{transform:'translate(-3px,-2px)'},{transform:'translate(2px,3px)'},{transform:'translate(0,0)'}],{duration:650,easing:'linear'});
+   try{Snd.rumble()}catch(e){}
+  }
+  for(let i=grit.length-1;i>=0;i--){const p=grit[i];p.life-=dt;if(p.life<=0||p.y>h){grit.splice(i,1);continue}p.x+=p.vx*dt;p.y+=p.vy*dt;g.fillStyle='#8c8c7d';g.fillRect(Math.round(p.x),Math.round(p.y),1,1)}
+ }
+ requestAnimationFrame(frame);
+})();
+
+
 /* ---------- loop & input ---------- */
 function loop(t){
  requestAnimationFrame(loop);
  let dt=Math.min((t-last)/1000,.033);last=t;if(!(dt>=0))dt=0;
+ if(descentActive){last=t;return}
  if(!player||paused)return;
  if(phase==='play'){updateGame(dt);updateFx(dt);updateHud()}
  else if(phase==='menu'){updateFx(dt);elapsed+=dt}
- else if(phase==='dying'){endT+=dt;updateFx(dt);shake=Math.max(shake,6*(1-endT));if(endT>1.5)showEnd(false)}
+ else if(phase==='dying'){endT+=dt;updateFx(dt);shake=Math.max(shake,6*(1-endT));if(endT>(deathKind==='pit'?1.8:1.5))showEnd(false)}
  else if(phase==='winning'){endT+=dt;updateFx(dt);liftOpen=lerp(liftOpen,0,Math.min(1,dt*2));if(endT>1.9){showEnd(true)}}
  else if(phase==='over'||phase==='shop'){updateFx(dt);if(phase==='shop')shopFrame(dt)}
  else if(phase==='spectate'){elapsed+=dt;if(multiplayer&&isNetHost){updateBots(dt);updateMonster(dt)}updateGimmicks(dt,true);updateFx(dt);updateHud()}
@@ -2625,20 +3288,23 @@ function start(){
  const wasMenu=phase==='menu',wasEnd=phase==='over';if(wasMenu){depth=1;MM=freshMM();silver=0;runUpgrades={}}else if(wasEnd&&endWin)depth++;
  Snd.init();setup();$('puzzle').style.display='none';phase='play';paused=false;$('menu').style.display='none';$('end').style.display='none';$('pause').style.display='none';mini.style.display=showMini&&innerWidth>700?'block':'none';last=performance.now();for(const k in keys)keys[k]=false;miniT=0;markExplored();setText('depth',String(depth).padStart(2,'0'));setText('layerName',depthName());
  if(depth>1){showAlert(wasEnd&&endWin?`DESCENDING TO DEPTH ${String(depth).padStart(2,'0')}`:`DEPTH ${String(depth).padStart(2,'0')}: ${depthName()}`);say(depth>=4?'The rock is warm. Something is breathing below you.':'The lift seals overhead. You are deeper now.',3)}
- {const g=activeGimmicks();if(g.length)setTimeout(()=>{if(phase==='play')say(g.map(k=>GIMMICKS[k].name).join(' + ')+': '+GIMMICKS[g[0]].desc,6)},2200)}
+ {const g=activeGimmicks();if(g.length)setTimeout(()=>{if(phase==='play')say(g.map(k=>GIMMICKS[k].name).join(' + ')+': '+GIMMICKS[g[0]].desc,6)},8200)}
+ playDescent();
 }
-function setPaused(p){if(phase!=='play'||(multiplayer&&p))return;paused=p;$('pause').style.display=p?'flex':'none';if(p){Snd.spray(false);prevPainting=false}else last=performance.now()}
+function setPaused(p){if(descentActive||phase!=='play'||(multiplayer&&p))return;paused=p;$('pause').style.display=p?'flex':'none';if(p){Snd.spray(false);prevPainting=false}else last=performance.now()}
 $('start').onclick=start;$('again').onclick=start;$('resume').onclick=()=>setPaused(false);
 addEventListener('keydown',e=>{
  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;
+ if(descentActive){if(!e.repeat)descentSkip();e.preventDefault();return}
  const k=e.key.toLowerCase();keys[k]=true;
  if(['arrowup','arrowdown','arrowleft','arrowright',' ','tab'].includes(k))e.preventDefault();
  if(phase==='spectate'&&k==='e'&&!e.repeat){netNextView()}
  if(phase==='play'&&!paused&&!e.repeat){
   if(isMonsterController){
-   if(k==='e'){monsterPossessQueued=true;say('Reaching for a body…',1.2);}
+   if(k==='e'){monsterPossessQueued=true;say(monster&&monster.state==='disguise'?'Dropping the act.':monster&&monster.state==='possess'?'Tearing free…':'Reaching for a body…',1.2);}
    else if(k==='r'){monsterRevealQueued=true;say('Dropping the act.',1.2);}
   }else if(puzzle){const d={w:'up',arrowup:'up',s:'down',arrowdown:'down',a:'left',arrowleft:'left',d:'right',arrowright:'right'}[k];if(d)puzzleKey(d);else if(k==='e'){puzzle.tag.progress=0;stopPuzzle();say('You step back from the wall.',1.6)}}
+  else if(k==='1'||k==='2')useAbility(Number(k));
   else if(k==='e')interact();
  }
  if(k==='p'||k==='escape')setPaused(!paused);
@@ -2674,7 +3340,24 @@ let hostPlayerMonster=false;
 let netMonsterControllerId=null,netMonsterControllerName=null,isMonsterController=false;
 // Latest movement/actions from the assigned monster player (host applies these).
 let monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};
-let monsterInputSeqApplied=0,monsterPossessQueued=false,monsterRevealQueued=false;
+let monsterInputSeqApplied=0,monsterPossessQueued=false,monsterRevealQueued=false,monsterInputFor=null,monsterInputAt=0;
+/* Host reads the assigned monster player's movement intents (relayed through player-state).
+   Sequence numbers are per controller: when a different player becomes the monster (next round) the counter restarts,
+   otherwise the host ignores the new player forever and keeps replaying the previous player's last keypress. */
+function netReadControllerInput(){
+ if(!isNetHost||!netMonsterControllerId)return;
+ if(monsterInputFor!==netMonsterControllerId){monsterInputFor=netMonsterControllerId;monsterInputSeqApplied=0;monsterInput={dx:0,dy:0,aim:monsterInput.aim||0,sprint:false,possess:false,reveal:false,seq:0};monsterInputAt=0}
+ const ctrl=netPlayers.find(p=>p.id===netMonsterControllerId);
+ if(ctrl&&ctrl.monsterInput&&typeof ctrl.monsterInput==='object'){
+  const mi=ctrl.monsterInput;
+  if(Number(mi.seq||0)>monsterInputSeqApplied){
+   monsterInput={dx:+mi.dx||0,dy:+mi.dy||0,aim:+mi.aim||0,sprint:!!mi.sprint,possess:!!mi.possess,reveal:!!mi.reveal,seq:Number(mi.seq)||0};
+   monsterInputSeqApplied=monsterInput.seq;monsterInputAt=performance.now();
+   if(mi.possess)monsterPossessQueued=true;
+   if(mi.reveal)monsterRevealQueued=true;
+  }
+ }
+}
 let netRoundId=0,netMonsterWinPending=false,netPrevMonsterIds=[],netIgnoreDeathUntil=0;
 // Death safety: a server 'alive:false' flag must persist before it counts, the host never kills on stale positions right after a (re)start, and each victim is only killed once per moment.
 let netDeadSince=0,netKillGraceUntil=0,netKilledAt={};
@@ -2719,25 +3402,13 @@ function ensureNet(){
   netCacheUps();if(shopOpen)renderShopFooter();
   syncNetworkBodies();
   if(isNetHost)netHostReadClients();
-  // Host reads the assigned monster player's movement intents (relayed through player-state).
-  if(isNetHost&&netMonsterControllerId){
-   const ctrl=netPlayers.find(p=>p.id===netMonsterControllerId);
-   if(ctrl&&ctrl.monsterInput&&typeof ctrl.monsterInput==='object'){
-    const mi=ctrl.monsterInput;
-    if(Number(mi.seq||0)>monsterInputSeqApplied){
-     monsterInput={dx:+mi.dx||0,dy:+mi.dy||0,aim:+mi.aim||0,sprint:!!mi.sprint,possess:!!mi.possess,reveal:!!mi.reveal,seq:Number(mi.seq)||0};
-     monsterInputSeqApplied=monsterInput.seq;
-     if(mi.possess)monsterPossessQueued=true;
-     if(mi.reveal)monsterRevealQueued=true;
-    }
-   }
-  }
+  netReadControllerInput();
   if(performance.now()<netIgnoreDeathUntil){netPlayers=netPlayers.map(p=>({...p,alive:true}));}
   const me=netPlayers.find(p=>p.id===netMyId);
   if(me&&me.alive===false&&phase==='play'&&!isMonsterController){const nw=performance.now();if(!netDeadSince)netDeadSince=nw;if(nw-netDeadSince>=1000)netEnterSpectator(me.x,me.y,true)}else netDeadSince=0;
   if(multiplayer){netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||'------'}\n${livingCrewCount()} ALIVE · ${netBotSlots} BOTS`+(netMonsterControllerId?`\nMONSTER: ${netMonsterControllerName||'PLAYER'}`:'') )}
  });
- netSocket.on('player-died',p=>{if(performance.now()<netIgnoreDeathUntil){return;}netPlayers=netPlayers.map(q=>q.id===p.id?{...q,...p,alive:false}:q);if(Number.isFinite(p.x)&&Number.isFinite(p.y))spawnCorpse({x:p.x,y:p.y,worldId:`player:${p.id}`,netId:p.id,name:p.name||'MINER',pal:PAL.MINER,fromBot:true,fx:true});syncNetworkBodies();if(p.id===netMyId&&phase==='play'&&!isMonsterController)netEnterSpectator(p.x,p.y,true);if(isNetHost)checkMonsterWipe();});
+ netSocket.on('player-died',p=>{if(performance.now()<netIgnoreDeathUntil){return;}netPlayers=netPlayers.map(q=>q.id===p.id?{...q,...p,alive:false}:q);if(Number.isFinite(p.x)&&Number.isFinite(p.y)&&!inPitXY(p.x,p.y))spawnCorpse({x:p.x,y:p.y,worldId:`player:${p.id}`,netId:p.id,name:p.name||'MINER',pal:PAL.MINER,fromBot:true,fx:true});syncNetworkBodies();if(p.id===netMyId&&phase==='play'&&!isMonsterController)netEnterSpectator(p.x,p.y,true);if(isNetHost)checkMonsterWipe();});
  netSocket.on('world-state',w=>{if(!netLocalWorld)netApplyWorld(w)});
  netSocket.on('monster-state',netApplyMonster);
  netSocket.on('game-ended',d=>{if(multiplayer){if(netMonsterControllerId&&netMonsterWinPending)return;if(netMonsterControllerId){const winner=netMonsterControllerName||'THE MONSTER';showMonsterWin(winner,isNetHost);return;}phase='over';$('spectate').style.display='none';$('endTitle').textContent='CREW LOST';$('endText').textContent=d&&d.message?d.message:'No living miners remain. The mine has claimed the whole crew.';$('again').textContent='RETURN TO MENU';$('again').onclick=()=>{$('backToMenu').click()};$('end').style.display='flex'}});
@@ -2758,7 +3429,7 @@ function netSeededSetup(seed){const old=Math.random,oldWorldSeed=worldSeedForVis
 function netStartGame(d){
  multiplayer=true;netSeed=d.seed;netBotSlots=Math.max(0,Math.min(4,Number(d.botSlots)||0));netAlive=true;netWorld={goldTaken:[],tagsDone:[],goldCount:0,tagCount:0};
  netMonsterControllerId=null;netMonsterControllerName=null;isMonsterController=false;
- monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};monsterInputSeqApplied=0;monsterPossessQueued=false;monsterRevealQueued=false;
+ monsterInput={dx:0,dy:0,aim:0,sprint:false,possess:false,reveal:false,seq:0};monsterInputSeqApplied=0;monsterInputFor=null;monsterInputAt=0;monsterPossessQueued=false;monsterRevealQueued=false;
  // Host assigns a random human as the monster when the lobby option is enabled.
  if(isNetHost&&hostPlayerMonster){
   const pool=(d.players||netPlayers||[]).filter(p=>p&&p.id);
@@ -2778,7 +3449,7 @@ function netStartGame(d){
  // If this client is the assigned monster controller, they do not play as a miner.
  if(netMonsterControllerId&&netMonsterControllerId===netMyId){
   isMonsterController=true;netAlive=false;flashlightOn=false;
-  showAlert('YOU ARE THE MONSTER');say('WASD move · mouse aims · E possess a body · R drop disguise / reveal · SHIFT sprint',4);
+  showAlert('YOU ARE THE MONSTER');say('WASD move · mouse aims · E possess a body (E again drops it) · SHIFT sprint · you are nearly blind: loud or close, noisy miners glow red through walls',6);
  }
  setText('depth','01');setText('layerName',depthName());setText('gold',`0 / ${quotaGold}`);setText('tags',`0 / ${quotaTags}`);
  setText('crew',livingCrewLabel());
@@ -2786,9 +3457,10 @@ function netStartGame(d){
  setText('crew',`${Math.max(0,(players.filter(p=>p.alive!==false&&p.id!==netMonsterControllerId).length))+netBotSlots} ALIVE`);
  netStatus(`ONLINE · ROOM ${(netLobby&&netLobby.code)||d.code||'------'}\n${players.length}/5 HUMANS · ${netBotSlots} BOTS`+(netMonsterControllerId?`\nMONSTER: ${netMonsterControllerName||'PLAYER'}`:''));
  $('objective').innerHTML=isMonsterController
-  ?'<b style="color:#e0b4a0">YOU ARE THE MONSTER</b><br>Hunt the crew. Walk into miners to kill them. Stand on a body and press E to crawl inside and wear their face. While disguised, press R to break the act and reveal yourself. The miners win if they fill the quota and extract together.<br><span style="color:#9aa39a">Bodies are tools. Use them.</span>'
+  ?'<b style="color:#e0b4a0">YOU ARE THE MONSTER</b><br>Hunt the crew. Walk into miners to kill them. Stand on a body and press E to crawl inside and wear their face. While disguised, press E (or R) to break the act and reveal yourself. You are nearly blind: you only see a short way around you, but any miner who is LOUD (anywhere near) or ELEVATED and close glows red through the walls. The miners win if they fill the quota and extract together.<br><span style="color:#9aa39a">Bodies are tools. Use them.</span>'
   :'<b style="color:#d7b66d">CO-OP CONTRACT</b><br>Recover the shared gold and graffiti quota. Once complete, every living player and bot must be within a 500 × 500 pixel area around the lift to extract. Dead players spectate, and the monster can wear their bodies.'+(netMonsterControllerId?'<br><span style="color:#cfaaa0">A human player is controlling the monster.</span>':'')+'<br><span style="color:#9aa39a">No one gets out alone.</span>';
  netApplyWorld(d.world||{goldTaken:[],tagsDone:[],goldCount:0,tagCount:0});
+ playDescent();
 }
 function netEmitWorldAction(type,index){
  if(!multiplayer||index<0)return;
@@ -2800,7 +3472,7 @@ function netEmitWorldAction(type,index){
  netSocket.emit('world-action',{type,index});
 }
 // Anyone may call the lift once quota is met and every living crew member is inside the 500 x 500 zone. The host then sends the whole lobby down together.
-function mapHash(){let h=7;for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)h=(Math.imul(h,31)+map[y][x]+1)|0;return h}
+function mapHash(){let h=7;for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)h=(Math.imul(h,31)+map[y][x]+1)|0;for(const p of pitTiles)h=(Math.imul(h,31)+p.x*37+p.y*71+1)|0;return h}
 function netBeginDescend(rr){
  // Already in the shop for this descent: the host re-sending it (go) means everyone is ready.
  if(phase==='shop'&&netDescendPending&&netDescendPending.roundId===rr.roundId){
@@ -2940,7 +3612,7 @@ function netKillRemote(id,x,y){
 function netEnterSpectator(x,y,fromServer=false){
  if(!multiplayer||(!netAlive&&phase==='spectate'))return;
  // Ensure a corpse exists even if die() was skipped (server-driven death).
- if(Number.isFinite(x)&&Number.isFinite(y))spawnCorpse({x,y,worldId:`player:${netMyId||'local'}`,netId:netMyId||null,name:netName||'MINER',pal:PAL.player,fromBot:true,fx:!fromServer});
+ if(Number.isFinite(x)&&Number.isFinite(y)&&!inPitXY(x,y))spawnCorpse({x,y,worldId:`player:${netMyId||'local'}`,netId:netMyId||null,name:netName||'MINER',pal:PAL.player,fromBot:true,fx:!fromServer});
  netAlive=false;player.x=Number.isFinite(x)?x:player.x;player.y=Number.isFinite(y)?y:player.y;phase='spectate';paused=false;flashlightOn=false;stopPuzzle();$('pause').style.display='none';$('spectate').style.display='block';
  if(!fromServer&&netSocket)netSocket.emit('player-death',{x:player.x,y:player.y,aim:player.aim});
  netSpectateIndex=0;netSpectateFocus();$('spectateText').textContent='You are dead. Switch views to watch a surviving miner or follow the monster. Your body may not stay yours.';
@@ -2966,7 +3638,7 @@ function netApplyMonster(msg){
   isMonsterController=(netMonsterControllerId===netMyId);
   if(isMonsterController&&!was&&phase==='play'){
    netAlive=false;flashlightOn=false;
-   showAlert('YOU ARE THE MONSTER');say('WASD move · mouse aims · E possess a body · R drop disguise / reveal · F lamp only while disguised',4);
+   showAlert('YOU ARE THE MONSTER');say('WASD move · mouse aims · E possess a body (E again drops it) · F lamp only while disguised · you are nearly blind: loud or close, noisy miners glow red through walls',6);
   }
  }
  if(!isNetHost&&msg.seed&&Number.isFinite(msg.mapHash)&&phase==='play'&&!netDescendPending&&map){
@@ -2996,6 +3668,7 @@ function netPackMonster(){
   bodies:bodies.map((b,i)=>({worldId:b.worldId||(b.netId?`player:${b.netId}`:`body:${i}`),netId:b.netId||null,x:b.x,y:b.y,ang:b.ang,possessed:!!b.possessed,used:!!b.used,possessing:b.possessing||0,fromBot:!!b.fromBot,name:b.name||'MINER',palKey:Object.keys(PAL).find(k=>PAL[k]===b.pal)||'MINER',wig:b.wig||0,freshUntil:b.freshUntil||0})),
   lanterns:lanterns.map(l=>({x:l.x,y:l.y,r:l.r,ph:l.ph,dead:!!l.dead,sway:l.sway})),
   floodedTiles:floodedTiles.map(c=>({x:c.x,y:c.y,ph:c.ph})),
+  pitTiles:pitTiles.map(p=>({x:p.x,y:p.y,seed:p.seed,ph:p.ph})),
   puddles:puddles.map(p=>({x:p.x,y:p.y,rx:p.rx,ry:p.ry,rot:p.rot})),
   rats:rats.map(r=>({x:r.x,y:r.y,ang:r.ang,t:r.t,mode:r.mode,ph:r.ph,tx:r.tx,ty:r.ty})),
   ores:ores.map(o=>({x:o.x,y:o.y,ph:o.ph,c:o.c||0}))
