@@ -303,7 +303,7 @@ window.loadDeepVeinSocketClient = function () {
 'use strict';
 const $=id=>document.getElementById(id);
 const NET_SERVER_URL=String(window.DEEP_VEIN_SERVER_URL||'').replace(/\/+$/,'');
-const canvas=$('game'),ctx=canvas.getContext('2d'),mini=$('mini'),mctx=mini.getContext('2d');
+const canvas=$('game'),ctx=canvas.getContext('2d',{alpha:false}),mini=$('mini'),mctx=mini.getContext('2d');
 const lightC=document.createElement('canvas'),lctx=lightC.getContext('2d');
 const TILE=48,COLS=35,ROWS=27,MW=COLS*TILE,MH=ROWS*TILE,TAU=Math.PI*2,D4=[[1,0],[-1,0],[0,1],[0,-1]];
 const clamp=(v,a,b)=>v<a?a:v>b?b:v,lerp=(a,b,t)=>a+(b-a)*t,rnd=(a,b)=>a+Math.random()*(b-a);
@@ -315,11 +315,11 @@ function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]]}return a}
 
 /* ---------- canvas sizing ---------- */
-let W=innerWidth,H=innerHeight,dpr=1,vignette=null,grainPat=null;
+let W=innerWidth,H=innerHeight,dpr=1,vignette=null,grainPat=null,dprCap=2;
 const grainC=mk(128,128);
 {const g=grainC.getContext('2d'),id=g.createImageData(128,128);for(let i=0;i<id.data.length;i+=4){const v=Math.random()*255;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=Math.random()<.5?0:34}g.putImageData(id,0,0)}
 function resize(){
- W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,2);
+ W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,dprCap);
  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
  lightC.width=Math.ceil(W/2);lightC.height=Math.ceil(H/2);
  mini.width=COLS*4;mini.height=ROWS*4;
@@ -401,7 +401,10 @@ const Snd=(()=>{
   },
   liftSlam(){noise(1.2,.5,'lowpass',900,1,0,0,60);tone(48,'sine',.9,.7,26);tone(180,'square',.12,.25,70);noise(.25,.3,'highpass',1800,1,.02,0,600);tone(95,'sawtooth',.5,.15,40,.05)},
   liftClank(){tone(420,'square',.08,.14,210);tone(620,'triangle',.4,.1,0,.03);noise(.15,.1,'bandpass',1800,3)},
-  pitFall(){tone(420,'sine',.85,.16,45);noise(.7,.12,'lowpass',900,1,0,0,120);tone(60,'sine',.5,.4,30,.8);noise(.3,.22,'lowpass',400,1,.8,0,70)}
+  pitFall(){tone(420,'sine',.85,.16,45);noise(.7,.12,'lowpass',900,1,0,0,120);tone(60,'sine',.5,.4,30,.8);noise(.3,.22,'lowpass',400,1,.8,0,70)},
+  flareShot(){noise(.16,.4,'bandpass',1500,1.2,0,0,420);tone(170,'square',.1,.24,55);tone(90,'sine',.2,.3,40);noise(1.1,.08,'highpass',3000,1,.1,0,2000)},
+  flareLand(){tone(120,'triangle',.12,.2,60);noise(.12,.16,'lowpass',1200,1,0,0,300);noise(.8,.05,'highpass',3400,1,.05,0,2200)},
+  flareKnock(v){tone(300+120*v,'triangle',.07,.1+.1*v,150);noise(.06,.07*v+.03,'bandpass',2200,2)}
  };
 })();
 
@@ -491,7 +494,7 @@ function wSplash(x,y,s){
 }
 function drawWater(camX,camY){
  if(!waterC)return;
- ctx.drawImage(waterC,0,0);
+ blitWorld(waterC,camX,camY);
  const w=Math.ceil(W),h=Math.ceil(H);
  if(fxC.width!==w||fxC.height!==h){fxC.width=w;fxC.height=h}
  if(!wavePatA){wavePatA=fxX.createPattern(makeWavePattern(11,.2),'repeat');wavePatB=fxX.createPattern(makeWavePattern(29,.16),'repeat')}
@@ -596,7 +599,7 @@ function layoutProcedural(kind){
  // the start chamber and the lift pad are always open
  open(1,1,4,4);open(29,22,5,4);
 }
-function makeMap(){
+function makeMap(){polyCache.clear();
  const kinds=['bars','rooms','caves'];
  for(let a=0;a<12;a++){
   const kind=a<11?kinds[(Math.random()*3)|0]:'classic';
@@ -1168,6 +1171,61 @@ function callMonsterToDecoy(f){
  if(Math.hypot(monster.x-f.x,monster.y-f.y)>f.lureRange)return;
  monster.state='investigate';monster.lastSeen={x:f.x,y:f.y};monster.search=Math.max(monster.search||0,4);monster.path=null;monster.repath=0;
 }
+/* ---- flare gun ----
+   The flare leaves the muzzle fast in a short arc, trailing red smoke and sparks, lands with a skip, then rolls to a stop and burns.
+   It bounces off walls and anything that bumps it (miners, bots, the monster) knocks it along the floor. */
+function fireFlare(){
+ const ang=player.aim||0,ux=Math.cos(ang),uy=Math.sin(ang);
+ let sx=player.x+ux*17,sy=player.y+uy*17;if(!walk(sx,sy,true)){sx=player.x;sy=player.y}
+ const duration=10+N('a2p')*4,radius=190+N('a2q')*85,v0=560;
+ abilityFx.push({type:'flare',x:sx,y:sy,vx:ux*v0,vy:uy*v0,air:.38,airMax:.38,rot:ang,t:duration,max:duration,radius,ph:rnd(0,TAU),smokeT:0,knockT:0,fell:false});
+ abilityFx.push({type:'muzzle',x:sx,y:sy,ang,t:.11,max:.11});
+ for(let i=0;i<16;i++){const a=ang+rnd(-.4,.4),s=rnd(140,430);P(sx,sy,Math.cos(a)*s,Math.sin(a)*s,rnd(.22,.5),rnd(1.1,2),i%3?'#ffd27a':'#ff7a30',{drag:.9})}
+ for(let i=0;i<9;i++){const a=ang+rnd(-.55,.55),s=rnd(25,120);P(sx+ux*4,sy+uy*4,Math.cos(a)*s,Math.sin(a)*s-8,rnd(.9,1.6),rnd(2.5,4),i%2?'rgba(200,200,196,.5)':'rgba(215,70,55,.5)',{drag:.93,grow:rnd(9,16)})}
+ shake=Math.max(shake,3);try{Snd.flareShot()}catch(e){}
+}
+function flareEntities(){
+ const e=[];
+ if(player&&phase==='play'&&!isMonsterController)e.push({x:player.x,y:player.y,r:player.r||10,mv:player.mv||0,k:1});
+ if(monster&&monster.state!=='possess')e.push({x:monster.x,y:monster.y,r:(monster.r||11)+1,mv:monster.mv||0,k:1.4});
+ for(const b of bots)if(b.alive)e.push({x:b.x,y:b.y,r:9,mv:b.moving?1:0,k:1});
+ if(multiplayer)for(const rp of netPlayers){if(!rp||rp.id===netMyId||isMonsterPlayerId(rp.id)||rp.role==='monster'||rp.alive===false||!Number.isFinite(rp.x)||!Number.isFinite(rp.y))continue;e.push({x:rp.x,y:rp.y,r:10,mv:rp.moving?1:0,k:1})}
+ return e;
+}
+function updateFlare(f,dt){
+ const wasAir=f.air>0;f.air=Math.max(0,f.air-dt);const air=f.air>0;
+ const damp=Math.exp(-(air?.5:6.5)*dt);f.vx*=damp;f.vy*=damp;
+ // touch: anyone brushing the flare on the ground nudges it away from them
+ if(!air){
+  for(const e of flareEntities()){
+   const dx=f.x-e.x,dy=f.y-e.y,d=Math.hypot(dx,dy),reach=e.r+5;
+   if(d>=reach)continue;
+   const nx=d>.01?dx/d:Math.cos(f.ph),ny=d>.01?dy/d:Math.sin(f.ph),want=55+130*e.mv*e.k,cur=f.vx*nx+f.vy*ny;
+   if(cur<want){f.vx+=nx*(want-cur);f.vy+=ny*(want-cur);if(f.knockT<=0){f.knockT=.35;try{Snd.flareKnock(clamp(want/260,.2,1))}catch(e2){}}}
+   const px=e.x+nx*reach,py=e.y+ny*reach;if(walk(px,f.y,true))f.x=px;if(walk(f.x,py,true))f.y=py;
+  }
+ }
+ f.knockT=Math.max(0,f.knockT-dt);
+ // move in small steps so a fast flare cannot tunnel through a wall; bounce off rock
+ const sp=Math.hypot(f.vx,f.vy),steps=Math.max(1,Math.ceil(sp*dt/4)),sdt=dt/steps;let hit=0;
+ for(let i=0;i<steps;i++){
+  const nx=f.x+f.vx*sdt,ny=f.y+f.vy*sdt;
+  if(walk(nx,f.y,true))f.x=nx;else{f.vx*=-.45;hit=Math.max(hit,sp)}
+  if(walk(f.x,ny,true))f.y=ny;else{f.vy*=-.45;hit=Math.max(hit,sp)}
+ }
+ if(hit>70){for(let i=0;i<6;i++)P(f.x,f.y,rnd(-90,90),rnd(-90,90),rnd(.2,.4),1.3,i%2?'#ffd27a':'#ff7a30',{drag:.88});if(f.knockT<=0){f.knockT=.2;try{Snd.flareKnock(clamp(hit/500,.2,1))}catch(e2){}}}
+ f.rot+=(f.vx>=0?1:-1)*Math.hypot(f.vx,f.vy)*dt*.05;
+ if(wasAir&&!air){try{Snd.flareLand()}catch(e){}for(let i=0;i<10;i++)P(f.x,f.y,rnd(-70,70),rnd(-70,70),rnd(.25,.5),1.4,i%2?'#ffd27a':'#ff7a30',{drag:.9});for(let i=0;i<5;i++)P(f.x,f.y,rnd(-30,30),rnd(-30,30),rnd(.5,.9),2,'rgba(150,140,125,.5)',{drag:.92,grow:10})}
+ if(!f.fell&&inPitXY(f.x,f.y)){f.fell=true;f.t=Math.min(f.t,.9);f.vx*=.3;f.vy*=.3}
+ // red smoke: a dense trail in the air, then a lazy plume rising off the burning flare
+ f.smokeT-=dt;const gap=air?.014:.065;let n=0;
+ while(f.smokeT<=0&&n++<4){
+  f.smokeT+=gap;
+  const zz=air?Math.sin(Math.PI*clamp(1-f.air/f.airMax,0,1))*22:0,col=Math.random()<.62?'rgba(212,52,42,.55)':Math.random()<.5?'rgba(150,34,32,.5)':'rgba(236,120,104,.45)';
+  if(air)P(f.x+rnd(-1.5,1.5),f.y-zz+rnd(-1.5,1.5),f.vx*.04+rnd(-10,10),f.vy*.04+rnd(-14,4),rnd(.8,1.4),rnd(2,3.2),col,{drag:.94,grow:rnd(7,12)});
+  else P(f.x+rnd(-2,2),f.y-4+rnd(-2,2),rnd(-9,9)+f.vx*.1,rnd(-34,-14),rnd(1.3,2.3),rnd(2.4,3.6),col,{drag:.97,grow:rnd(8,13)});
+ }
+}
 function useAbility(slot){
  if(!player||phase!=='play'||paused||isMonsterController||puzzle)return;
  const a=ownedAbilities()[slot-1];if(!a){say(`No ability in slot ${slot}. Buy up to two in the ABILITIES tree.`,2);return}
@@ -1181,7 +1239,7 @@ function useAbility(slot){
   if(vein.hp<=0){vein.mined=true;const reward=4+(N('a1p')?2:0);player.minedSilver=(player.minedSilver||0)+reward;showAlert('ORE VEIN BROKEN');say(`The seam gives way. +${reward} bonus silver when this floor clears.`,2.5);Snd.clink();for(let i=0;i<12;i++)P(vein.x,vein.y,rnd(-55,55),rnd(-55,55),.7,2,'#e6c36a',{drag:.9})}
   else say(`PICKAXE · ${vein.hp} strikes left. The ringing carries through the mine.`,1.6);
  }else if(a.id==='flare'){
-  point=abilityPointAhead(125);const duration=10+N('a2p')*4,radius=190+N('a2q')*85;abilityFx.push({type:'flare',x:point.x,y:point.y,t:duration,max:duration,radius,ph:rnd(0,TAU)});cooldown=17;Snd.lamp();say('FLARE OUT · A little light in the dark.',2);
+  fireFlare();cooldown=17;say('FLARE FIRED · It lands, rolls and burns. Anything that bumps it will push it around.',2.6);
  }else if(a.id==='decoy'){
   point=abilityPointAhead(205);const duration=8+N('a3p')*5;const f={type:'decoy',x:point.x,y:point.y,t:duration,max:duration,ping:.15,lureRange:900+N('a3q')*600,ph:rnd(0,TAU)};abilityFx.push(f);callMonsterToDecoy(f);cooldown=22;Snd.knock(0);say('DECOY DEPLOYED · Let it follow the noise.',2.2);
  }else if(a.id==='scanner'){
@@ -1203,7 +1261,8 @@ function updateAbilityWorld(dt){
  if(abilitySpeedT>0){abilitySpeedT=Math.max(0,abilitySpeedT-dt);if(N('a8q')&&player)player.stamina=Math.min(player.maxStamina||100,player.stamina+9*dt);if(abilitySpeedT<=0)abilitySpeedMult=1}
  for(const v of mineVeins)v.hitT=Math.max(0,(v.hitT||0)-dt);
  for(const f of abilityFx){f.t-=dt;
-  if(f.type==='decoy'){f.ping-=dt;if(f.ping<=0){f.ping=1.65;callMonsterToDecoy(f);if(Math.random()<.35)Snd.knock(clamp((f.x-player.x)/500,-1,1))}}
+  if(f.type==='flare')updateFlare(f,dt);
+  else if(f.type==='decoy'){f.ping-=dt;if(f.ping<=0){f.ping=1.65;callMonsterToDecoy(f);if(Math.random()<.35)Snd.knock(clamp((f.x-player.x)/500,-1,1))}}
   else if(f.type==='tripwire'&&!f.triggered&&monster&&(!multiplayer||isNetHost)&&monster.state!=='possess'&&monster.state!=='disguise'&&Math.hypot(monster.x-f.x,monster.y-f.y)<f.r){f.triggered=true;abilityAlarmT=6+N('a7q')*4;abilityScanT=Math.max(abilityScanT,abilityAlarmT);abilityScanRange=Math.max(abilityScanRange,900);showAlert('TRIPWIRE TRIGGERED');say('The wire snapped. It is close — move!',2.8);Snd.bell();shake=Math.max(shake,4)}
  }
  abilityFx=abilityFx.filter(f=>f.t>0);
@@ -1222,9 +1281,31 @@ function drawMineVeins(){
   if(v.hp<v.max){ctx.fillStyle='rgba(0,0,0,.8)';ctx.fillRect(-12,-19,24,3);ctx.fillStyle='#d6ad4a';ctx.fillRect(-12,-19,24*(v.hp/v.max),3)}ctx.restore();
  }
 }
+function drawMuzzle(f){
+ const k=clamp(f.t/f.max,0,1),ux=Math.cos(f.ang),uy=Math.sin(f.ang),L=46-k*6;
+ ctx.globalCompositeOperation='lighter';
+ const gg=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,L);gg.addColorStop(0,`rgba(255,244,200,${.95*k})`);gg.addColorStop(.4,`rgba(255,165,75,${.55*k})`);gg.addColorStop(1,'rgba(255,90,30,0)');
+ ctx.fillStyle=gg;ctx.beginPath();ctx.moveTo(f.x-uy*4,f.y+ux*4);ctx.lineTo(f.x+ux*L-uy*13*k,f.y+uy*L+ux*13*k);ctx.lineTo(f.x+ux*L*1.1,f.y+uy*L*1.1);ctx.lineTo(f.x+ux*L+uy*13*k,f.y+uy*L-ux*13*k);ctx.lineTo(f.x+uy*4,f.y-ux*4);ctx.closePath();ctx.fill();
+}
+function drawFlare(f){
+ const k=clamp(f.t/1.1,0,1),pulse=.85+.15*Math.sin(fxClock*13+f.ph),air=f.air>0,sp=Math.hypot(f.vx,f.vy);
+ const zz=air?Math.sin(Math.PI*clamp(1-f.air/f.airMax,0,1))*22:0,hx=f.x,hy=f.y-zz;
+ const g=ctx.createRadialGradient(f.x,f.y,1,f.x,f.y,f.radius*.52);g.addColorStop(0,`rgba(255,145,58,${.22*k})`);g.addColorStop(1,'rgba(255,105,35,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(f.x,f.y,f.radius*.52,0,TAU);ctx.fill();
+ if(air){ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(f.x,f.y+2,4,2,0,0,TAU);ctx.fill()}
+ ctx.globalCompositeOperation='lighter';
+ if(sp>40){const len=Math.min(34,sp*.06),ux=f.vx/sp,uy=f.vy/sp,sg=ctx.createLinearGradient(hx,hy,hx-ux*len,hy-uy*len);sg.addColorStop(0,`rgba(255,205,115,${.85*k})`);sg.addColorStop(1,'rgba(255,90,30,0)');ctx.strokeStyle=sg;ctx.lineWidth=3.2;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(hx-ux*len,hy-uy*len);ctx.stroke()}
+ ctx.globalCompositeOperation='source-over';
+ ctx.save();ctx.translate(hx,hy);ctx.rotate(f.rot);ctx.fillStyle='#7c1a16';ctx.fillRect(-5.5,-1.8,9,3.6);ctx.fillStyle='#d9d1b4';ctx.fillRect(-1.5,-1.8,2.2,3.6);ctx.fillStyle='#3a0d0b';ctx.fillRect(-5.5,-1.8,9,1);ctx.restore();
+ const tx=hx+Math.cos(f.rot)*4.5,ty=hy+Math.sin(f.rot)*4.5;
+ ctx.globalCompositeOperation='lighter';
+ ctx.fillStyle=`rgba(255,175,80,${.78*pulse*k})`;ctx.beginPath();ctx.ellipse(tx,ty-2,3.6,6+Math.sin(fxClock*12+f.ph)*1.5,0,0,TAU);ctx.fill();
+ ctx.fillStyle=`rgba(255,244,190,${k})`;ctx.beginPath();ctx.arc(tx,ty-1,2.2,0,TAU);ctx.fill();
+ if(Math.random()<.22*frameDt*60)P(tx+rnd(-3,3),ty-4,rnd(-9,9),rnd(-26,-10),.35,1.5,'#ffb35f',{drag:.88});
+}
 function drawAbilityObjects(){
  for(const f of abilityFx){ctx.save();
-  if(f.type==='flare'){const k=clamp(f.t/1.1,0,1),pulse=.85+.15*Math.sin(fxClock*13+f.ph),g=ctx.createRadialGradient(f.x,f.y,1,f.x,f.y,f.radius*.52);g.addColorStop(0,`rgba(255,145,58,${.22*k})`);g.addColorStop(1,'rgba(255,105,35,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(f.x,f.y,f.radius*.52,0,TAU);ctx.fill();ctx.globalCompositeOperation='lighter';ctx.fillStyle=`rgba(255,188,95,${.8*pulse})`;ctx.beginPath();ctx.ellipse(f.x,f.y,4,7+Math.sin(fxClock*12)*1.5,0,0,TAU);ctx.fill();ctx.fillStyle='#fff0b2';ctx.beginPath();ctx.arc(f.x,f.y-2,2,0,TAU);ctx.fill();if(Math.random()<.22)P(f.x+rnd(-4,4),f.y-5,rnd(-9,9),rnd(-24,-9),.35,1.7,'#ffb35f',{drag:.88})}
+  if(f.type==='flare')drawFlare(f);
+  else if(f.type==='muzzle')drawMuzzle(f);
   else if(f.type==='decoy'){const k=.5+.5*Math.sin(fxClock*7+f.ph);ctx.globalCompositeOperation='lighter';ctx.strokeStyle=`rgba(218,174,95,${.25+.45*k})`;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(f.x,f.y,9+k*7,0,TAU);ctx.stroke();ctx.globalCompositeOperation='source-over';ctx.fillStyle='#262c28';rr(ctx,f.x-7,f.y-5,14,10,2);ctx.fill();ctx.strokeStyle='#a18a59';ctx.stroke();ctx.fillStyle='#e5b85f';ctx.fillRect(f.x-2,f.y-2,4,4)}
   else if(f.type==='smoke'){const a=clamp(f.t/1.2,0,1);for(let i=0;i<9;i++){const ang=i*2.399+fxClock*.18,rr0=f.r*(.2+.55*((i*.37)%1)),x=f.x+Math.cos(ang+fxClock*.08)*rr0,y=f.y+Math.sin(ang+fxClock*.08)*rr0*.68;ctx.fillStyle=`rgba(79,91,85,${.12*a})`;ctx.beginPath();ctx.ellipse(x,y,f.r*.3,f.r*.22,ang,0,TAU);ctx.fill()}}
   else if(f.type==='tripwire'){const a=clamp(f.t/1.2,0,1);ctx.strokeStyle=`rgba(${f.triggered?'255,65,45':'201,171,112'},${.25+.35*a})`;ctx.lineWidth=1.1;ctx.setLineDash([5,7]);ctx.lineDashOffset=-fxClock*9;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,TAU);ctx.stroke();ctx.setLineDash([]);for(let i=0;i<4;i++){const ang=i*Math.PI/2;ctx.fillStyle=f.triggered?'#e45e4d':'#cbb77e';ctx.beginPath();ctx.arc(f.x+Math.cos(ang)*f.r,f.y+Math.sin(ang)*f.r,3,0,TAU);ctx.fill()}}
@@ -2451,6 +2532,12 @@ function updateGame(dt){
 }
 
 /* ---------- drawing helpers ---------- */
+const polyCache=new Map();
+function visPolyStatic(x,y,maxD,n,cx,cy){
+ const key=x+','+y+','+maxD+','+n;let w=polyCache.get(key);
+ if(!w){w=visPoly(x,y,maxD,n,0,0);if(polyCache.size>600)polyCache.clear();polyCache.set(key,w)}
+ const out=new Array(w.length);for(let i=0;i<w.length;i+=2){out[i]=w[i]-cx;out[i+1]=w[i+1]-cy}return out;
+}
 function visPoly(x,y,maxD,n,cx,cy){
  const pts=[];
  for(let i=0;i<=n;i++){const a=TAU*i/n,dx=Math.cos(a),dy=Math.sin(a);let d=0;while(d<maxD){d+=6;if(!walk(x+dx*d,y+dy*d,true))break}d=Math.min(maxD,d+9);pts.push(x+dx*d-cx,y+dy*d-cy)}
@@ -2676,6 +2763,12 @@ function drawLantern(l,inten){
 }
 
 /* ---------- render ---------- */
+/* The world layers are big pre-rendered canvases; only copy the part the camera can see. */
+function blitWorld(img,camX,camY){
+ const x0=Math.max(0,camX),y0=Math.max(0,camY),x1=Math.min(img.width,camX+W),y1=Math.min(img.height,camY+H);
+ if(x1>x0&&y1>y0)ctx.drawImage(img,x0,y0,x1-x0,y1-y0,x0,y0,x1-x0,y1-y0);
+}
+let grainT=0,grainX=0,grainY=0;
 function draw(){
  ctx.setTransform(dpr,0,0,dpr,0,0);
  ctx.fillStyle='#030404';ctx.fillRect(0,0,W,H);
@@ -2684,10 +2777,10 @@ function draw(){
  if(shake>0){const shk=shake*upgradeShakeMult();camX+=(Math.random()-.5)*shk;camY+=(Math.random()-.5)*shk}
  camX=Math.round(camX);camY=Math.round(camY);
  ctx.save();ctx.translate(-camX,-camY);
- ctx.drawImage(mapC,0,0);
+ blitWorld(mapC,camX,camY);
  // Flooded pockets: merged organic pools with animated surface, reflections and ripples.
  drawWater(camX,camY);
- ctx.drawImage(decC,0,0);
+ blitWorld(decC,camX,camY);
  // puddles with ripples
  for(const p of puddles){
   if(p.x<camX-60||p.x>camX+W+60||p.y<camY-60||p.y>camY+H+60)continue;
@@ -2748,7 +2841,7 @@ function draw(){
  drawAbilityObjects();
  drawSpores(camX,camY);
  for(const o of ores){if(o.x<camX-20||o.x>camX+W+20||o.y<camY-20||o.y>camY+H+20)continue;const s=Math.sin(fxClock*2.4+o.ph);if(s>.82){ctx.fillStyle=o.c?`rgba(150,240,240,${(s-.82)*5})`:`rgba(255,235,150,${(s-.82)*5})`;ctx.fillRect(o.x-1,o.y-1,2,2)}}
- ctx.drawImage(overC,0,0);
+ blitWorld(overC,camX,camY);
  ctx.restore();
 
  /* ----- lighting: dark mask with shadow-cast holes ----- */
@@ -2756,6 +2849,7 @@ function draw(){
  const md=dist(player,monster),flick=1-Math.min(.76,.4+(depth-1)*.035)*Math.max(0,Math.sin(fxClock*37)*Math.sin(fxClock*23))*clamp((320-md)/220,0,1)*(monster.state==='disguise'?.3:1);
  const psx=cameraFocus.x-camX,psy=cameraFocus.y-camY,lightReach=Math.max(270,430-(depth-1)*18)+upgradeBeamBonus(),personalLight=Math.max(92,140-(depth-1)*5)+upgradePersonalLightBonus();
  if(flashlightOn&&phase!=='spectate'&&!isMonsterController)lights.push({x:psx,y:psy,r:lightReach,poly:visPoly(player.x,player.y,lightReach,150,camX,camY),kind:'player',k:flick*(gim('battery')&&battery<25?(.45+.55*Math.max(0,Math.sin(fxClock*29)*Math.sin(fxClock*13))):1),aim:player.aim});
+ for(const f of abilityFx)if(f.type==='muzzle')lights.push({x:f.x-camX,y:f.y-camY,r:150,poly:null,kind:'flare',k:clamp(f.t/f.max,0,1)});
  for(const f of abilityFx)if(f.type==='flare'){const sx=f.x-camX,sy=f.y-camY;if(sx>-f.radius&&sx<W+f.radius&&sy>-f.radius&&sy<H+f.radius)lights.push({x:sx,y:sy,r:f.radius,poly:null,kind:'flare',k:clamp(f.t/1.2,0,1)});}
  // Monster lamp only while disguised (possessing a body).
  if(isMonsterController&&monster&&monster.state==='disguise'&&flashlightOn){
@@ -2779,9 +2873,9 @@ function draw(){
   if(dm<260&&monster.state!=='disguise')k*=Math.sin(fxClock*41+l.ph)>.25?1:.2;
   l.cur=k;
   const sx=l.x-camX,sy=l.y-camY;if(sx<-l.r||sx>W+l.r||sy<-l.r||sy>H+l.r)continue;
-  {const lr=l.r*upgradeLanternMult();lights.push({x:sx,y:sy,r:lr,poly:visPoly(l.x,l.y,lr,56,camX,camY),kind:'lantern',k})}
+  {const lr=l.r*upgradeLanternMult();lights.push({x:sx,y:sy,r:lr,poly:visPolyStatic(l.x,l.y,lr,56,camX,camY),kind:'lantern',k})}
  }
- {const sx=exit.x-camX,sy=exit.y-camY;if(sx>-140&&sx<W+140&&sy>-140&&sy<H+140)lights.push({x:sx,y:sy,r:120,poly:visPoly(exit.x,exit.y,120,40,camX,camY),kind:'lift',k:.8+.2*Math.sin(fxClock*5)})}
+ {const sx=exit.x-camX,sy=exit.y-camY;if(sx>-140&&sx<W+140&&sy>-140&&sy<H+140)lights.push({x:sx,y:sy,r:120,poly:visPolyStatic(exit.x,exit.y,120,40,camX,camY),kind:'lift',k:.8+.2*Math.sin(fxClock*5)})}
  for(const b of bots)if(b.alive){const sx=b.x-camX,sy=b.y-camY;if(sx>-130&&sx<W+130&&sy>-130&&sy<H+130)lights.push({x:sx,y:sy,r:105,poly:visPoly(b.x,b.y,105,32,camX,camY),kind:'bot',k:.85})}
  for(const g of gold)if(!g.taken){const sx=g.x-camX,sy=g.y-camY;if(sx>-40&&sx<W+40&&sy>-40&&sy<H+40)lights.push({x:sx,y:sy,r:38,poly:null,kind:'gold',k:.5})}
  for(const t of tags)if(!t.done){const sx=t.ax-camX,sy=t.ay-camY;if(sx>-70&&sx<W+70&&sy>-70&&sy<H+70)lights.push({x:sx,y:sy,r:62,poly:null,kind:'gold',k:.65})}
@@ -2857,7 +2951,7 @@ function draw(){
   ctx.beginPath();ctx.arc(W/2,H/2,Math.max(W,H)*.55,0,Math.PI*2);ctx.fill();
   ctx.globalCompositeOperation='source-over';
  }
- ctx.save();ctx.globalAlpha=brightBoost>0?.55:.9;ctx.translate((Math.random()*128)|0,(Math.random()*128)|0);ctx.fillStyle=grainPat;ctx.fillRect(-128,-128,W+256,H+256);ctx.restore();
+ ctx.save();ctx.globalAlpha=brightBoost>0?.55:.9;{const ng=performance.now();if(ng-grainT>=15){grainT=ng;grainX=(Math.random()*128)|0;grainY=(Math.random()*128)|0}}ctx.translate(grainX,grainY);ctx.fillStyle=grainPat;ctx.fillRect(-128,-128,W+256,H+256);ctx.restore();
  if(md<240&&monster.state!=='disguise'){ctx.fillStyle=`rgba(110,10,8,${(240-md)/900})`;ctx.fillRect(0,0,W,H)}
  if(heartPulse>.02){const g=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.3,W/2,H/2,Math.max(W,H)*.65);g.addColorStop(0,'rgba(80,0,0,0)');g.addColorStop(1,`rgba(80,4,4,${heartPulse*.38})`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
  if(player.tired){ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(0,0,W,H)}
@@ -3027,7 +3121,7 @@ function descentSetPhase(p){
   setTimeout(()=>{if(DS===S){cancelAnimationFrame(S.raf);DS=null;el.style.display='none';el.style.transition='none'}},1000);
  }
 }
-const PXC={bg:'#06090a',rockA:'#161c1f',rockB:'#1b2226',rockC:'#222b2f',rockD:'#12171a',mortar:'#080b0c',rockHi:'#2d383d',wall:'#0b1012',beam:'#3a2a1e',beamHi:'#5d4430',beamLo:'#20160e',rail:'#7f8890',railHi:'#b4bcc2',railLo:'#3d454b',steel:'#2a3033',steelHi:'#5d666b',yel:'#e8b83a',blk:'#16140f',amber:'#ffb454'};
+const PXC={bg:'#06090a',rockA:'#161c1f',rockB:'#1b2226',rockC:'#222b2f',rockD:'#12171a',mortar:'#080b0c',rockHi:'#2d383d',wall:'#100e0b',crev:'#171410',beam:'#3a2a1e',beamHi:'#5d4430',beamLo:'#20160e',rail:'#7f8890',railHi:'#b4bcc2',railLo:'#3d454b',steel:'#2a3033',steelHi:'#5d666b',yel:'#e8b83a',blk:'#16140f',amber:'#ffb454'};
 function pxHazard(g,x,y,w,h,ph){for(let i=0;i<w;i+=4){g.fillStyle=((i/4+ph)&1)?PXC.blk:PXC.yel;g.fillRect(x+i,y,Math.min(4,w-i),h)}}
 function descentFrame(now){
  const S=DS;if(!S)return;
@@ -3057,20 +3151,36 @@ function descentFrame(now){
  g.save();g.translate(ox,oy);
  g.fillStyle=PXC.bg;g.fillRect(-8,-8,LW+16,LH+16);
  const shW=cw+44,shL=cx-shW/2,shR=cx+shW/2,sc=Math.floor(S.sc);
- // rock either side of the shaft (brick courses scroll up as the lift falls)
- const bh=8,bw=14;
- for(let row=Math.floor(sc/bh)-1;row<=Math.floor((sc+LH)/bh)+1;row++){
-  const y=row*bh-sc,off=(row&1)?7:0;
-  for(let x=off-bw;x<LW+bw;x+=bw){
-   const hv=hsh(row*131+Math.round((x-off)/bw)*17);
-   const segs=[];if(x<shL)segs.push([x,Math.min(x+bw-1,shL)]);if(x+bw-1>shR)segs.push([Math.max(x,shR),x+bw-1]);
-   for(const[bx,ex]of segs){if(ex<=bx)continue;
-    g.fillStyle=hv<.25?PXC.rockD:hv<.55?PXC.rockA:hv<.85?PXC.rockB:PXC.rockC;g.fillRect(bx,y,ex-bx,bh-1);
-    g.fillStyle=PXC.rockHi;g.fillRect(bx,y,ex-bx,1);if(hv>.9){g.fillStyle=PXC.mortar;g.fillRect(bx+3,y+3,2,1)}}
-  }
- }
  // shaft back wall, timber cross-beams and wall lamps
  g.fillStyle=PXC.wall;g.fillRect(shL,-4,shW,LH+8);
+ // rough cave rock either side of the shaft: overlapping, uneven boulders of different sizes with a ragged edge, strata cracks,
+ // moss, gold flecks and crystals, scrolling up as the lift falls
+ {const CH=13,CWD=15,TONES=['#5d5448','#4e463b','#42392f','#6a5f50','#39322a'],HI='#8a7d68',SH='#241f19';
+  const eLof=y=>shL+Math.floor(hsh(Math.floor(y/5)*17+3)*9)-3,eRof=y=>shR-Math.floor(hsh(Math.floor(y/5)*19+5)*9)+3;
+  g.fillStyle=PXC.crev;g.fillRect(-8,-8,shL+8,LH+16);g.fillRect(shR,-8,LW-shR+8,LH+16);
+  for(let row=Math.floor(sc/CH)-2;row<=Math.floor((sc+LH)/CH)+1;row++){
+   for(let col=-2;col<=Math.ceil(LW/CWD)+1;col++){
+    const k=row*977+col*131,hv=hsh(k),h2=hsh(k+7),h3=hsh(k+13),h4=hsh(k+29);
+    const w=10+Math.floor(h2*16),h=9+Math.floor(h3*12),x=col*CWD+Math.floor(hsh(k+3)*9)-4+((row&1)?5:0),y=row*CH-sc+Math.floor(h4*7)-3;
+    const body=TONES[Math.floor(hv*TONES.length)];
+    for(const[lo,hi]of[[-8,eLof(y)],[eRof(y),LW+8]]){
+     const bx=Math.max(x,lo),ex=Math.min(x+w,hi);if(ex-bx<3)continue;const bw2=ex-bx;
+     g.fillStyle=body;g.fillRect(bx+1,y,bw2-2,h);g.fillRect(bx,y+1,bw2,h-2);
+     g.fillStyle=HI;g.fillRect(bx+1,y,bw2-2,1);g.fillRect(bx,y+1,1,Math.max(1,h-4));
+     g.fillStyle=SH;g.fillRect(bx+1,y+h-1,bw2-2,1);g.fillRect(ex-1,y+2,1,h-3);
+     if(h2>.5){g.fillStyle=HI;g.fillRect(bx+3+Math.floor(hv*5),y+3,Math.max(1,Math.min(4,bw2-6)),1)}
+     if(h3<.4){g.fillStyle=SH;g.fillRect(bx+2,y+h-4,Math.max(1,bw2>>1),1)}
+     if(hv>.12&&hv<.18){g.fillStyle='#4d6038';g.fillRect(bx+1,y+h-3,3,1);g.fillStyle='#3a4a2c';g.fillRect(bx+2,y+h-2,2,1)}
+     if(hv>.975){g.fillStyle='#e0b84a';g.fillRect(bx+3,y+4,2,1);g.fillStyle='#fff0a0';g.fillRect(bx+3,y+4,1,1)}
+     if(hv<.02){g.fillStyle='#6fb0c0';g.fillRect(bx+3,y+3,1,3);g.fillStyle='#c8f0f8';g.fillRect(bx+3,y+3,1,1)}
+    }
+   }
+  }
+  // dark strata cracks and a shadowy inner lip where the rock meets the shaft
+  g.fillStyle=PXC.crev;
+  for(let i=Math.floor(sc/53)-1;i<=Math.floor((sc+LH)/53)+1;i++){const y=i*53-sc,x0=Math.floor(hsh(i*5+1)*60);pxLine(g,x0,y,x0+22,y+4);pxLine(g,x0+22,y+4,x0+30,y+3);pxLine(g,LW-x0,y+9,LW-x0-24,y+12)}
+  for(let y=-4;y<LH+4;y+=3){g.fillStyle='rgba(0,0,0,.42)';g.fillRect(eLof(y+sc*0)-3,y,3,3);g.fillRect(eRof(y),y,3,3);g.fillStyle='rgba(0,0,0,.2)';g.fillRect(eLof(y)-6,y,3,3);g.fillRect(eRof(y)+3,y,3,3)}
+ }
  const BH=64;
  for(let i=Math.floor(sc/BH)-1;i<=Math.floor((sc+LH+20)/BH)+1;i++){
   const y=i*BH-sc,hv=hsh(i*31+5);
@@ -3270,9 +3380,18 @@ function descentFrame(now){
 
 
 /* ---------- loop & input ---------- */
+let frameDt=1/60,perfAcc=0,perfN=0;
+/* If a high-DPI screen cannot keep up (under ~42fps for 2s) quietly render at a slightly lower resolution. Game speed is unaffected either way. */
+function perfWatch(raw){
+ if(!(raw>0)||raw>.5){perfAcc=0;perfN=0;return}
+ perfAcc+=raw;perfN++;
+ if(perfAcc>=2){const avg=perfAcc/perfN;perfAcc=0;perfN=0;if(avg>1/42&&dpr>1.01){dprCap=Math.max(1,Math.round((dpr-.25)*100)/100);resize()}}
+}
 function loop(t){
  requestAnimationFrame(loop);
- let dt=Math.min((t-last)/1000,.033);last=t;if(!(dt>=0))dt=0;
+ const raw=(t-last)/1000;
+ let dt=Math.min(raw,.033);last=t;if(!(dt>=0))dt=0;frameDt=dt||frameDt;
+ if(phase==='play'&&!paused&&!descentActive)perfWatch(raw);else{perfAcc=0;perfN=0}
  if(descentActive){last=t;return}
  if(!player||paused)return;
  if(phase==='play'){updateGame(dt);updateFx(dt);updateHud()}
