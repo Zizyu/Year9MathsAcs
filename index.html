@@ -342,8 +342,7 @@ no file<br>
     var html=new TextDecoder().decode(u);
     document.open();document.write(html);document.close();
     guards();
-    var wipe=function(){var s=document.querySelectorAll('script');for(var i=0;i<s.length;i++)if(!s[i].src)s[i].textContent='no file'};
-    wipe();setTimeout(wipe,300);
+
    }catch(e){fail()}
   })();
  }
